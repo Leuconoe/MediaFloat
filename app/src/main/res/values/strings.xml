@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Media Control Floating Widget</string>
+    <string name="media_listener_service_label">Media session access</string>
+    <string name="overlay_runtime_channel_name">Overlay runtime</string>
+    <string name="overlay_runtime_channel_description">Keeps the media control widget runtime visible and recoverable.</string>
+    <string name="overlay_runtime_notification_title">Overlay runtime standby</string>
+    <string name="overlay_runtime_notification_body">The service shell is ready for the future floating widget runtime.</string>
 </resources>

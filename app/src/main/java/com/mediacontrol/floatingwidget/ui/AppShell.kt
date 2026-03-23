@@ -26,6 +26,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.mediacontrol.floatingwidget.model.CapabilityGrantState
+import com.mediacontrol.floatingwidget.model.CapabilityState
+import com.mediacontrol.floatingwidget.model.NotificationPosture
+import com.mediacontrol.floatingwidget.model.OverlayRuntimeState
+import com.mediacontrol.floatingwidget.runtime.RuntimeStatusFormatter
 import com.mediacontrol.floatingwidget.ui.theme.MediaControlFloatingWidgetTheme
 
 data class PlaceholderSection(
@@ -50,7 +55,11 @@ fun defaultPlaceholderSections(): List<PlaceholderSection> = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppShell(modifier: Modifier = Modifier) {
+fun AppShell(
+    capabilityState: CapabilityState = previewCapabilityState(),
+    runtimeState: OverlayRuntimeState = previewRuntimeState(),
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -63,6 +72,8 @@ fun AppShell(modifier: Modifier = Modifier) {
     ) { innerPadding ->
         PlaceholderHomeScreen(
             sections = defaultPlaceholderSections(),
+            capabilityState = capabilityState,
+            runtimeState = runtimeState,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -71,8 +82,15 @@ fun AppShell(modifier: Modifier = Modifier) {
 @Composable
 fun PlaceholderHomeScreen(
     sections: List<PlaceholderSection>,
+    capabilityState: CapabilityState,
+    runtimeState: OverlayRuntimeState,
     modifier: Modifier = Modifier
 ) {
+    val runtimeSummary = RuntimeStatusFormatter.format(
+        capabilityState = capabilityState,
+        runtimeState = runtimeState
+    )
+
     Surface(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -90,6 +108,7 @@ fun PlaceholderHomeScreen(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            RuntimeStatusCard(runtimeSummary = runtimeSummary)
             WidgetPreviewCard()
             sections.forEach { section ->
                 Card(
@@ -113,6 +132,43 @@ fun PlaceholderHomeScreen(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RuntimeStatusCard(
+    runtimeSummary: com.mediacontrol.floatingwidget.runtime.RuntimeStatusSummary,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = runtimeSummary.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = runtimeSummary.detail,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            runtimeSummary.capabilityLines.forEach { line ->
+                Text(
+                    text = line,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
         }
     }
@@ -195,4 +251,19 @@ private fun AppShellPreview() {
     MediaControlFloatingWidgetTheme {
         AppShell()
     }
+}
+
+private fun previewCapabilityState(): CapabilityState {
+    return CapabilityState(
+        overlayAccess = CapabilityGrantState.Missing,
+        notificationListenerAccess = CapabilityGrantState.Missing,
+        notificationPosture = NotificationPosture.PermissionRequired,
+        serviceStartReadiness = CapabilityGrantState.Granted
+    )
+}
+
+private fun previewRuntimeState(): OverlayRuntimeState {
+    return OverlayRuntimeState.Unavailable(
+        reason = com.mediacontrol.floatingwidget.model.OverlayUnavailableReason.MissingOverlayAccess
+    )
 }
