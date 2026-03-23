@@ -11,4 +11,247 @@
     <string name="overlay_button_play_pause">Play or pause</string>
     <string name="overlay_button_next">Next track</string>
     <string name="overlay_drag_handle">Drag overlay</string>
+
+    <string name="section_landing_title">Overlay landing</string>
+    <string name="section_landing_short">Landing</string>
+    <string name="section_landing_description">Check readiness and start or stop the overlay.</string>
+    <string name="section_settings_title">Settings</string>
+    <string name="section_settings_short">Settings</string>
+    <string name="section_settings_description">Adjust buttons, size, and core overlay controls.</string>
+    <string name="section_advanced_title">Advanced settings</string>
+    <string name="section_advanced_short">Advanced</string>
+    <string name="section_advanced_description">Tune width, theme, language, behavior, and debug options.</string>
+    <string name="section_debug_title">Debug console</string>
+    <string name="section_debug_short">Debug</string>
+    <string name="section_debug_description">Inspect runtime state, media state, and recent logs.</string>
+    <string name="section_support_title">Support and about</string>
+    <string name="section_support_short">Support</string>
+    <string name="section_support_description">Review setup help, app details, constraints, and licenses.</string>
+
+    <string name="navigation_title">Control center</string>
+    <string name="navigation_detail">Start from Landing to recover access quickly, then move into Settings, Advanced, or Support.</string>
+
+    <string name="current_readiness_title">Current readiness</string>
+    <string name="runtime_status_title">Runtime status</string>
+    <string name="overlay_controls_title">Overlay controls</string>
+    <string name="overlay_controls_landing_detail">Start or stop the floating bar here. If Android blocks startup, recover access and try again.</string>
+    <string name="overlay_controls_settings_detail">Start or stop the real floating widget after changing the saved shell.</string>
+
+    <string name="visible_buttons_title">Visible buttons</string>
+    <string name="visible_buttons_detail">Play / pause stays centered. Add previous and next only when you want them in the live bar.</string>
+    <string name="visible_buttons_previous_detail">Shows the previous-track command on the left edge.</string>
+    <string name="visible_buttons_play_pause_detail">Always included so the layout stays supported.</string>
+    <string name="visible_buttons_next_detail">Shows the next-track command before the drag handle.</string>
+    <string name="toggle_state_fixed">Fixed</string>
+    <string name="toggle_state_on">On</string>
+    <string name="toggle_state_off">Off</string>
+
+    <string name="size_preset_title">Size preset</string>
+    <string name="size_preset_detail">Switch between supported shell sizes instead of freeform resizing.</string>
+    <string name="size_preset_option_detail">%1$ddp wide x %2$ddp tall</string>
+    <string name="size_preset_compact">Compact</string>
+    <string name="size_preset_standard">Standard</string>
+    <string name="size_preset_large">Large</string>
+
+    <string name="button_width_title">Button width</string>
+    <string name="button_width_detail">Choose regular or wider touch targets for the floating controls.</string>
+    <string name="button_width_regular">Regular</string>
+    <string name="button_width_wide">Wide</string>
+    <string name="button_width_regular_detail">Balanced width for the default compact feel.</string>
+    <string name="button_width_wide_detail">Wider buttons and handle for easier tapping.</string>
+
+    <string name="widget_theme_title">Widget theme</string>
+    <string name="widget_theme_detail">Theme presets update the real floating widget immediately.</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_dark_blue">Dark blue</string>
+    <string name="theme_medium_yellow">Medium yellow</string>
+    <string name="theme_pink">Pink</string>
+    <string name="theme_light_detail">Bright neutral shell with dark controls.</string>
+    <string name="theme_dark_detail">Default low-glare shell for general use.</string>
+    <string name="theme_dark_blue_detail">Cool dark shell with stronger blue contrast.</string>
+    <string name="theme_medium_yellow_detail">Warm yellow shell that stays readable.</string>
+    <string name="theme_pink_detail">Soft pink shell with clear controls.</string>
+
+    <string name="actual_widget_title">Real widget settings</string>
+    <string name="actual_widget_detail">Changes here apply to the real floating widget directly.</string>
+    <string name="actual_widget_saved_position">Saved position: %1$s edge, %2$ddp x %3$ddp.</string>
+    <string name="widget_preview_title">Live widget preview</string>
+    <string name="widget_preview_detail">This constrained stage mirrors the real horizontal overlay family: supported button sets only, preset sizing only, and a fixed right-side drag handle.</string>
+    <string name="preview_button_previous">Prev</string>
+    <string name="preview_button_play">Play</string>
+    <string name="preview_button_pause">Pause</string>
+    <string name="preview_button_next">Next</string>
+
+    <string name="landing_overview_title">What MediaFloat does</string>
+    <string name="landing_overview_detail">MediaFloat keeps previous, play / pause, and next close in a small movable overlay.</string>
+    <string name="landing_overview_ready">System access is aligned, so you can start the overlay from this page.</string>
+    <string name="landing_overview_showing">The overlay is already live. Stop it here or adjust the saved shell in Settings.</string>
+    <string name="landing_overview_suspended">The runtime paused after startup. Recover the missing access and try again.</string>
+    <string name="landing_overview_unavailable">A required system condition is missing. Use the recovery shortcuts below.</string>
+    <string name="landing_supporting_showing">The overlay is already visible. Stop it here or open Settings to change the saved shell.</string>
+    <string name="landing_supporting_ready">Everything required for startup is aligned. You can launch the overlay from here or through automation.</string>
+    <string name="landing_supporting_blocked">Recover the missing system access below, come back here, and try again.</string>
+
+    <string name="recovery_shortcuts_title">Recovery shortcuts</string>
+    <string name="recovery_shortcuts_ready_detail">No blocked system access is detected right now.</string>
+    <string name="recovery_shortcuts_blocked_detail">Open the missing system access page, return here, and try the overlay again.</string>
+
+    <string name="developer_tools_title">Developer tools</string>
+    <string name="developer_tools_detail">Keep Debug hidden unless you need runtime inspection, transport tests, or recent logs.</string>
+    <string name="developer_tools_toggle_title">Show Debug section</string>
+    <string name="developer_tools_toggle_on">Debug is visible in the section selector.</string>
+    <string name="developer_tools_toggle_off">Debug stays hidden until you turn it on.</string>
+
+    <string name="behavior_title">Behavior</string>
+    <string name="persistent_overlay_title">Persistent overlay</string>
+    <string name="persistent_overlay_detail">Keep the runtime preference aligned with the saved widget configuration.</string>
+    <string name="current_edge_label">Current edge</string>
+    <string name="horizontal_offset_label">Horizontal offset</string>
+    <string name="vertical_offset_label">Vertical offset</string>
+    <string name="behavior_footer">The overlay still owns drag positioning. This screen shows the saved shape without turning into a freeform editor.</string>
+
+    <string name="app_language_title">App language</string>
+    <string name="app_language_detail">Choose the app language. Changes apply right away across the app shell.</string>
+    <string name="language_system_default">System default</string>
+    <string name="language_english">English</string>
+    <string name="language_korean">Korean</string>
+    <string name="language_chinese">Chinese</string>
+    <string name="language_japanese">Japanese</string>
+    <string name="language_spanish">Spanish</string>
+    <string name="language_french">French</string>
+    <string name="language_system_default_detail">Follow the device language setting.</string>
+    <string name="language_applies_immediately">Applies immediately to the app shell.</string>
+
+    <string name="runtime_capability_overlay_access">Overlay access: %1$s</string>
+    <string name="runtime_capability_notification_listener">Notification listener: %1$s</string>
+    <string name="runtime_capability_notification_posture">Notification posture: %1$s</string>
+    <string name="runtime_capability_service_start">Service start: %1$s</string>
+    <string name="runtime_title_ready">Runtime ready</string>
+    <string name="runtime_title_showing">Overlay showing</string>
+    <string name="runtime_title_suspended">Runtime suspended</string>
+    <string name="runtime_title_unavailable">Runtime unavailable</string>
+    <string name="runtime_detail_ready">Permissions and notification posture are aligned for the foreground service to show the overlay.</string>
+    <string name="runtime_detail_showing">The foreground service owns a live WindowManager overlay and is updating media command availability in place.</string>
+    <string name="runtime_detail_suspended">The runtime is paused until the foreground service can recover: %1$s.</string>
+    <string name="runtime_detail_unavailable">Persistent overlay mode is blocked until %1$s.</string>
+    <string name="runtime_supporting_ready">The foreground service can be started from Landing, Settings, or the automation entry activity.</string>
+    <string name="runtime_supporting_showing">Live layout %1$s on the %2$s edge.</string>
+    <string name="runtime_supporting_suspended">The runtime is paused and waiting for recovery.</string>
+    <string name="runtime_supporting_unavailable">Resolve the blocking capability, then start the overlay again.</string>
+
+    <string name="state_granted">granted</string>
+    <string name="state_missing">missing</string>
+    <string name="state_blocked">blocked</string>
+    <string name="state_unsupported">unsupported</string>
+    <string name="state_visible">visible</string>
+    <string name="state_permission_required">permission required</string>
+    <string name="state_ready">Ready</string>
+    <string name="state_showing">Showing</string>
+    <string name="state_paused">Paused</string>
+
+    <string name="recovery_goal_overlay_access">overlay access is granted</string>
+    <string name="recovery_goal_listener_access">notification listener access is granted</string>
+    <string name="recovery_goal_notifications">notification visibility is restored</string>
+    <string name="recovery_goal_service_start">service start is allowed</string>
+    <string name="recovery_goal_device_condition">the device condition is supported</string>
+    <string name="recovery_goal_runtime_issue">the runtime issue is resolved</string>
+    <string name="recovery_line_overlay_access">- Grant display over other apps access</string>
+    <string name="recovery_line_listener_access">- Grant notification listener access</string>
+    <string name="recovery_line_notifications">- Restore app notification visibility</string>
+    <string name="recovery_line_service_start">- Check foreground service eligibility</string>
+    <string name="recovery_line_device_condition">- Device conditions are unsupported for this runtime</string>
+    <string name="recovery_line_runtime_failure">- Resolve the last runtime failure</string>
+
+    <string name="system_access_title">System access</string>
+    <string name="system_access_ready_detail">Everything needed for the persistent overlay runtime is currently ready.</string>
+    <string name="system_access_blocked_detail">Use these system links to unblock the runtime when a permission or notification posture changes.</string>
+    <string name="action_overlay_access">Overlay access</string>
+    <string name="action_listener_access">Listener access</string>
+    <string name="action_notifications">Notifications</string>
+    <string name="action_open_overlay_access">Open overlay access</string>
+    <string name="action_open_listener_access">Open listener access</string>
+    <string name="action_open_notifications">Open notifications</string>
+
+    <string name="media_readiness_title">Media readiness</string>
+    <string name="media_readiness_actions">Previous %1$s  Play / pause %2$s  Next %3$s</string>
+    <string name="media_state_discovering_title">Looking for an active session</string>
+    <string name="media_state_unavailable_title">No active media session</string>
+    <string name="media_state_active_title">Active media session</string>
+    <string name="media_state_limited_title">Limited media session</string>
+    <string name="media_state_error_title">Media session error</string>
+    <string name="media_state_discovering_detail">The repository is tracking notification listener state and searching for the best controller.</string>
+    <string name="media_state_unavailable_detail">Open a media app and start playback so transport controls become available.</string>
+    <string name="media_state_active_detail">Session %1$s is available and can update transport support live as playback changes.</string>
+    <string name="media_state_limited_detail">A session is present, but one or more transport controls are currently unavailable.</string>
+    <string name="media_state_error_detail">The repository reported an error while reading media session state.</string>
+    <string name="media_state_playback_line">Playback: %1$s</string>
+    <string name="media_state_supported_line">Supported: %1$s</string>
+    <string name="media_state_limit_line">Limit: %1$s</string>
+    <string name="media_state_reason_line">Reason: %1$s</string>
+
+    <string name="debug_controls_title">Debug controls</string>
+    <string name="debug_controls_detail">These buttons use the same app-service and dispatcher path as the runtime, so they also work as a practical test surface.</string>
+    <string name="action_start_overlay">Start overlay</string>
+    <string name="action_stop_overlay">Stop overlay</string>
+    <string name="action_clear">Clear</string>
+    <string name="recent_debug_log_title">Recent debug log</string>
+    <string name="recent_debug_log_detail">Showing %1$d of %2$d entries. Retention limit %3$d.</string>
+    <string name="recent_debug_log_empty">No log entries yet. Runtime changes, media actions, widget saves, and debug actions will appear here.</string>
+
+    <string name="setup_help_title">Setup help</string>
+    <string name="setup_help_detail">If the overlay does not appear, confirm display-over-apps access, notification listener access, and visible app notifications. If you enable Debug, the debug console can still send real media commands while you verify the runtime.</string>
+
+    <string name="app_info_title">App info</string>
+    <string name="about_version_label">Version</string>
+    <string name="about_package_label">Package</string>
+    <string name="about_automation_label">Automation action</string>
+    <string name="about_language_label">App language</string>
+    <string name="about_saved_widget_label">Saved widget</string>
+    <string name="app_info_footer">This release keeps a single horizontal overlay family so configuration stays deliberate, testable, and consistent with the runtime.</string>
+
+    <string name="product_constraints_title">Product constraints</string>
+    <string name="product_constraints_list">- Horizontal overlay family only
+- Right-side drag handle only
+- Size presets instead of freeform resizing
+- Button sets limited to supported transport layouts</string>
+    <string name="product_constraints_footer">These constraints keep the overlay predictable across phones and tablets while Debug exercises the same real runtime path.</string>
+
+    <string name="licenses_title">Licenses</string>
+    <string name="licenses_intro">Notice summary for the libraries visible in this single-module app:</string>
+    <string name="licenses_androidx">AndroidX Activity Compose, Lifecycle Runtime Compose, Compose UI, and Material3 are distributed under Apache License 2.0.</string>
+    <string name="licenses_material">Google Material Components are distributed under Apache License 2.0.</string>
+    <string name="licenses_kotlin">Kotlin standard library components are distributed under Apache License 2.0.</string>
+    <string name="licenses_platform">Android platform media and overlay APIs are used through Android SDK terms rather than bundled third-party source.</string>
+    <string name="licenses_log_retention">Current in-app debug log retention: %1$d entries.</string>
+
+    <string name="metric_runtime">Runtime</string>
+    <string name="metric_buttons">Buttons</string>
+    <string name="metric_size">Size</string>
+    <string name="metric_width">Width</string>
+    <string name="metric_theme">Theme</string>
+    <string name="metric_language">Language</string>
+    <string name="metric_saved_edge">Saved edge</string>
+    <string name="metric_offset">Offset</string>
+
+    <string name="media_previous">Previous</string>
+    <string name="media_prev_short">Prev</string>
+    <string name="media_play_pause">Play / pause</string>
+    <string name="media_next">Next</string>
+    <string name="edge_left">Left</string>
+    <string name="edge_right">Right</string>
+    <string name="dp_value">%1$ddp</string>
+    <string name="offset_value">%1$ddp x %2$ddp</string>
+
+    <string name="playback_playing">Playing</string>
+    <string name="playback_paused">Paused</string>
+    <string name="playback_buffering">Buffering</string>
+    <string name="playback_stopped">Stopped</string>
+    <string name="playback_unknown">Unknown</string>
+    <string name="media_limit_missing_transport">Missing transport controls</string>
+    <string name="media_limit_playback_unknown">Playback state unknown</string>
+    <string name="media_limit_session_changing">Session changing</string>
+    <string name="media_error_permission_revoked">Permission revoked</string>
+    <string name="media_error_platform_failure">Platform failure</string>
+    <string name="media_error_unknown">Unknown</string>
 </resources>

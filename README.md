@@ -13,21 +13,21 @@
 </p>
 
 <p align="center">
-  <strong>v0.1.0</strong> · <strong>Android 10+</strong> · <strong>Kotlin</strong> · <strong>Jetpack Compose</strong>
+  <strong>v0.2.0</strong> · <strong>Android 10+</strong> · <strong>Kotlin</strong> · <strong>Jetpack Compose</strong>
 </p>
 
 ## Why MediaFloat
 
-MediaFloat focuses on one job: giving Android media controls a small, movable surface that stays available above other apps. The app keeps the scope intentionally tight so setup, behavior, and debugging stay understandable.
+MediaFloat focuses on one job: giving Android media controls a small, movable surface that stays available above other apps. The app stays intentionally narrow so setup, runtime behavior, and recovery remain understandable.
 
-## What it ships with
+## What ships in v0.2.0
 
 - A floating overlay bar for `Previous`, `Play / pause`, and `Next`
-- A right-side drag handle and saved overlay position
-- A foreground-service runtime with readiness checks for overlay and notification access
-- A Settings surface with supported button layouts, size presets, and a live preview
-- A Debug console with runtime state, media state, transport controls, and recent logs
-- A Support surface with setup help, version details, product constraints, and lightweight notices
+- Saved overlay position, width presets, theme presets, and persistent runtime behavior
+- Landing, Settings, Advanced, Support, and hidden Debug surfaces inside the single-module app
+- App-language support for `System default`, English, Korean, Chinese, Japanese, Spanish, and French
+- Android resource-backed shell text for the shipped app surfaces and runtime-facing notices
+- A foreground-service runtime with readiness checks for overlay, notification listener, and notification posture
 - An exported automation action for launching the overlay flow from routines or shortcuts
 
 ## Quick start
@@ -58,7 +58,7 @@ MediaFloat depends on Android system capabilities before the overlay can remain 
 3. Grant notification-listener access so MediaFloat can observe active media sessions.
 4. Allow app notifications, especially on Android 13+, so the foreground-service notification stays visible.
 5. Start playback in a media app.
-6. Use `Settings` or `Debug` to start the overlay.
+6. Use `Landing`, `Settings`, or `Debug` to start the overlay.
 
 If readiness is blocked, the app exposes shortcuts back to the relevant system settings screens.
 
@@ -73,9 +73,27 @@ If readiness is blocked, the app exposes shortcuts back to the relevant system s
 
 ## App surfaces
 
-- `Settings` - adjust visible buttons, choose a size preset, review the live preview, and start the overlay
-- `Debug` - inspect runtime readiness, inspect media readiness, send transport commands, start or stop the overlay, and clear recent logs
-- `Support` - review setup help, version details, current constraints, and lightweight notices
+- `Landing` - check readiness and start or stop the overlay quickly
+- `Settings` - adjust visible buttons, size presets, and real widget behavior
+- `Advanced` - choose app language, width style, theme preset, persistent overlay mode, and Debug visibility
+- `Support` - review setup guidance, version details, saved widget details, product constraints, and license notices
+- `Debug` - inspect runtime readiness, inspect media readiness, send transport commands, start or stop the overlay, clear logs, and review recent events
+
+## App language support
+
+MediaFloat `v0.2.0` uses the AppCompat app-language path so locale selection works on Android 13+ and older supported versions.
+
+Available app languages:
+
+- `System default`
+- `English`
+- `Korean`
+- `Chinese`
+- `Japanese`
+- `Spanish`
+- `French`
+
+The language picker lives in `Advanced`, and the current app language is reflected in `Support`.
 
 ## Automation hook
 
@@ -102,21 +120,21 @@ To wire a signed local release build:
 
 ## Current status
 
-MediaFloat `v0.1.0` is a focused first release.
+MediaFloat `v0.2.0` is still intentionally constrained.
 
 - The overlay supports one horizontal control family
 - Freeform resizing is not supported; use the built-in size presets
-- The drag handle is fixed to the right side
+- The drag handle stays on the right side
 - Button combinations are limited to supported previous, play/pause, and next layouts
-- Overlay behavior depends on Android permission state and whether an active media session is available
-- Emulator validation is useful for setup and UI checks, but target-device validation still matters before a public release
+- Overlay behavior still depends on Android permission state and whether an active media session is available
+- Emulator validation is useful for setup and UI checks, but target-device validation still matters before wider release
 
 ## Changelog
 
-Release notes for the first release live in `CHANGELOG.md` and `docs/releases/v0.1.0.md`.
+Release notes live in `CHANGELOG.md`, `docs/releases/v0.1.0.md`, and `docs/releases/v0.2.0.md`.
 
 ## License
 
-This repository does not currently include a top-level `LICENSE` file.
+MediaFloat is now distributed under the Apache License 2.0. See `LICENSE`.
 
-The app itself includes a concise notice summary for the main third-party libraries used in the shipped Android build, including AndroidX, Compose Material 3, Google Material Components, and Kotlin standard library components.
+The app also includes a concise in-app notice summary for the main third-party libraries used in the shipped Android build, including AndroidX, Compose Material 3, Google Material Components, and Kotlin standard library components.

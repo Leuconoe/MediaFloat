@@ -3,9 +3,9 @@ package com.mediacontrol.floatingwidget
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -37,7 +37,7 @@ import com.mediacontrol.floatingwidget.state.WidgetConfigStateHolder
 import com.mediacontrol.floatingwidget.ui.AppShell
 import com.mediacontrol.floatingwidget.ui.theme.MediaFloatTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val appServices by lazy { MediaControlAppServices.from(this) }
     private val runtimeCoordinator: OverlayRuntimeCoordinator by lazy { appServices.runtimeCoordinator }
@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
     private var debugLogState by mutableStateOf(defaultDebugLogState())
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AppLocaleManager.apply(appServices.appPreferencesRepository.currentState().appLanguage)
         super.onCreate(savedInstanceState)
         appPreferences = appPreferencesStateHolder.currentState()
         applySummaryState(runtimeSummaryStateHolder.currentState())
@@ -91,6 +92,7 @@ class MainActivity : ComponentActivity() {
                     widgetConfigState = widgetConfigState,
                     debugLogState = debugLogState,
                     onSetDebugToolsEnabled = ::setDebugToolsEnabled,
+                    onSetAppLanguage = ::setAppLanguage,
                     onSetVisibleButtons = ::setVisibleButtons,
                     onSetSizePreset = ::setSizePreset,
                     onSetWidthStyle = ::setWidthStyle,
@@ -149,6 +151,11 @@ class MainActivity : ComponentActivity() {
 
     private fun setDebugToolsEnabled(enabled: Boolean) {
         appPreferencesStateHolder.setDebugToolsEnabled(enabled)
+    }
+
+    private fun setAppLanguage(appLanguage: com.mediacontrol.floatingwidget.model.AppLanguage) {
+        AppLocaleManager.apply(appLanguage)
+        appPreferencesStateHolder.setAppLanguage(appLanguage)
     }
 
     private fun setSizePreset(sizePreset: WidgetSizePreset) {

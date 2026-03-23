@@ -2,6 +2,25 @@
 
 All notable user-facing changes to MediaFloat are recorded here.
 
+## v0.2.0
+
+Final v0.2.0 feature-complete release of the current single-module MediaFloat app.
+
+- Added app-language support with `System default`, English, Korean, Chinese, Japanese, Spanish, and French
+- Added Android resource-backed shell text for the main shipped surfaces and runtime-facing user notices
+- Added the Advanced app-language picker and current-language visibility in Support
+- Added the AppCompat locale-selection path for Android 13+ and older supported versions
+- Added Apache-2.0 licensing and refreshed release-facing project documentation for v0.2.0
+- Kept the existing overlay, recovery, theme, width, persistence, automation, and hidden Debug flows intact
+
+Notes:
+
+- The overlay still targets a single horizontal control family
+- Freeform resizing and freeform button placement are still not supported
+- Emulator validation remains useful for setup and UI checks, but target-device validation is still recommended
+
+See also: `docs/releases/v0.2.0.md`
+
 ## v0.1.0
 
 Initial public repository release of MediaFloat.

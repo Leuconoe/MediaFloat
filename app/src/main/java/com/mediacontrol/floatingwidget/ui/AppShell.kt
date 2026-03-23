@@ -1,5 +1,6 @@
 package com.mediacontrol.floatingwidget.ui
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -47,7 +48,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,8 +59,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mediacontrol.floatingwidget.AutomationEntryActivity
 import com.mediacontrol.floatingwidget.BuildConfig
+import com.mediacontrol.floatingwidget.R
 import com.mediacontrol.floatingwidget.debug.DebugLogEntry
 import com.mediacontrol.floatingwidget.debug.DebugLogLevel
+import com.mediacontrol.floatingwidget.model.AppLanguage
 import com.mediacontrol.floatingwidget.model.AppPreferences
 import com.mediacontrol.floatingwidget.model.CapabilityGrantState
 import com.mediacontrol.floatingwidget.model.CapabilityState
@@ -87,6 +92,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
+import androidx.annotation.StringRes
 
 private const val PREVIEW_SCALE = 0.72f
 private val SectionCardShape = RoundedCornerShape(28.dp)
@@ -94,34 +100,34 @@ private val PanelShape = RoundedCornerShape(26.dp)
 private val LogTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d, HH:mm:ss")
 
 internal enum class AppSection(
-    val title: String,
-    val shortTitle: String,
-    val description: String
+    @StringRes val titleRes: Int,
+    @StringRes val shortTitleRes: Int,
+    @StringRes val descriptionRes: Int
 ) {
     Landing(
-        title = "Overlay landing",
-        shortTitle = "Landing",
-        description = "Check what MediaFloat needs, confirm the device is ready, and start or stop the overlay without digging through deeper tools."
+        titleRes = R.string.section_landing_title,
+        shortTitleRes = R.string.section_landing_short,
+        descriptionRes = R.string.section_landing_description
     ),
     Settings(
-        title = "Settings",
-        shortTitle = "Settings",
-        description = "Adjust the core overlay behavior you are likely to touch often: buttons, size, and start or stop access."
+        titleRes = R.string.section_settings_title,
+        shortTitleRes = R.string.section_settings_short,
+        descriptionRes = R.string.section_settings_description
     ),
     Advanced(
-        title = "Advanced settings",
-        shortTitle = "Advanced",
-        description = "Fine-tune widget width, color presets, persistent behavior, and developer-facing options."
+        titleRes = R.string.section_advanced_title,
+        shortTitleRes = R.string.section_advanced_short,
+        descriptionRes = R.string.section_advanced_description
     ),
     Debug(
-        title = "Debug console",
-        shortTitle = "Debug",
-        description = "Inspect runtime and media readiness, send real transport commands through the dispatcher, and review recent logs in-app."
+        titleRes = R.string.section_debug_title,
+        shortTitleRes = R.string.section_debug_short,
+        descriptionRes = R.string.section_debug_description
     ),
     Support(
-        title = "Support and about",
-        shortTitle = "Support",
-        description = "See setup guidance, version information, product constraints, and the app's lightweight v1 license notices."
+        titleRes = R.string.section_support_title,
+        shortTitleRes = R.string.section_support_short,
+        descriptionRes = R.string.section_support_description
     )
 }
 
@@ -151,6 +157,7 @@ fun AppShell(
     widgetConfigState: WidgetConfigScreenState = previewWidgetConfigState(),
     debugLogState: DebugLogScreenState = previewDebugLogState(),
     onSetDebugToolsEnabled: (Boolean) -> Unit = {},
+    onSetAppLanguage: (AppLanguage) -> Unit = {},
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit = {},
     onSetSizePreset: (WidgetSizePreset) -> Unit = {},
     onSetWidthStyle: (WidgetWidthStyle) -> Unit = {},
@@ -183,9 +190,9 @@ fun AppShell(
             TopAppBar(
                 title = {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(text = "MediaFloat")
+                        Text(text = stringResource(id = R.string.app_name))
                         Text(
-                            text = selectedSection.shortTitle,
+                            text = stringResource(id = selectedSection.shortTitleRes),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -227,6 +234,7 @@ fun AppShell(
                             widgetConfigState = widgetConfigState,
                             debugLogState = debugLogState,
                             onSetDebugToolsEnabled = onSetDebugToolsEnabled,
+                            onSetAppLanguage = onSetAppLanguage,
                             onSetVisibleButtons = onSetVisibleButtons,
                             onSetSizePreset = onSetSizePreset,
                             onSetWidthStyle = onSetWidthStyle,
@@ -267,6 +275,7 @@ fun AppShell(
                             widgetConfigState = widgetConfigState,
                             debugLogState = debugLogState,
                             onSetDebugToolsEnabled = onSetDebugToolsEnabled,
+                            onSetAppLanguage = onSetAppLanguage,
                             onSetVisibleButtons = onSetVisibleButtons,
                             onSetSizePreset = onSetSizePreset,
                             onSetWidthStyle = onSetWidthStyle,
@@ -299,19 +308,21 @@ private fun SectionRail(
     onSectionSelected: (AppSection) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = modifier.fillMaxHeight(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ScreenHeaderCard(
-            title = "Control center",
-            detail = "Start from the landing surface to recover readiness quickly, then move into settings or support. Debug stays hidden until it is enabled from Settings.",
+            title = stringResource(id = R.string.navigation_title),
+            detail = stringResource(id = R.string.navigation_detail),
             compact = false
         )
         sections.forEach { section ->
             SectionCard(
-                title = section.shortTitle,
-                detail = section.description,
+                title = context.getString(section.shortTitleRes),
+                detail = context.getString(section.descriptionRes),
                 selected = section == selectedSection,
                 compact = false,
                 modifier = Modifier.testTag(section.selectorTag()),
@@ -327,13 +338,15 @@ private fun CompactSectionSelector(
     selectedSection: AppSection,
     onSectionSelected: (AppSection) -> Unit
 ) {
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         sections.forEach { section ->
             CompactSectionButton(
-                title = section.shortTitle,
+                title = context.getString(section.shortTitleRes),
                 selected = section == selectedSection,
                 modifier = Modifier.testTag(section.selectorTag()),
                 onClick = { onSectionSelected(section) }
@@ -443,6 +456,7 @@ private fun SectionContent(
     widgetConfigState: WidgetConfigScreenState,
     debugLogState: DebugLogScreenState,
     onSetDebugToolsEnabled: (Boolean) -> Unit,
+    onSetAppLanguage: (AppLanguage) -> Unit,
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit,
     onSetSizePreset: (WidgetSizePreset) -> Unit,
     onSetWidthStyle: (WidgetWidthStyle) -> Unit,
@@ -487,6 +501,7 @@ private fun SectionContent(
                 )
 
                 AppSection.Settings -> SettingsScreen(
+                    appPreferences = appPreferences,
                     capabilityState = capabilityState,
                     runtimeState = runtimeState,
                     mediaSummaryState = mediaSummaryState,
@@ -502,6 +517,7 @@ private fun SectionContent(
                     appPreferences = appPreferences,
                     widgetConfigState = widgetConfigState,
                     onSetDebugToolsEnabled = onSetDebugToolsEnabled,
+                    onSetAppLanguage = onSetAppLanguage,
                     onSetWidthStyle = onSetWidthStyle,
                     onSetThemePreset = onSetThemePreset,
                     onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
@@ -526,6 +542,7 @@ private fun SectionContent(
                 )
 
                 AppSection.Support -> SupportScreen(
+                    appPreferences = appPreferences,
                     capabilityState = capabilityState,
                     widgetConfigState = widgetConfigState,
                     debugLogState = debugLogState,
@@ -556,8 +573,8 @@ private fun LandingScreen(
     val readinessProblems = capabilityState.unavailableReasons()
 
     ScreenHeaderCard(
-        title = AppSection.Landing.title,
-        detail = AppSection.Landing.description,
+        title = stringResource(id = AppSection.Landing.titleRes),
+        detail = stringResource(id = AppSection.Landing.descriptionRes),
         modifier = Modifier.testTag(AppSection.Landing.headerTag()),
         compact = !wideLayout
     )
@@ -579,8 +596,9 @@ private fun LandingScreen(
                 RuntimeStatusCard(
                     capabilityState = capabilityState,
                     runtimeState = runtimeState,
-                    heading = "Current readiness",
+                    heading = stringResource(id = R.string.current_readiness_title),
                     supportingLine = landingSupportingLine(
+                        context = LocalContext.current,
                         runtimeState = runtimeState,
                         readinessProblems = readinessProblems
                     )
@@ -606,8 +624,8 @@ private fun LandingScreen(
                     onDispatchPrevious = {},
                     onDispatchPlayPause = {},
                     onDispatchNext = {},
-                    title = "Overlay controls",
-                    detail = "Use the saved widget setup to start or stop the floating bar right away. If Android blocks startup, recover the missing access from this page and try again.",
+                    title = stringResource(id = R.string.overlay_controls_title),
+                    detail = stringResource(id = R.string.overlay_controls_landing_detail),
                     showTransportControls = false
                 )
                 MediaStatusCard(mediaSummaryState = mediaSummaryState)
@@ -622,8 +640,9 @@ private fun LandingScreen(
         RuntimeStatusCard(
             capabilityState = capabilityState,
             runtimeState = runtimeState,
-            heading = "Current readiness",
+            heading = stringResource(id = R.string.current_readiness_title),
             supportingLine = landingSupportingLine(
+                context = LocalContext.current,
                 runtimeState = runtimeState,
                 readinessProblems = readinessProblems
             )
@@ -637,8 +656,8 @@ private fun LandingScreen(
             onDispatchPrevious = {},
             onDispatchPlayPause = {},
             onDispatchNext = {},
-            title = "Overlay controls",
-            detail = "Start or stop the floating bar here. If Android blocks startup, use the recovery shortcuts below and return to this screen.",
+            title = stringResource(id = R.string.overlay_controls_title),
+            detail = stringResource(id = R.string.overlay_controls_landing_detail),
             showTransportControls = false
         )
         LandingRecoveryCard(
@@ -654,6 +673,7 @@ private fun LandingScreen(
 
 @Composable
 private fun SettingsScreen(
+    appPreferences: AppPreferences,
     capabilityState: CapabilityState,
     runtimeState: OverlayRuntimeState,
     mediaSummaryState: MediaSummaryState,
@@ -665,8 +685,8 @@ private fun SettingsScreen(
     wideLayout: Boolean
 ) {
     ScreenHeaderCard(
-        title = AppSection.Settings.title,
-        detail = AppSection.Settings.description,
+        title = stringResource(id = AppSection.Settings.titleRes),
+        detail = stringResource(id = AppSection.Settings.descriptionRes),
         modifier = Modifier.testTag(AppSection.Settings.headerTag()),
         compact = !wideLayout
     )
@@ -681,6 +701,7 @@ private fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 ActualOverlayNoticeCard(
+                    appLanguage = appPreferences.appLanguage,
                     config = widgetConfigState.config,
                     position = widgetConfigState.position
                 )
@@ -701,14 +722,15 @@ private fun SettingsScreen(
                     onDispatchPrevious = {},
                     onDispatchPlayPause = {},
                     onDispatchNext = {},
-                    title = "Overlay controls",
-                    detail = "Start or stop the real floating widget after changing the core shell settings.",
+                    title = stringResource(id = R.string.overlay_controls_title),
+                    detail = stringResource(id = R.string.overlay_controls_settings_detail),
                     showTransportControls = false
                 )
             }
         }
     } else {
         ActualOverlayNoticeCard(
+            appLanguage = appPreferences.appLanguage,
             config = widgetConfigState.config,
             position = widgetConfigState.position
         )
@@ -729,8 +751,8 @@ private fun SettingsScreen(
             onDispatchPrevious = {},
             onDispatchPlayPause = {},
             onDispatchNext = {},
-            title = "Overlay controls",
-            detail = "Start or stop the real floating widget after changing the core shell settings.",
+            title = stringResource(id = R.string.overlay_controls_title),
+            detail = stringResource(id = R.string.overlay_controls_settings_detail),
             showTransportControls = false
         )
     }
@@ -741,14 +763,15 @@ private fun AdvancedSettingsScreen(
     appPreferences: AppPreferences,
     widgetConfigState: WidgetConfigScreenState,
     onSetDebugToolsEnabled: (Boolean) -> Unit,
+    onSetAppLanguage: (AppLanguage) -> Unit,
     onSetWidthStyle: (WidgetWidthStyle) -> Unit,
     onSetThemePreset: (WidgetThemePreset) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
     wideLayout: Boolean
 ) {
     ScreenHeaderCard(
-        title = AppSection.Advanced.title,
-        detail = AppSection.Advanced.description,
+        title = stringResource(id = AppSection.Advanced.titleRes),
+        detail = stringResource(id = AppSection.Advanced.descriptionRes),
         compact = !wideLayout
     )
 
@@ -774,6 +797,10 @@ private fun AdvancedSettingsScreen(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                AppLanguageCard(
+                    selectedLanguage = appPreferences.appLanguage,
+                    onSetAppLanguage = onSetAppLanguage
+                )
                 WidgetBehaviorCard(
                     config = widgetConfigState.config,
                     position = widgetConfigState.position,
@@ -793,6 +820,10 @@ private fun AdvancedSettingsScreen(
         ThemePresetCard(
             selectedPreset = widgetConfigState.config.themePreset,
             onSetThemePreset = onSetThemePreset
+        )
+        AppLanguageCard(
+            selectedLanguage = appPreferences.appLanguage,
+            onSetAppLanguage = onSetAppLanguage
         )
         WidgetBehaviorCard(
             config = widgetConfigState.config,
@@ -824,8 +855,8 @@ private fun DebugScreen(
     wideLayout: Boolean
 ) {
     ScreenHeaderCard(
-        title = AppSection.Debug.title,
-        detail = AppSection.Debug.description,
+        title = stringResource(id = AppSection.Debug.titleRes),
+        detail = stringResource(id = AppSection.Debug.descriptionRes),
         modifier = Modifier.testTag(AppSection.Debug.headerTag()),
         compact = !wideLayout
     )
@@ -842,8 +873,8 @@ private fun DebugScreen(
                 RuntimeStatusCard(
                     capabilityState = capabilityState,
                     runtimeState = runtimeState,
-                    heading = "Runtime status",
-                    supportingLine = runtimeSupportingLine(runtimeState)
+                    heading = stringResource(id = R.string.runtime_status_title),
+                    supportingLine = runtimeSupportingLine(LocalContext.current, runtimeState)
                 )
                 MediaStatusCard(mediaSummaryState = mediaSummaryState)
                 DebugControlsCard(
@@ -874,8 +905,8 @@ private fun DebugScreen(
         RuntimeStatusCard(
             capabilityState = capabilityState,
             runtimeState = runtimeState,
-            heading = "Runtime status",
-            supportingLine = runtimeSupportingLine(runtimeState)
+            heading = stringResource(id = R.string.runtime_status_title),
+            supportingLine = runtimeSupportingLine(LocalContext.current, runtimeState)
         )
         MediaStatusCard(mediaSummaryState = mediaSummaryState)
         DebugControlsCard(
@@ -904,6 +935,7 @@ private fun DebugScreen(
 
 @Composable
 private fun SupportScreen(
+    appPreferences: AppPreferences,
     capabilityState: CapabilityState,
     widgetConfigState: WidgetConfigScreenState,
     debugLogState: DebugLogScreenState,
@@ -914,8 +946,8 @@ private fun SupportScreen(
     wideLayout: Boolean
 ) {
     ScreenHeaderCard(
-        title = AppSection.Support.title,
-        detail = AppSection.Support.description,
+        title = stringResource(id = AppSection.Support.titleRes),
+        detail = stringResource(id = AppSection.Support.descriptionRes),
         modifier = Modifier.testTag(AppSection.Support.headerTag()),
         compact = !wideLayout
     )
@@ -937,6 +969,7 @@ private fun SupportScreen(
                     compact = false
                 )
                 AboutCard(
+                    appLanguage = appPreferences.appLanguage,
                     widgetConfigState = widgetConfigState,
                     automationLaunchAction = automationLaunchAction
                 )
@@ -958,6 +991,7 @@ private fun SupportScreen(
             compact = true
         )
         AboutCard(
+            appLanguage = appPreferences.appLanguage,
             widgetConfigState = widgetConfigState,
             automationLaunchAction = automationLaunchAction
         )
@@ -1025,12 +1059,12 @@ private fun WidgetPreviewEditorCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Live widget preview",
+                text = stringResource(id = R.string.widget_preview_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "This constrained stage mirrors the real horizontal overlay family: supported button sets only, preset sizing only, and a fixed right-side drag handle.",
+                text = stringResource(id = R.string.widget_preview_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1043,15 +1077,15 @@ private fun WidgetPreviewEditorCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                MetricPill(label = "Size", value = config.sizePreset.displayTitle())
-                MetricPill(label = "Buttons", value = config.layout.summaryLabel())
+                MetricPill(label = stringResource(id = R.string.metric_size), value = config.sizePreset.displayTitle(LocalContext.current))
+                MetricPill(label = stringResource(id = R.string.metric_buttons), value = config.layout.summaryLabel(LocalContext.current))
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                MetricPill(label = "Saved edge", value = position.anchor.displayLabel())
-                MetricPill(label = "Offset", value = "${position.xOffsetDp}dp x ${position.yOffsetDp}dp")
+                MetricPill(label = stringResource(id = R.string.metric_saved_edge), value = position.anchor.displayLabel(LocalContext.current))
+                MetricPill(label = stringResource(id = R.string.metric_offset), value = stringResource(id = R.string.offset_value, position.xOffsetDp, position.yOffsetDp))
             }
         }
     }
@@ -1162,9 +1196,13 @@ private fun PreviewOverlayButton(
     val command = button.toMediaCommand()
     val enabled = mediaState.supports(command)
     val label = when (button) {
-        WidgetButton.Previous -> "Prev"
-        WidgetButton.PlayPause -> if ((mediaState as? MediaSessionState.Active)?.playbackStatus == PlaybackStatus.Playing) "Pause" else "Play"
-        WidgetButton.Next -> "Next"
+        WidgetButton.Previous -> stringResource(id = R.string.preview_button_previous)
+        WidgetButton.PlayPause -> if ((mediaState as? MediaSessionState.Active)?.playbackStatus == PlaybackStatus.Playing) {
+            stringResource(id = R.string.preview_button_pause)
+        } else {
+            stringResource(id = R.string.preview_button_play)
+        }
+        WidgetButton.Next -> stringResource(id = R.string.preview_button_next)
     }
 
     Box(
@@ -1205,18 +1243,18 @@ private fun ButtonSetEditorCard(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Visible buttons",
+                text = stringResource(id = R.string.visible_buttons_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Play / pause stays in the center of every supported layout. Add previous and next only when you want them in the live bar.",
+                text = stringResource(id = R.string.visible_buttons_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             ToggleOptionCard(
-                title = "Previous",
-                detail = "Shows the previous-track command on the left edge.",
+                title = stringResource(id = R.string.media_previous),
+                detail = stringResource(id = R.string.visible_buttons_previous_detail),
                 selected = hasPrevious,
                 enabled = true,
                 onClick = {
@@ -1224,15 +1262,15 @@ private fun ButtonSetEditorCard(
                 }
             )
             ToggleOptionCard(
-                title = "Play / pause",
-                detail = "Always included so the overlay keeps a consistent supported layout.",
+                title = stringResource(id = R.string.media_play_pause),
+                detail = stringResource(id = R.string.visible_buttons_play_pause_detail),
                 selected = true,
                 enabled = false,
                 onClick = {}
             )
             ToggleOptionCard(
-                title = "Next",
-                detail = "Shows the next-track command before the drag handle.",
+                title = stringResource(id = R.string.media_next),
+                detail = stringResource(id = R.string.visible_buttons_next_detail),
                 selected = hasNext,
                 enabled = true,
                 onClick = {
@@ -1299,9 +1337,9 @@ private fun ToggleOptionCard(
             }
             Text(
                 text = when {
-                    !enabled -> "Fixed"
-                    selected -> "On"
-                    else -> "Off"
+                    !enabled -> stringResource(id = R.string.toggle_state_fixed)
+                    selected -> stringResource(id = R.string.toggle_state_on)
+                    else -> stringResource(id = R.string.toggle_state_off)
                 },
                 style = MaterialTheme.typography.labelLarge,
                 color = contentColor
@@ -1326,19 +1364,19 @@ private fun SizePresetCard(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Size preset",
+                text = stringResource(id = R.string.size_preset_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Switch between the supported overlay shells instead of freeform resizing. The real floating widget updates as soon as you choose a preset.",
+                text = stringResource(id = R.string.size_preset_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             WidgetSizePreset.entries.forEach { preset ->
                 ToggleOptionCard(
-                    title = preset.displayTitle(),
-                    detail = "${preset.widthDp}dp wide x ${preset.heightDp}dp tall",
+                    title = preset.displayTitle(LocalContext.current),
+                    detail = stringResource(id = R.string.size_preset_option_detail, preset.widthDp, preset.heightDp),
                     selected = preset == selectedPreset,
                     enabled = true,
                     onClick = { onSetSizePreset(preset) }
@@ -1364,21 +1402,21 @@ private fun WidthStyleCard(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Button width",
+                text = stringResource(id = R.string.button_width_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Choose whether the floating buttons keep their regular footprint or stretch into a wider touch target.",
+                text = stringResource(id = R.string.button_width_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             WidgetWidthStyle.entries.forEach { style ->
                 ToggleOptionCard(
-                    title = style.displayTitle(),
+                    title = style.displayTitle(LocalContext.current),
                     detail = when (style) {
-                        WidgetWidthStyle.Regular -> "Balanced button width for the default compact overlay feel."
-                        WidgetWidthStyle.Wide -> "Wider buttons and handle for easier tapping and stronger visibility."
+                        WidgetWidthStyle.Regular -> stringResource(id = R.string.button_width_regular_detail)
+                        WidgetWidthStyle.Wide -> stringResource(id = R.string.button_width_wide_detail)
                     },
                     selected = style == selectedStyle,
                     enabled = true,
@@ -1405,19 +1443,19 @@ private fun ThemePresetCard(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Widget theme",
+                text = stringResource(id = R.string.widget_theme_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Theme presets change the real floating widget immediately so you can tune contrast without guessing through a fake preview.",
+                text = stringResource(id = R.string.widget_theme_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             WidgetThemePreset.entries.forEach { preset ->
                 ToggleOptionCard(
-                    title = preset.displayTitle(),
-                    detail = preset.description(),
+                    title = preset.displayTitle(LocalContext.current),
+                    detail = preset.description(LocalContext.current),
                     selected = preset == selectedPreset,
                     enabled = true,
                     onClick = { onSetThemePreset(preset) }
@@ -1429,10 +1467,13 @@ private fun ThemePresetCard(
 
 @Composable
 private fun ActualOverlayNoticeCard(
+    appLanguage: AppLanguage,
     config: WidgetConfig,
     position: WidgetPosition,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = PanelShape,
@@ -1443,12 +1484,12 @@ private fun ActualOverlayNoticeCard(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Real widget settings",
+                text = stringResource(id = R.string.actual_widget_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "The preview has been removed because it could drift from the actual runtime. Changes here now target the real floating widget directly.",
+                text = stringResource(id = R.string.actual_widget_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1456,18 +1497,28 @@ private fun ActualOverlayNoticeCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                MetricPill(label = "Buttons", value = config.layout.summaryLabel(), modifier = Modifier.weight(1f))
-                MetricPill(label = "Size", value = config.sizePreset.displayTitle(), modifier = Modifier.weight(1f))
+                MetricPill(label = stringResource(id = R.string.metric_buttons), value = config.layout.summaryLabel(context), modifier = Modifier.weight(1f))
+                MetricPill(label = stringResource(id = R.string.metric_size), value = config.sizePreset.displayTitle(context), modifier = Modifier.weight(1f))
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                MetricPill(label = "Width", value = config.widthStyle.displayTitle(), modifier = Modifier.weight(1f))
-                MetricPill(label = "Theme", value = config.themePreset.displayTitle(), modifier = Modifier.weight(1f))
+                MetricPill(label = stringResource(id = R.string.metric_width), value = config.widthStyle.displayTitle(context), modifier = Modifier.weight(1f))
+                MetricPill(label = stringResource(id = R.string.metric_theme), value = config.themePreset.displayTitle(context), modifier = Modifier.weight(1f))
             }
+            MetricPill(
+                label = stringResource(id = R.string.metric_language),
+                value = appLanguage.displayLabel(context),
+                modifier = Modifier.fillMaxWidth()
+            )
             Text(
-                text = "Saved position: ${position.anchor.displayLabel()} edge, ${position.xOffsetDp}dp x ${position.yOffsetDp}dp.",
+                text = stringResource(
+                    id = R.string.actual_widget_saved_position,
+                    position.anchor.displayLabel(context),
+                    position.xOffsetDp,
+                    position.yOffsetDp
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1492,12 +1543,12 @@ private fun LandingOverviewCard(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "What MediaFloat does",
+                text = stringResource(id = R.string.landing_overview_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "MediaFloat keeps previous, play / pause, and next in a small movable overlay so transport controls stay close while you use other apps.",
+                text = stringResource(id = R.string.landing_overview_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1506,28 +1557,23 @@ private fun LandingOverviewCard(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 MetricPill(
-                    label = "Runtime",
-                    value = runtimeState.landingStatusLabel(),
+                    label = stringResource(id = R.string.metric_runtime),
+                    value = runtimeState.landingStatusLabel(LocalContext.current),
                     modifier = Modifier.weight(1f)
                 )
                 MetricPill(
-                    label = "Buttons",
+                    label = stringResource(id = R.string.metric_buttons),
                     value = widgetConfigState.config.layout.orderedButtons.size.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 MetricPill(
-                    label = "Size",
-                    value = widgetConfigState.config.sizePreset.displayTitle(),
+                    label = stringResource(id = R.string.metric_size),
+                    value = widgetConfigState.config.sizePreset.displayTitle(LocalContext.current),
                     modifier = Modifier.weight(1f)
                 )
             }
             Text(
-                text = when (runtimeState) {
-                    OverlayRuntimeState.Ready -> "System access is aligned, so you can start the overlay from this page."
-                    is OverlayRuntimeState.Showing -> "The overlay is already live. Stop it here or move into Settings to adjust the saved shell."
-                    is OverlayRuntimeState.Suspended -> "The runtime paused after startup. Recover the missing access and try the overlay again."
-                    is OverlayRuntimeState.Unavailable -> "A required system condition is missing. Use the recovery shortcuts below to unblock startup."
-                },
+                text = runtimeState.landingOverviewLine(LocalContext.current),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1545,6 +1591,7 @@ private fun LandingRecoveryCard(
     modifier: Modifier = Modifier
 ) {
     val actions = readinessProblems.toRecoveryActions(
+        context = LocalContext.current,
         onOpenOverlaySettings = onOpenOverlaySettings,
         onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
         onOpenNotificationSettings = onOpenNotificationSettings
@@ -1560,23 +1607,23 @@ private fun LandingRecoveryCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Recovery shortcuts",
+                text = stringResource(id = R.string.recovery_shortcuts_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             )
             Text(
                 text = if (actions.isEmpty()) {
-                    "No blocked system access is detected right now. If Android changes something later, the Settings and Support sections still keep the full recovery links."
+                    stringResource(id = R.string.recovery_shortcuts_ready_detail)
                 } else {
-                    "Open the missing system access page, return here, and try the overlay again. Only the currently relevant recovery routes are shown."
+                    stringResource(id = R.string.recovery_shortcuts_blocked_detail)
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             )
             readinessProblems.forEach { reason ->
                 Text(
-                    text = reason.toDisplayLine(),
+                    text = reason.toDisplayLine(LocalContext.current),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
@@ -1629,12 +1676,12 @@ private fun DeveloperOptionsCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Developer tools",
+                text = stringResource(id = R.string.developer_tools_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Keep the Debug section hidden unless you need runtime inspection, transport dispatches, or recent log visibility. This setting is saved on the device.",
+                text = stringResource(id = R.string.developer_tools_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1655,15 +1702,15 @@ private fun DeveloperOptionsCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Show Debug section",
+                        text = stringResource(id = R.string.developer_tools_toggle_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = if (debugToolsEnabled) {
-                            "Debug is visible in the section selector."
+                            stringResource(id = R.string.developer_tools_toggle_on)
                         } else {
-                            "Debug stays out of the main shell until you turn it on."
+                            stringResource(id = R.string.developer_tools_toggle_off)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1696,7 +1743,7 @@ private fun WidgetBehaviorCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Behavior",
+                text = stringResource(id = R.string.behavior_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -1709,12 +1756,12 @@ private fun WidgetBehaviorCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Persistent overlay",
+                        text = stringResource(id = R.string.persistent_overlay_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Keep the runtime preference aligned with the saved widget configuration.",
+                        text = stringResource(id = R.string.persistent_overlay_detail),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1725,14 +1772,54 @@ private fun WidgetBehaviorCard(
                 )
             }
             HorizontalDivider()
-            PropertyLine(label = "Current edge", value = position.anchor.displayLabel())
-            PropertyLine(label = "Horizontal offset", value = "${position.xOffsetDp}dp")
-            PropertyLine(label = "Vertical offset", value = "${position.yOffsetDp}dp")
+            PropertyLine(label = stringResource(id = R.string.current_edge_label), value = position.anchor.displayLabel(LocalContext.current))
+            PropertyLine(label = stringResource(id = R.string.horizontal_offset_label), value = stringResource(id = R.string.dp_value, position.xOffsetDp))
+            PropertyLine(label = stringResource(id = R.string.vertical_offset_label), value = stringResource(id = R.string.dp_value, position.yOffsetDp))
             Text(
-                text = "The overlay itself still owns drag positioning. This screen previews the saved shape without turning into a freeform editor.",
+                text = stringResource(id = R.string.behavior_footer),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+@Composable
+private fun AppLanguageCard(
+    selectedLanguage: AppLanguage,
+    onSetAppLanguage: (AppLanguage) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.app_language_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(id = R.string.app_language_detail),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            AppLanguage.entries.forEach { appLanguage ->
+                ToggleOptionCard(
+                    title = appLanguage.displayLabel(context),
+                    detail = appLanguage.supportingLabel(context),
+                    selected = appLanguage == selectedLanguage,
+                    enabled = true,
+                    onClick = { onSetAppLanguage(appLanguage) }
+                )
+            }
         }
     }
 }
@@ -1745,7 +1832,9 @@ private fun RuntimeStatusCard(
     supportingLine: String,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val runtimeSummary = RuntimeStatusFormatter.format(
+        context = context,
         capabilityState = capabilityState,
         runtimeState = runtimeState
     )
@@ -1811,23 +1900,23 @@ private fun ReadinessActionsCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "System access",
+                text = stringResource(id = R.string.system_access_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             )
             Text(
                 text = if (readinessProblems.isEmpty()) {
-                    "Everything needed for the persistent overlay runtime is currently ready."
+                    stringResource(id = R.string.system_access_ready_detail)
                 } else {
-                    "Use these system links to unblock the runtime when a permission or notification posture changes."
+                    stringResource(id = R.string.system_access_blocked_detail)
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             )
             readinessProblems.forEach { reason ->
                 Text(
-                    text = reason.toDisplayLine(),
+                    text = reason.toDisplayLine(LocalContext.current),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
@@ -1835,13 +1924,13 @@ private fun ReadinessActionsCard(
             if (compact) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick = onOpenOverlaySettings, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Overlay access")
+                        Text(text = stringResource(id = R.string.action_overlay_access))
                     }
                     OutlinedButton(onClick = onOpenNotificationListenerSettings, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Listener access")
+                        Text(text = stringResource(id = R.string.action_listener_access))
                     }
                     OutlinedButton(onClick = onOpenNotificationSettings, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Notifications")
+                        Text(text = stringResource(id = R.string.action_notifications))
                     }
                 }
             } else {
@@ -1850,13 +1939,13 @@ private fun ReadinessActionsCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(onClick = onOpenOverlaySettings, modifier = Modifier.weight(1f)) {
-                        Text(text = "Overlay access")
+                        Text(text = stringResource(id = R.string.action_overlay_access))
                     }
                     OutlinedButton(onClick = onOpenNotificationListenerSettings, modifier = Modifier.weight(1f)) {
-                        Text(text = "Listener access")
+                        Text(text = stringResource(id = R.string.action_listener_access))
                     }
                     OutlinedButton(onClick = onOpenNotificationSettings, modifier = Modifier.weight(1f)) {
-                        Text(text = "Notifications")
+                        Text(text = stringResource(id = R.string.action_notifications))
                     }
                 }
             }
@@ -1869,8 +1958,9 @@ private fun MediaStatusCard(
     mediaSummaryState: MediaSummaryState,
     modifier: Modifier = Modifier
 ) {
-    val title = mediaSummaryState.mediaState.title()
-    val detail = mediaSummaryState.mediaState.detail()
+    val context = LocalContext.current
+    val title = mediaSummaryState.mediaState.title(context)
+    val detail = mediaSummaryState.mediaState.detail(context)
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -1882,7 +1972,7 @@ private fun MediaStatusCard(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "Media readiness",
+                text = stringResource(id = R.string.media_readiness_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -1898,7 +1988,7 @@ private fun MediaStatusCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
-            mediaSummaryState.mediaState.supportingLines().forEach { line ->
+            mediaSummaryState.mediaState.supportingLines(context).forEach { line ->
                 Text(
                     text = line,
                     style = MaterialTheme.typography.bodySmall,
@@ -1906,7 +1996,12 @@ private fun MediaStatusCard(
                 )
             }
             Text(
-                text = "Previous ${mediaSummaryState.previousEnabled.readinessLabel()}  Play / pause ${mediaSummaryState.playPauseEnabled.readinessLabel()}  Next ${mediaSummaryState.nextEnabled.readinessLabel()}",
+                text = stringResource(
+                    id = R.string.media_readiness_actions,
+                    mediaSummaryState.previousEnabled.readinessLabel(LocalContext.current),
+                    mediaSummaryState.playPauseEnabled.readinessLabel(LocalContext.current),
+                    mediaSummaryState.nextEnabled.readinessLabel(LocalContext.current)
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
@@ -1924,11 +2019,14 @@ private fun DebugControlsCard(
     onDispatchPrevious: () -> Unit,
     onDispatchPlayPause: () -> Unit,
     onDispatchNext: () -> Unit,
-    title: String = "Debug controls",
-    detail: String = "These buttons travel through the same app services and dispatcher path as the runtime, so they double as a practical test surface when overlay touch input is unreliable.",
+    title: String = "",
+    detail: String = "",
     showTransportControls: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    val resolvedTitle = title.ifBlank { androidx.compose.ui.res.stringResource(id = R.string.debug_controls_title) }
+    val resolvedDetail = detail.ifBlank { androidx.compose.ui.res.stringResource(id = R.string.debug_controls_detail) }
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = PanelShape,
@@ -1939,12 +2037,12 @@ private fun DebugControlsCard(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = title,
+                text = resolvedTitle,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = detail,
+                text = resolvedDetail,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1957,14 +2055,14 @@ private fun DebugControlsCard(
                     enabled = readyForStart,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = "Start overlay")
+                    Text(text = stringResource(id = R.string.action_start_overlay))
                 }
                 OutlinedButton(
                     onClick = onStopOverlay,
                     enabled = runtimeState is OverlayRuntimeState.Showing,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = "Stop overlay")
+                    Text(text = stringResource(id = R.string.action_stop_overlay))
                 }
             }
             if (showTransportControls) {
@@ -1977,21 +2075,21 @@ private fun DebugControlsCard(
                         enabled = mediaSummaryState.previousEnabled,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "Prev")
+                        Text(text = stringResource(id = R.string.media_prev_short))
                     }
                     Button(
                         onClick = onDispatchPlayPause,
                         enabled = mediaSummaryState.playPauseEnabled,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "Play / pause")
+                        Text(text = stringResource(id = R.string.media_play_pause))
                     }
                     OutlinedButton(
                         onClick = onDispatchNext,
                         enabled = mediaSummaryState.nextEnabled,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = "Next")
+                        Text(text = stringResource(id = R.string.media_next))
                     }
                 }
             }
@@ -2025,24 +2123,24 @@ private fun DebugLogViewerCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Recent debug log",
+                        text = stringResource(id = R.string.recent_debug_log_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "Showing ${entries.size} of ${debugLogState.entries.size} entries. Retention limit ${debugLogState.retentionLimit}.",
+                        text = stringResource(id = R.string.recent_debug_log_detail, entries.size, debugLogState.entries.size, debugLogState.retentionLimit),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 OutlinedButton(onClick = onClearLogs) {
-                    Text(text = "Clear")
+                    Text(text = stringResource(id = R.string.action_clear))
                 }
             }
 
             if (entries.isEmpty()) {
                 Text(
-                    text = "No log entries yet. Runtime transitions, media dispatches, widget saves, and debug actions will appear here.",
+                    text = stringResource(id = R.string.recent_debug_log_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -2122,19 +2220,19 @@ private fun SupportActionsCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Setup help",
+                text = stringResource(id = R.string.setup_help_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "If the overlay does not appear, confirm display-over-apps access, notification listener access, and visible app notifications. If you enable Debug from Settings, the debug console can still send real media commands while you verify the runtime.",
+                text = stringResource(id = R.string.setup_help_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (readinessProblems.isNotEmpty()) {
                 readinessProblems.forEach { problem ->
                     Text(
-                        text = problem.toDisplayLine(),
+                        text = problem.toDisplayLine(LocalContext.current),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -2143,13 +2241,13 @@ private fun SupportActionsCard(
             if (compact) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick = onOpenOverlaySettings, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Open overlay access")
+                        Text(text = stringResource(id = R.string.action_open_overlay_access))
                     }
                     OutlinedButton(onClick = onOpenNotificationListenerSettings, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Open listener access")
+                        Text(text = stringResource(id = R.string.action_open_listener_access))
                     }
                     OutlinedButton(onClick = onOpenNotificationSettings, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = "Open notifications")
+                        Text(text = stringResource(id = R.string.action_open_notifications))
                     }
                 }
             } else {
@@ -2158,13 +2256,13 @@ private fun SupportActionsCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(onClick = onOpenOverlaySettings, modifier = Modifier.weight(1f)) {
-                        Text(text = "Overlay access")
+                        Text(text = stringResource(id = R.string.action_overlay_access))
                     }
                     OutlinedButton(onClick = onOpenNotificationListenerSettings, modifier = Modifier.weight(1f)) {
-                        Text(text = "Listener access")
+                        Text(text = stringResource(id = R.string.action_listener_access))
                     }
                     OutlinedButton(onClick = onOpenNotificationSettings, modifier = Modifier.weight(1f)) {
-                        Text(text = "Notifications")
+                        Text(text = stringResource(id = R.string.action_notifications))
                     }
                 }
             }
@@ -2174,10 +2272,13 @@ private fun SupportActionsCard(
 
 @Composable
 private fun AboutCard(
+    appLanguage: AppLanguage,
     widgetConfigState: WidgetConfigScreenState,
     automationLaunchAction: String,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = PanelShape,
@@ -2188,37 +2289,43 @@ private fun AboutCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "App info",
+                text = stringResource(id = R.string.app_info_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
             PropertyLine(
-                label = "Version",
+                label = stringResource(id = R.string.about_version_label),
                 value = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 supportingColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
             )
             PropertyLine(
-                label = "Package",
+                label = stringResource(id = R.string.about_package_label),
                 value = BuildConfig.APPLICATION_ID,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 supportingColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
             )
             PropertyLine(
-                label = "Automation action",
+                label = stringResource(id = R.string.about_automation_label),
                 value = automationLaunchAction,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 supportingColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
             )
             PropertyLine(
-                label = "Saved widget",
-                value = "${widgetConfigState.config.sizePreset.displayTitle()} / ${widgetConfigState.config.layout.summaryLabel()}",
+                label = stringResource(id = R.string.about_language_label),
+                value = appLanguage.displayLabel(context),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                supportingColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+            )
+            PropertyLine(
+                label = stringResource(id = R.string.about_saved_widget_label),
+                value = "${widgetConfigState.config.sizePreset.displayTitle(context)} / ${widgetConfigState.config.layout.summaryLabel(context)}",
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 supportingColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
             )
             Text(
-                text = "This release focuses on a single horizontal overlay family so configuration stays deliberate, testable, and consistent with the WindowManager runtime.",
+                text = stringResource(id = R.string.app_info_footer),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
@@ -2238,18 +2345,18 @@ private fun ProductConstraintsCard(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "Product constraints",
+                text = stringResource(id = R.string.product_constraints_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
-                text = "- Horizontal overlay family only\n- Right-side drag handle only\n- Size presets instead of freeform resizing\n- Button sets limited to supported transport layouts",
+                text = stringResource(id = R.string.product_constraints_list),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
-                text = "Those constraints keep the overlay predictable across phones and tablets while the optional debug console exercises the same real runtime path.",
+                text = stringResource(id = R.string.product_constraints_footer),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.84f)
             )
@@ -2272,37 +2379,37 @@ private fun LicenseCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Licenses",
+                text = stringResource(id = R.string.licenses_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Reasonable v1 notice summary for the libraries visible in this single-module app:",
+                text = stringResource(id = R.string.licenses_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "AndroidX Activity Compose, Lifecycle Runtime Compose, Compose UI, and Material3 are distributed under Apache License 2.0.",
+                text = stringResource(id = R.string.licenses_androidx),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Google Material Components are distributed under Apache License 2.0.",
+                text = stringResource(id = R.string.licenses_material),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Kotlin standard library components are distributed under Apache License 2.0.",
+                text = stringResource(id = R.string.licenses_kotlin),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Android platform media and overlay APIs are used through the Android SDK terms rather than bundled third-party source.",
+                text = stringResource(id = R.string.licenses_platform),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Current in-app debug log retention: $retentionLimit entries.",
+                text = stringResource(id = R.string.licenses_log_retention, retentionLimit),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -2382,14 +2489,36 @@ private fun buildVisibleButtons(includePrevious: Boolean, includeNext: Boolean):
     }
 }
 
-private fun runtimeSupportingLine(runtimeState: OverlayRuntimeState): String {
+private fun runtimeSupportingLine(context: Context, runtimeState: OverlayRuntimeState): String {
     return when (runtimeState) {
-        OverlayRuntimeState.Ready -> "The foreground service can be started from the landing screen, Settings, or the automation entry activity."
+        OverlayRuntimeState.Ready -> context.getString(R.string.runtime_supporting_ready)
         is OverlayRuntimeState.Showing -> {
-            "Live layout ${runtimeState.layout.summaryLabel()} on the ${runtimeState.position.anchor.displayLabel().lowercase()} edge."
+            context.getString(
+                R.string.runtime_supporting_showing,
+                runtimeState.layout.summaryLabel(context),
+                runtimeState.position.anchor.displayLabel(context).lowercase()
+            )
         }
-        is OverlayRuntimeState.Suspended -> "The runtime is paused and waiting for recovery."
-        is OverlayRuntimeState.Unavailable -> "Resolve the blocking capability, then start the overlay again."
+        is OverlayRuntimeState.Suspended -> context.getString(R.string.runtime_supporting_suspended)
+        is OverlayRuntimeState.Unavailable -> context.getString(R.string.runtime_supporting_unavailable)
+    }
+}
+
+internal fun landingSupportingLine(
+    context: Context,
+    runtimeState: OverlayRuntimeState,
+    readinessProblems: List<OverlayUnavailableReason>
+): String {
+    return when {
+        readinessProblems.isEmpty() && runtimeState is OverlayRuntimeState.Showing -> {
+            context.getString(R.string.landing_supporting_showing)
+        }
+        readinessProblems.isEmpty() -> {
+            context.getString(R.string.landing_supporting_ready)
+        }
+        else -> {
+            context.getString(R.string.landing_supporting_blocked)
+        }
     }
 }
 
@@ -2410,6 +2539,15 @@ internal fun landingSupportingLine(
     }
 }
 
+internal fun OverlayRuntimeState.landingStatusLabel(context: Context): String {
+    return when (this) {
+        OverlayRuntimeState.Ready -> context.getString(R.string.state_ready)
+        is OverlayRuntimeState.Showing -> context.getString(R.string.state_showing)
+        is OverlayRuntimeState.Suspended -> context.getString(R.string.state_paused)
+        is OverlayRuntimeState.Unavailable -> context.getString(R.string.state_blocked)
+    }
+}
+
 internal fun OverlayRuntimeState.landingStatusLabel(): String {
     return when (this) {
         OverlayRuntimeState.Ready -> "Ready"
@@ -2419,86 +2557,96 @@ internal fun OverlayRuntimeState.landingStatusLabel(): String {
     }
 }
 
+private fun OverlayRuntimeState.landingOverviewLine(context: Context): String {
+    return when (this) {
+        OverlayRuntimeState.Ready -> context.getString(R.string.landing_overview_ready)
+        is OverlayRuntimeState.Showing -> context.getString(R.string.landing_overview_showing)
+        is OverlayRuntimeState.Suspended -> context.getString(R.string.landing_overview_suspended)
+        is OverlayRuntimeState.Unavailable -> context.getString(R.string.landing_overview_unavailable)
+    }
+}
+
 private fun List<OverlayUnavailableReason>.toRecoveryActions(
+    context: Context,
     onOpenOverlaySettings: () -> Unit,
     onOpenNotificationListenerSettings: () -> Unit,
     onOpenNotificationSettings: () -> Unit
 ): List<RecoveryAction> {
     return buildList {
         if (OverlayUnavailableReason.MissingOverlayAccess in this@toRecoveryActions) {
-            add(RecoveryAction(label = "Open overlay access", onClick = onOpenOverlaySettings))
+            add(RecoveryAction(label = context.getString(R.string.action_open_overlay_access), onClick = onOpenOverlaySettings))
         }
         if (OverlayUnavailableReason.MissingNotificationListenerAccess in this@toRecoveryActions) {
-            add(RecoveryAction(label = "Open listener access", onClick = onOpenNotificationListenerSettings))
+            add(RecoveryAction(label = context.getString(R.string.action_open_listener_access), onClick = onOpenNotificationListenerSettings))
         }
         if (OverlayUnavailableReason.NotificationPostureBlocked in this@toRecoveryActions) {
-            add(RecoveryAction(label = "Open notifications", onClick = onOpenNotificationSettings))
+            add(RecoveryAction(label = context.getString(R.string.action_open_notifications), onClick = onOpenNotificationSettings))
         }
     }
 }
 
-private fun OverlayUnavailableReason.toDisplayLine(): String {
+private fun OverlayUnavailableReason.toDisplayLine(context: Context): String {
     return when (this) {
-        OverlayUnavailableReason.MissingOverlayAccess -> "- Grant display over other apps access"
-        OverlayUnavailableReason.MissingNotificationListenerAccess -> "- Grant notification listener access"
-        OverlayUnavailableReason.NotificationPostureBlocked -> "- Restore app notification visibility"
-        OverlayUnavailableReason.ServiceStartNotAllowed -> "- Check foreground service eligibility"
-        OverlayUnavailableReason.UnsupportedDeviceCondition -> "- Device conditions are unsupported for this runtime"
-        OverlayUnavailableReason.UnknownRuntimeFailure -> "- Resolve the last runtime failure"
+        OverlayUnavailableReason.MissingOverlayAccess -> context.getString(R.string.recovery_line_overlay_access)
+        OverlayUnavailableReason.MissingNotificationListenerAccess -> context.getString(R.string.recovery_line_listener_access)
+        OverlayUnavailableReason.NotificationPostureBlocked -> context.getString(R.string.recovery_line_notifications)
+        OverlayUnavailableReason.ServiceStartNotAllowed -> context.getString(R.string.recovery_line_service_start)
+        OverlayUnavailableReason.UnsupportedDeviceCondition -> context.getString(R.string.recovery_line_device_condition)
+        OverlayUnavailableReason.UnknownRuntimeFailure -> context.getString(R.string.recovery_line_runtime_failure)
     }
 }
 
-private fun WidgetLayout.summaryLabel(): String {
-    return orderedButtons.joinToString(separator = " + ") { it.displayLabel() }
+private fun WidgetLayout.summaryLabel(context: Context): String {
+    return orderedButtons.joinToString(separator = " + ") { it.displayLabel(context) }
 }
 
-private fun WidgetButton.displayLabel(): String {
+private fun WidgetButton.displayLabel(context: Context): String {
     return when (this) {
-        WidgetButton.Previous -> "Previous"
-        WidgetButton.PlayPause -> "Play / pause"
-        WidgetButton.Next -> "Next"
+        WidgetButton.Previous -> context.getString(R.string.media_previous)
+        WidgetButton.PlayPause -> context.getString(R.string.media_play_pause)
+        WidgetButton.Next -> context.getString(R.string.media_next)
     }
 }
 
-private fun WidgetSizePreset.displayTitle(): String {
+private fun WidgetSizePreset.displayTitle(context: Context): String {
     return when (this) {
-        WidgetSizePreset.Compact -> "Compact"
-        WidgetSizePreset.Standard -> "Standard"
-        WidgetSizePreset.Large -> "Large"
+        WidgetSizePreset.Compact -> context.getString(R.string.size_preset_compact)
+        WidgetSizePreset.Standard -> context.getString(R.string.size_preset_standard)
+        WidgetSizePreset.Large -> context.getString(R.string.size_preset_large)
     }
 }
 
-private fun WidgetWidthStyle.displayTitle(): String {
+private fun WidgetWidthStyle.displayTitle(context: Context): String {
     return when (this) {
-        WidgetWidthStyle.Regular -> "Regular"
-        WidgetWidthStyle.Wide -> "Wide"
+        WidgetWidthStyle.Regular -> context.getString(R.string.button_width_regular)
+        WidgetWidthStyle.Wide -> context.getString(R.string.button_width_wide)
     }
 }
 
-private fun WidgetThemePreset.displayTitle(): String {
+private fun WidgetThemePreset.displayTitle(context: Context): String {
     return when (this) {
-        WidgetThemePreset.Light -> "Light"
-        WidgetThemePreset.Dark -> "Dark"
-        WidgetThemePreset.DarkBlue -> "Dark blue"
-        WidgetThemePreset.MediumYellow -> "Medium yellow"
-        WidgetThemePreset.Pink -> "Pink"
+        WidgetThemePreset.Light -> context.getString(R.string.theme_light)
+        WidgetThemePreset.Dark -> context.getString(R.string.theme_dark)
+        WidgetThemePreset.DarkBlue -> context.getString(R.string.theme_dark_blue)
+        WidgetThemePreset.MediumYellow -> context.getString(R.string.theme_medium_yellow)
+        WidgetThemePreset.Pink -> context.getString(R.string.theme_pink)
     }
 }
 
-private fun WidgetThemePreset.description(): String {
+private fun WidgetThemePreset.description(context: Context): String {
     return when (this) {
-        WidgetThemePreset.Light -> "Bright neutral shell with dark controls for daylight use."
-        WidgetThemePreset.Dark -> "Default low-glare shell tuned for general use."
-        WidgetThemePreset.DarkBlue -> "Cool dark shell with blue accents for stronger contrast."
-        WidgetThemePreset.MediumYellow -> "Warm yellow shell that stays readable without going neon."
-        WidgetThemePreset.Pink -> "Soft pink shell that keeps the controls playful but legible."
+        WidgetThemePreset.Light -> context.getString(R.string.theme_light_detail)
+        WidgetThemePreset.Dark -> context.getString(R.string.theme_dark_detail)
+        WidgetThemePreset.DarkBlue -> context.getString(R.string.theme_dark_blue_detail)
+        WidgetThemePreset.MediumYellow -> context.getString(R.string.theme_medium_yellow_detail)
+        WidgetThemePreset.Pink -> context.getString(R.string.theme_pink_detail)
     }
 }
 
-private fun WidgetAnchor.displayLabel(): String {
+private fun WidgetAnchor.displayLabel(context: Context): String {
     return when (this) {
-        WidgetAnchor.Start -> "Left"
-        WidgetAnchor.End -> "Right"
+        WidgetAnchor.Start -> context.getString(R.string.edge_left)
+        WidgetAnchor.End -> context.getString(R.string.edge_right)
     }
 }
 
@@ -2510,79 +2658,99 @@ private fun WidgetButton.toMediaCommand(): MediaCommand {
     }
 }
 
-private fun Boolean.readinessLabel(): String {
-    return if (this) "ready" else "blocked"
-}
-
-private fun MediaSessionState.title(): String {
+private fun AppLanguage.displayLabel(context: Context): String {
     return when (this) {
-        MediaSessionState.Discovering -> "Looking for an active session"
-        MediaSessionState.Unavailable -> "No active media session"
-        is MediaSessionState.Active -> "Active media session"
-        is MediaSessionState.Limited -> "Limited media session"
-        is MediaSessionState.Error -> "Media session error"
+        AppLanguage.SystemDefault -> context.getString(R.string.language_system_default)
+        AppLanguage.English -> context.getString(R.string.language_english)
+        AppLanguage.Korean -> context.getString(R.string.language_korean)
+        AppLanguage.Chinese -> context.getString(R.string.language_chinese)
+        AppLanguage.Japanese -> context.getString(R.string.language_japanese)
+        AppLanguage.Spanish -> context.getString(R.string.language_spanish)
+        AppLanguage.French -> context.getString(R.string.language_french)
     }
 }
 
-private fun MediaSessionState.detail(): String {
-    return when (this) {
-        MediaSessionState.Discovering -> "The repository is tracking notification listener state and searching for the best controller."
-        MediaSessionState.Unavailable -> "Open a media app and start playback so transport controls become available."
-        is MediaSessionState.Active -> "Session ${sessionId.take(36)} is available and can update transport support live as playback changes."
-        is MediaSessionState.Limited -> "A session is present, but one or more transport controls are currently unavailable."
-        is MediaSessionState.Error -> "The repository reported an error while reading media session state."
+private fun AppLanguage.supportingLabel(context: Context): String {
+    return if (this == AppLanguage.SystemDefault) {
+        context.getString(R.string.language_system_default_detail)
+    } else {
+        context.getString(R.string.language_applies_immediately)
     }
 }
 
-private fun MediaSessionState.supportingLines(): List<String> {
+private fun Boolean.readinessLabel(context: Context): String {
+    return if (this) context.getString(R.string.state_ready) else context.getString(R.string.state_blocked)
+}
+
+private fun MediaSessionState.title(context: Context): String {
+    return when (this) {
+        MediaSessionState.Discovering -> context.getString(R.string.media_state_discovering_title)
+        MediaSessionState.Unavailable -> context.getString(R.string.media_state_unavailable_title)
+        is MediaSessionState.Active -> context.getString(R.string.media_state_active_title)
+        is MediaSessionState.Limited -> context.getString(R.string.media_state_limited_title)
+        is MediaSessionState.Error -> context.getString(R.string.media_state_error_title)
+    }
+}
+
+private fun MediaSessionState.detail(context: Context): String {
+    return when (this) {
+        MediaSessionState.Discovering -> context.getString(R.string.media_state_discovering_detail)
+        MediaSessionState.Unavailable -> context.getString(R.string.media_state_unavailable_detail)
+        is MediaSessionState.Active -> context.getString(R.string.media_state_active_detail, sessionId.take(36))
+        is MediaSessionState.Limited -> context.getString(R.string.media_state_limited_detail)
+        is MediaSessionState.Error -> context.getString(R.string.media_state_error_detail)
+    }
+}
+
+private fun MediaSessionState.supportingLines(context: Context): List<String> {
     return when (this) {
         MediaSessionState.Discovering -> emptyList()
         MediaSessionState.Unavailable -> emptyList()
         is MediaSessionState.Active -> listOf(
-            "Playback: ${playbackStatus.displayLabel()}",
-            "Supported: ${supportedActions.joinToString { it.displayLabel() }}"
+            context.getString(R.string.media_state_playback_line, playbackStatus.displayLabel(context)),
+            context.getString(R.string.media_state_supported_line, supportedActions.joinToString { it.displayLabel(context) })
         )
         is MediaSessionState.Limited -> listOf(
-            "Limit: ${reason.displayLabel()}",
-            "Supported: ${supportedActions.joinToString { it.displayLabel() }}"
+            context.getString(R.string.media_state_limit_line, reason.displayLabel(context)),
+            context.getString(R.string.media_state_supported_line, supportedActions.joinToString { it.displayLabel(context) })
         )
         is MediaSessionState.Error -> listOf(
-            "Reason: ${reason.displayLabel()}"
+            context.getString(R.string.media_state_reason_line, reason.displayLabel(context))
         )
     }
 }
 
-private fun MediaCommand.displayLabel(): String {
+private fun MediaCommand.displayLabel(context: Context): String {
     return when (this) {
-        MediaCommand.Previous -> "Previous"
-        MediaCommand.TogglePlayPause -> "Play / pause"
-        MediaCommand.Next -> "Next"
+        MediaCommand.Previous -> context.getString(R.string.media_previous)
+        MediaCommand.TogglePlayPause -> context.getString(R.string.media_play_pause)
+        MediaCommand.Next -> context.getString(R.string.media_next)
     }
 }
 
-private fun PlaybackStatus.displayLabel(): String {
+private fun PlaybackStatus.displayLabel(context: Context): String {
     return when (this) {
-        PlaybackStatus.Playing -> "Playing"
-        PlaybackStatus.Paused -> "Paused"
-        PlaybackStatus.Buffering -> "Buffering"
-        PlaybackStatus.Stopped -> "Stopped"
-        PlaybackStatus.Unknown -> "Unknown"
+        PlaybackStatus.Playing -> context.getString(R.string.playback_playing)
+        PlaybackStatus.Paused -> context.getString(R.string.playback_paused)
+        PlaybackStatus.Buffering -> context.getString(R.string.playback_buffering)
+        PlaybackStatus.Stopped -> context.getString(R.string.playback_stopped)
+        PlaybackStatus.Unknown -> context.getString(R.string.playback_unknown)
     }
 }
 
-private fun MediaSessionLimitReason.displayLabel(): String {
+private fun MediaSessionLimitReason.displayLabel(context: Context): String {
     return when (this) {
-        MediaSessionLimitReason.MissingTransportControls -> "Missing transport controls"
-        MediaSessionLimitReason.PlaybackStateUnknown -> "Playback state unknown"
-        MediaSessionLimitReason.SessionChanging -> "Session changing"
+        MediaSessionLimitReason.MissingTransportControls -> context.getString(R.string.media_limit_missing_transport)
+        MediaSessionLimitReason.PlaybackStateUnknown -> context.getString(R.string.media_limit_playback_unknown)
+        MediaSessionLimitReason.SessionChanging -> context.getString(R.string.media_limit_session_changing)
     }
 }
 
-private fun MediaSessionErrorReason.displayLabel(): String {
+private fun MediaSessionErrorReason.displayLabel(context: Context): String {
     return when (this) {
-        MediaSessionErrorReason.PermissionRevoked -> "Permission revoked"
-        MediaSessionErrorReason.PlatformFailure -> "Platform failure"
-        MediaSessionErrorReason.Unknown -> "Unknown"
+        MediaSessionErrorReason.PermissionRevoked -> context.getString(R.string.media_error_permission_revoked)
+        MediaSessionErrorReason.PlatformFailure -> context.getString(R.string.media_error_platform_failure)
+        MediaSessionErrorReason.Unknown -> context.getString(R.string.media_error_unknown)
     }
 }
 

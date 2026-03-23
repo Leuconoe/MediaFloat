@@ -1,6 +1,7 @@
 package com.mediacontrol.floatingwidget.preferences
 
 import com.mediacontrol.floatingwidget.model.AppPreferences
+import com.mediacontrol.floatingwidget.model.AppLanguage
 
 fun interface AppPreferencesListener {
     fun onAppPreferencesChanged(preferences: AppPreferences)
@@ -29,6 +30,11 @@ class AppPreferencesRepository(
     @Synchronized
     fun setDebugToolsEnabled(enabled: Boolean) {
         save(preferences.copy(debugToolsEnabled = enabled))
+    }
+
+    @Synchronized
+    fun setAppLanguage(appLanguage: AppLanguage) {
+        save(preferences.copy(appLanguage = appLanguage))
     }
 
     @Synchronized

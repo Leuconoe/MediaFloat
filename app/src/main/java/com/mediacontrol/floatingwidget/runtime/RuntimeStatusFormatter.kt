@@ -1,5 +1,7 @@
 package com.mediacontrol.floatingwidget.runtime
 
+import android.content.Context
+import com.mediacontrol.floatingwidget.R
 import com.mediacontrol.floatingwidget.model.CapabilityGrantState
 import com.mediacontrol.floatingwidget.model.CapabilityState
 import com.mediacontrol.floatingwidget.model.NotificationPosture
@@ -14,72 +16,71 @@ data class RuntimeStatusSummary(
 
 object RuntimeStatusFormatter {
     fun format(
+        context: Context,
         capabilityState: CapabilityState,
         runtimeState: OverlayRuntimeState
     ): RuntimeStatusSummary {
         return RuntimeStatusSummary(
-            title = runtimeTitle(runtimeState),
-            detail = runtimeDetail(runtimeState),
+            title = runtimeTitle(context, runtimeState),
+            detail = runtimeDetail(context, runtimeState),
             capabilityLines = listOf(
-                "Overlay access: ${capabilityState.overlayAccess.label()}",
-                "Notification listener: ${capabilityState.notificationListenerAccess.label()}",
-                "Notification posture: ${capabilityState.notificationPosture.label()}",
-                "Service start: ${capabilityState.serviceStartReadiness.label()}"
+                context.getString(R.string.runtime_capability_overlay_access, capabilityState.overlayAccess.label(context)),
+                context.getString(R.string.runtime_capability_notification_listener, capabilityState.notificationListenerAccess.label(context)),
+                context.getString(R.string.runtime_capability_notification_posture, capabilityState.notificationPosture.label(context)),
+                context.getString(R.string.runtime_capability_service_start, capabilityState.serviceStartReadiness.label(context))
             )
         )
     }
 
-    private fun runtimeTitle(runtimeState: OverlayRuntimeState): String {
+    private fun runtimeTitle(context: Context, runtimeState: OverlayRuntimeState): String {
         return when (runtimeState) {
-            OverlayRuntimeState.Ready -> "Runtime ready"
-            is OverlayRuntimeState.Showing -> "Overlay showing"
-            is OverlayRuntimeState.Suspended -> "Runtime suspended"
-            is OverlayRuntimeState.Unavailable -> "Runtime unavailable"
+            OverlayRuntimeState.Ready -> context.getString(R.string.runtime_title_ready)
+            is OverlayRuntimeState.Showing -> context.getString(R.string.runtime_title_showing)
+            is OverlayRuntimeState.Suspended -> context.getString(R.string.runtime_title_suspended)
+            is OverlayRuntimeState.Unavailable -> context.getString(R.string.runtime_title_unavailable)
         }
     }
 
-    private fun runtimeDetail(runtimeState: OverlayRuntimeState): String {
+    private fun runtimeDetail(context: Context, runtimeState: OverlayRuntimeState): String {
         return when (runtimeState) {
-            OverlayRuntimeState.Ready -> {
-                "Permissions and notification posture are aligned for the foreground service to show the overlay."
-            }
-            is OverlayRuntimeState.Showing -> {
-                "The foreground service owns a live WindowManager overlay and is updating media command availability in place."
-            }
-            is OverlayRuntimeState.Suspended -> {
-                "The runtime is paused until the owning foreground service can recover: ${runtimeState.reason.label()}."
-            }
-            is OverlayRuntimeState.Unavailable -> {
-                "Persistent overlay mode is blocked until ${runtimeState.reason.label().lowercase()}."
-            }
+            OverlayRuntimeState.Ready -> context.getString(R.string.runtime_detail_ready)
+            is OverlayRuntimeState.Showing -> context.getString(R.string.runtime_detail_showing)
+            is OverlayRuntimeState.Suspended -> context.getString(
+                R.string.runtime_detail_suspended,
+                runtimeState.reason.label(context)
+            )
+            is OverlayRuntimeState.Unavailable -> context.getString(
+                R.string.runtime_detail_unavailable,
+                runtimeState.reason.label(context).lowercase()
+            )
         }
     }
 
-    private fun CapabilityGrantState.label(): String {
+    private fun CapabilityGrantState.label(context: Context): String {
         return when (this) {
-            CapabilityGrantState.Granted -> "granted"
-            CapabilityGrantState.Missing -> "missing"
-            CapabilityGrantState.Blocked -> "blocked"
-            CapabilityGrantState.Unsupported -> "unsupported"
+            CapabilityGrantState.Granted -> context.getString(R.string.state_granted)
+            CapabilityGrantState.Missing -> context.getString(R.string.state_missing)
+            CapabilityGrantState.Blocked -> context.getString(R.string.state_blocked)
+            CapabilityGrantState.Unsupported -> context.getString(R.string.state_unsupported)
         }
     }
 
-    private fun NotificationPosture.label(): String {
+    private fun NotificationPosture.label(context: Context): String {
         return when (this) {
-            NotificationPosture.Visible -> "visible"
-            NotificationPosture.PermissionRequired -> "permission required"
-            NotificationPosture.Blocked -> "blocked"
+            NotificationPosture.Visible -> context.getString(R.string.state_visible)
+            NotificationPosture.PermissionRequired -> context.getString(R.string.state_permission_required)
+            NotificationPosture.Blocked -> context.getString(R.string.state_blocked)
         }
     }
 
-    private fun OverlayUnavailableReason.label(): String {
+    private fun OverlayUnavailableReason.label(context: Context): String {
         return when (this) {
-            OverlayUnavailableReason.MissingOverlayAccess -> "overlay access is granted"
-            OverlayUnavailableReason.MissingNotificationListenerAccess -> "notification listener access is granted"
-            OverlayUnavailableReason.NotificationPostureBlocked -> "notification visibility is restored"
-            OverlayUnavailableReason.ServiceStartNotAllowed -> "service start is allowed"
-            OverlayUnavailableReason.UnsupportedDeviceCondition -> "the device condition is supported"
-            OverlayUnavailableReason.UnknownRuntimeFailure -> "the runtime issue is resolved"
+            OverlayUnavailableReason.MissingOverlayAccess -> context.getString(R.string.recovery_goal_overlay_access)
+            OverlayUnavailableReason.MissingNotificationListenerAccess -> context.getString(R.string.recovery_goal_listener_access)
+            OverlayUnavailableReason.NotificationPostureBlocked -> context.getString(R.string.recovery_goal_notifications)
+            OverlayUnavailableReason.ServiceStartNotAllowed -> context.getString(R.string.recovery_goal_service_start)
+            OverlayUnavailableReason.UnsupportedDeviceCondition -> context.getString(R.string.recovery_goal_device_condition)
+            OverlayUnavailableReason.UnknownRuntimeFailure -> context.getString(R.string.recovery_goal_runtime_issue)
         }
     }
 }

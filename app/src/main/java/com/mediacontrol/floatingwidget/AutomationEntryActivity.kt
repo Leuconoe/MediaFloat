@@ -7,6 +7,7 @@ import android.util.Log
 class AutomationEntryActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AppLocaleManager.apply(MediaControlAppServices.from(this).appPreferencesRepository.currentState().appLanguage)
         super.onCreate(savedInstanceState)
 
         val started = MediaControlAppServices.from(this).debugActions.startOverlay()
