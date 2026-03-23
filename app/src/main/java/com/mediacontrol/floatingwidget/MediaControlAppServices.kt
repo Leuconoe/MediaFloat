@@ -5,8 +5,11 @@ import com.mediacontrol.floatingwidget.debug.AppDebugActions
 import com.mediacontrol.floatingwidget.debug.PreferencesDebugLogRepository
 import com.mediacontrol.floatingwidget.media.AndroidMediaSessionRepository
 import com.mediacontrol.floatingwidget.media.MediaControllerCommandDispatcher
+import com.mediacontrol.floatingwidget.preferences.AppPreferencesRepository
+import com.mediacontrol.floatingwidget.preferences.AppPreferencesStore
 import com.mediacontrol.floatingwidget.overlay.OverlayPositionStore
 import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeCoordinator
+import com.mediacontrol.floatingwidget.state.AppPreferencesStateHolder
 import com.mediacontrol.floatingwidget.state.DebugLogStateHolder
 import com.mediacontrol.floatingwidget.state.MediaSummaryStateHolder
 import com.mediacontrol.floatingwidget.state.RuntimeSummaryStateHolder
@@ -19,6 +22,8 @@ class MediaControlAppServices private constructor(
 ) {
 
     val debugLogRepository = PreferencesDebugLogRepository(context)
+    val appPreferencesStore = AppPreferencesStore(context)
+    val appPreferencesRepository = AppPreferencesRepository(appPreferencesStore)
     val overlayPositionStore = OverlayPositionStore(context)
     val widgetConfigStore = WidgetConfigStore(context)
     val widgetPreferencesRepository = WidgetPreferencesRepository(
@@ -38,6 +43,7 @@ class MediaControlAppServices private constructor(
         context = context,
         debugLogWriter = debugLogRepository
     )
+    val appPreferencesStateHolder = AppPreferencesStateHolder(appPreferencesRepository)
     val widgetConfigStateHolder = WidgetConfigStateHolder(widgetPreferencesRepository)
     val runtimeSummaryStateHolder = RuntimeSummaryStateHolder(runtimeCoordinator)
     val mediaSummaryStateHolder = MediaSummaryStateHolder(mediaRepository)

@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.mediacontrol.floatingwidget.debug.DebugActions
+import com.mediacontrol.floatingwidget.model.AppPreferences
 import com.mediacontrol.floatingwidget.model.CapabilityGrantState
 import com.mediacontrol.floatingwidget.model.CapabilityState
 import com.mediacontrol.floatingwidget.model.MediaSessionState
@@ -19,6 +20,7 @@ import com.mediacontrol.floatingwidget.model.WidgetConfig
 import com.mediacontrol.floatingwidget.model.WidgetPosition
 import com.mediacontrol.floatingwidget.model.WidgetSizePreset
 import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeCoordinator
+import com.mediacontrol.floatingwidget.state.AppPreferencesStateHolder
 import com.mediacontrol.floatingwidget.state.DebugLogScreenState
 import com.mediacontrol.floatingwidget.state.DebugLogStateHolder
 import com.mediacontrol.floatingwidget.state.MediaSummaryState
@@ -35,11 +37,15 @@ class MainActivity : ComponentActivity() {
 
     private val appServices by lazy { MediaControlAppServices.from(this) }
     private val runtimeCoordinator: OverlayRuntimeCoordinator by lazy { appServices.runtimeCoordinator }
+    private val appPreferencesStateHolder: AppPreferencesStateHolder by lazy { appServices.appPreferencesStateHolder }
     private val runtimeSummaryStateHolder: RuntimeSummaryStateHolder by lazy { appServices.runtimeSummaryStateHolder }
     private val widgetConfigStateHolder: WidgetConfigStateHolder by lazy { appServices.widgetConfigStateHolder }
     private val mediaSummaryStateHolder: MediaSummaryStateHolder by lazy { appServices.mediaSummaryStateHolder }
     private val debugLogStateHolder: DebugLogStateHolder by lazy { appServices.debugLogStateHolder }
     private val debugActions: DebugActions by lazy { appServices.debugActions }
+    private val appPreferencesStateListener = StateListener<AppPreferences> { nextState ->
+        appPreferences = nextState
+    }
     private val runtimeStateListener = StateListener<RuntimeSummaryState> { summaryState ->
         applySummaryState(summaryState)
     }
@@ -53,6 +59,7 @@ class MainActivity : ComponentActivity() {
         debugLogState = nextState
     }
 
+    private var appPreferences by mutableStateOf(defaultAppPreferences())
     private var capabilityState by mutableStateOf(defaultCapabilityState())
     private var runtimeState by mutableStateOf<OverlayRuntimeState>(
         OverlayRuntimeState.Unavailable(OverlayUnavailableReason.UnknownRuntimeFailure)
@@ -63,6 +70,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        appPreferences = appPreferencesStateHolder.currentState()
         applySummaryState(runtimeSummaryStateHolder.currentState())
         widgetConfigState = widgetConfigStateHolder.currentState()
         mediaSummaryState = mediaSummaryStateHolder.currentState()
@@ -72,11 +80,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             MediaFloatTheme {
                 AppShell(
+                    appPreferences = appPreferences,
                     capabilityState = capabilityState,
                     runtimeState = runtimeState,
                     mediaSummaryState = mediaSummaryState,
                     widgetConfigState = widgetConfigState,
                     debugLogState = debugLogState,
+                    onSetDebugToolsEnabled = ::setDebugToolsEnabled,
                     onSetVisibleButtons = ::setVisibleButtons,
                     onSetSizePreset = ::setSizePreset,
                     onSetPersistentOverlayEnabled = ::setPersistentOverlayEnabled,
@@ -103,6 +113,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        appPreferencesStateHolder.addListener(appPreferencesStateListener)
         runtimeSummaryStateHolder.addListener(runtimeStateListener)
         widgetConfigStateHolder.addListener(widgetConfigStateListener)
         mediaSummaryStateHolder.addListener(mediaSummaryStateListener)
@@ -122,11 +133,16 @@ class MainActivity : ComponentActivity() {
         mediaSummaryStateHolder.removeListener(mediaSummaryStateListener)
         widgetConfigStateHolder.removeListener(widgetConfigStateListener)
         runtimeSummaryStateHolder.removeListener(runtimeStateListener)
+        appPreferencesStateHolder.removeListener(appPreferencesStateListener)
         super.onStop()
     }
 
     private fun setVisibleButtons(buttons: Set<WidgetButton>) {
         widgetConfigStateHolder.setVisibleButtons(buttons)
+    }
+
+    private fun setDebugToolsEnabled(enabled: Boolean) {
+        appPreferencesStateHolder.setDebugToolsEnabled(enabled)
     }
 
     private fun setSizePreset(sizePreset: WidgetSizePreset) {
@@ -191,6 +207,10 @@ class MainActivity : ComponentActivity() {
             notificationPosture = NotificationPosture.PermissionRequired,
             serviceStartReadiness = CapabilityGrantState.Granted
         )
+    }
+
+    private fun defaultAppPreferences(): AppPreferences {
+        return AppPreferences()
     }
 
     private fun defaultWidgetConfigState(): WidgetConfigScreenState {

@@ -36,6 +36,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -45,6 +46,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,6 +56,7 @@ import com.mediacontrol.floatingwidget.AutomationEntryActivity
 import com.mediacontrol.floatingwidget.BuildConfig
 import com.mediacontrol.floatingwidget.debug.DebugLogEntry
 import com.mediacontrol.floatingwidget.debug.DebugLogLevel
+import com.mediacontrol.floatingwidget.model.AppPreferences
 import com.mediacontrol.floatingwidget.model.CapabilityGrantState
 import com.mediacontrol.floatingwidget.model.CapabilityState
 import com.mediacontrol.floatingwidget.model.MediaCommand
@@ -86,11 +89,16 @@ private val SectionCardShape = RoundedCornerShape(28.dp)
 private val PanelShape = RoundedCornerShape(26.dp)
 private val LogTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d, HH:mm:ss")
 
-private enum class AppSection(
+internal enum class AppSection(
     val title: String,
     val shortTitle: String,
     val description: String
 ) {
+    Landing(
+        title = "Overlay landing",
+        shortTitle = "Landing",
+        description = "Check what MediaFloat needs, confirm the device is ready, and start or stop the overlay without digging through deeper tools."
+    ),
     Settings(
         title = "Widget settings",
         shortTitle = "Settings",
@@ -108,14 +116,31 @@ private enum class AppSection(
     )
 }
 
+private fun AppSection.selectorTag(): String = "section-${name.lowercase()}"
+
+private fun AppSection.headerTag(): String = "screen-header-${name.lowercase()}"
+
+internal fun appSections(debugToolsEnabled: Boolean): List<AppSection> {
+    return buildList {
+        add(AppSection.Landing)
+        add(AppSection.Settings)
+        add(AppSection.Support)
+        if (debugToolsEnabled) {
+            add(AppSection.Debug)
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppShell(
+    appPreferences: AppPreferences = AppPreferences(),
     capabilityState: CapabilityState = previewCapabilityState(),
     runtimeState: OverlayRuntimeState = previewRuntimeState(),
     mediaSummaryState: MediaSummaryState = previewMediaSummaryState(),
     widgetConfigState: WidgetConfigScreenState = previewWidgetConfigState(),
     debugLogState: DebugLogScreenState = previewDebugLogState(),
+    onSetDebugToolsEnabled: (Boolean) -> Unit = {},
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit = {},
     onSetSizePreset: (WidgetSizePreset) -> Unit = {},
     onSetPersistentOverlayEnabled: (Boolean) -> Unit = {},
@@ -131,7 +156,14 @@ fun AppShell(
     automationLaunchAction: String = AutomationEntryActivity.ACTION_SHOW_OVERLAY,
     modifier: Modifier = Modifier
 ) {
-    var selectedSection by rememberSaveable { mutableStateOf(AppSection.Settings) }
+    var selectedSection by rememberSaveable { mutableStateOf(AppSection.Landing) }
+    val sections = appSections(debugToolsEnabled = appPreferences.debugToolsEnabled)
+
+    LaunchedEffect(sections, selectedSection) {
+        if (selectedSection !in sections) {
+            selectedSection = AppSection.Landing
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -169,17 +201,20 @@ fun AppShell(
                         horizontalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
                         SectionRail(
+                            sections = sections,
                             selectedSection = selectedSection,
                             onSectionSelected = { selectedSection = it },
                             modifier = Modifier.width(248.dp)
                         )
                         SectionContent(
                             selectedSection = selectedSection,
+                            appPreferences = appPreferences,
                             capabilityState = capabilityState,
                             runtimeState = runtimeState,
                             mediaSummaryState = mediaSummaryState,
                             widgetConfigState = widgetConfigState,
                             debugLogState = debugLogState,
+                            onSetDebugToolsEnabled = onSetDebugToolsEnabled,
                             onSetVisibleButtons = onSetVisibleButtons,
                             onSetSizePreset = onSetSizePreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
@@ -205,16 +240,19 @@ fun AppShell(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         CompactSectionSelector(
+                            sections = sections,
                             selectedSection = selectedSection,
                             onSectionSelected = { selectedSection = it }
                         )
                         SectionContent(
                             selectedSection = selectedSection,
+                            appPreferences = appPreferences,
                             capabilityState = capabilityState,
                             runtimeState = runtimeState,
                             mediaSummaryState = mediaSummaryState,
                             widgetConfigState = widgetConfigState,
                             debugLogState = debugLogState,
+                            onSetDebugToolsEnabled = onSetDebugToolsEnabled,
                             onSetVisibleButtons = onSetVisibleButtons,
                             onSetSizePreset = onSetSizePreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
@@ -240,6 +278,7 @@ fun AppShell(
 
 @Composable
 private fun SectionRail(
+    sections: List<AppSection>,
     selectedSection: AppSection,
     onSectionSelected: (AppSection) -> Unit,
     modifier: Modifier = Modifier
@@ -250,15 +289,16 @@ private fun SectionRail(
     ) {
         ScreenHeaderCard(
             title = "Control center",
-            detail = "The app now treats setup, debugging, and support as first-class surfaces instead of placeholder notes.",
+            detail = "Start from the landing surface to recover readiness quickly, then move into settings or support. Debug stays hidden until it is enabled from Settings.",
             compact = false
         )
-        AppSection.entries.forEach { section ->
+        sections.forEach { section ->
             SectionCard(
                 title = section.shortTitle,
                 detail = section.description,
                 selected = section == selectedSection,
                 compact = false,
+                modifier = Modifier.testTag(section.selectorTag()),
                 onClick = { onSectionSelected(section) }
             )
         }
@@ -267,6 +307,7 @@ private fun SectionRail(
 
 @Composable
 private fun CompactSectionSelector(
+    sections: List<AppSection>,
     selectedSection: AppSection,
     onSectionSelected: (AppSection) -> Unit
 ) {
@@ -274,10 +315,11 @@ private fun CompactSectionSelector(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        AppSection.entries.forEach { section ->
+        sections.forEach { section ->
             CompactSectionButton(
                 title = section.shortTitle,
                 selected = section == selectedSection,
+                modifier = Modifier.testTag(section.selectorTag()),
                 onClick = { onSectionSelected(section) }
             )
         }
@@ -288,6 +330,7 @@ private fun CompactSectionSelector(
 private fun RowScope.CompactSectionButton(
     title: String,
     selected: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     val containerColor = if (selected) {
@@ -302,7 +345,7 @@ private fun RowScope.CompactSectionButton(
     }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .weight(1f)
             .clip(RoundedCornerShape(20.dp))
             .background(containerColor)
@@ -332,6 +375,7 @@ private fun SectionCard(
     detail: String,
     selected: Boolean,
     compact: Boolean,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     val containerColor = if (selected) {
@@ -346,7 +390,7 @@ private fun SectionCard(
     }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = SectionCardShape,
@@ -376,11 +420,13 @@ private fun SectionCard(
 @Composable
 private fun SectionContent(
     selectedSection: AppSection,
+    appPreferences: AppPreferences,
     capabilityState: CapabilityState,
     runtimeState: OverlayRuntimeState,
     mediaSummaryState: MediaSummaryState,
     widgetConfigState: WidgetConfigScreenState,
     debugLogState: DebugLogScreenState,
+    onSetDebugToolsEnabled: (Boolean) -> Unit,
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit,
     onSetSizePreset: (WidgetSizePreset) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
@@ -409,11 +455,26 @@ private fun SectionContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             when (selectedSection) {
-                AppSection.Settings -> SettingsScreen(
+                AppSection.Landing -> LandingScreen(
                     capabilityState = capabilityState,
                     runtimeState = runtimeState,
                     mediaSummaryState = mediaSummaryState,
                     widgetConfigState = widgetConfigState,
+                    onStartOverlay = onStartOverlay,
+                    onStopOverlay = onStopOverlay,
+                    onOpenOverlaySettings = onOpenOverlaySettings,
+                    onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
+                    onOpenNotificationSettings = onOpenNotificationSettings,
+                    wideLayout = wideLayout
+                )
+
+                AppSection.Settings -> SettingsScreen(
+                    appPreferences = appPreferences,
+                    capabilityState = capabilityState,
+                    runtimeState = runtimeState,
+                    mediaSummaryState = mediaSummaryState,
+                    widgetConfigState = widgetConfigState,
+                    onSetDebugToolsEnabled = onSetDebugToolsEnabled,
                     onSetVisibleButtons = onSetVisibleButtons,
                     onSetSizePreset = onSetSizePreset,
                     onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
@@ -461,11 +522,125 @@ private fun SectionContent(
 }
 
 @Composable
-private fun SettingsScreen(
+private fun LandingScreen(
     capabilityState: CapabilityState,
     runtimeState: OverlayRuntimeState,
     mediaSummaryState: MediaSummaryState,
     widgetConfigState: WidgetConfigScreenState,
+    onStartOverlay: () -> Unit,
+    onStopOverlay: () -> Unit,
+    onOpenOverlaySettings: () -> Unit,
+    onOpenNotificationListenerSettings: () -> Unit,
+    onOpenNotificationSettings: () -> Unit,
+    wideLayout: Boolean
+) {
+    val readinessProblems = capabilityState.unavailableReasons()
+
+    ScreenHeaderCard(
+        title = AppSection.Landing.title,
+        detail = AppSection.Landing.description,
+        modifier = Modifier.testTag(AppSection.Landing.headerTag()),
+        compact = !wideLayout
+    )
+
+    if (wideLayout) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                LandingOverviewCard(
+                    runtimeState = runtimeState,
+                    widgetConfigState = widgetConfigState,
+                    readinessProblems = readinessProblems
+                )
+                RuntimeStatusCard(
+                    capabilityState = capabilityState,
+                    runtimeState = runtimeState,
+                    heading = "Current readiness",
+                    supportingLine = landingSupportingLine(
+                        runtimeState = runtimeState,
+                        readinessProblems = readinessProblems
+                    )
+                )
+                LandingRecoveryCard(
+                    readinessProblems = readinessProblems,
+                    onOpenOverlaySettings = onOpenOverlaySettings,
+                    onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
+                    onOpenNotificationSettings = onOpenNotificationSettings,
+                    compact = false
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                DebugControlsCard(
+                    readyForStart = capabilityState.isReadyForPersistentOverlay(),
+                    runtimeState = runtimeState,
+                    mediaSummaryState = mediaSummaryState,
+                    onStartOverlay = onStartOverlay,
+                    onStopOverlay = onStopOverlay,
+                    onDispatchPrevious = {},
+                    onDispatchPlayPause = {},
+                    onDispatchNext = {},
+                    title = "Overlay controls",
+                    detail = "Use the saved widget setup to start or stop the floating bar right away. If Android blocks startup, recover the missing access from this page and try again.",
+                    showTransportControls = false
+                )
+                MediaStatusCard(mediaSummaryState = mediaSummaryState)
+            }
+        }
+    } else {
+        LandingOverviewCard(
+            runtimeState = runtimeState,
+            widgetConfigState = widgetConfigState,
+            readinessProblems = readinessProblems
+        )
+        RuntimeStatusCard(
+            capabilityState = capabilityState,
+            runtimeState = runtimeState,
+            heading = "Current readiness",
+            supportingLine = landingSupportingLine(
+                runtimeState = runtimeState,
+                readinessProblems = readinessProblems
+            )
+        )
+        DebugControlsCard(
+            readyForStart = capabilityState.isReadyForPersistentOverlay(),
+            runtimeState = runtimeState,
+            mediaSummaryState = mediaSummaryState,
+            onStartOverlay = onStartOverlay,
+            onStopOverlay = onStopOverlay,
+            onDispatchPrevious = {},
+            onDispatchPlayPause = {},
+            onDispatchNext = {},
+            title = "Overlay controls",
+            detail = "Start or stop the floating bar here. If Android blocks startup, use the recovery shortcuts below and return to this screen.",
+            showTransportControls = false
+        )
+        LandingRecoveryCard(
+            readinessProblems = readinessProblems,
+            onOpenOverlaySettings = onOpenOverlaySettings,
+            onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
+            onOpenNotificationSettings = onOpenNotificationSettings,
+            compact = true
+        )
+        MediaStatusCard(mediaSummaryState = mediaSummaryState)
+    }
+}
+
+@Composable
+private fun SettingsScreen(
+    appPreferences: AppPreferences,
+    capabilityState: CapabilityState,
+    runtimeState: OverlayRuntimeState,
+    mediaSummaryState: MediaSummaryState,
+    widgetConfigState: WidgetConfigScreenState,
+    onSetDebugToolsEnabled: (Boolean) -> Unit,
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit,
     onSetSizePreset: (WidgetSizePreset) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
@@ -482,6 +657,7 @@ private fun SettingsScreen(
     ScreenHeaderCard(
         title = AppSection.Settings.title,
         detail = AppSection.Settings.description,
+        modifier = Modifier.testTag(AppSection.Settings.headerTag()),
         compact = !wideLayout
     )
 
@@ -513,6 +689,10 @@ private fun SettingsScreen(
                     position = widgetConfigState.position,
                     onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled
                 )
+                DeveloperOptionsCard(
+                    debugToolsEnabled = appPreferences.debugToolsEnabled,
+                    onSetDebugToolsEnabled = onSetDebugToolsEnabled
+                )
             }
         }
     } else {
@@ -533,6 +713,10 @@ private fun SettingsScreen(
             config = widgetConfigState.config,
             position = widgetConfigState.position,
             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled
+        )
+        DeveloperOptionsCard(
+            debugToolsEnabled = appPreferences.debugToolsEnabled,
+            onSetDebugToolsEnabled = onSetDebugToolsEnabled
         )
     }
 
@@ -584,6 +768,7 @@ private fun DebugScreen(
     ScreenHeaderCard(
         title = AppSection.Debug.title,
         detail = AppSection.Debug.description,
+        modifier = Modifier.testTag(AppSection.Debug.headerTag()),
         compact = !wideLayout
     )
 
@@ -673,6 +858,7 @@ private fun SupportScreen(
     ScreenHeaderCard(
         title = AppSection.Support.title,
         detail = AppSection.Support.description,
+        modifier = Modifier.testTag(AppSection.Support.headerTag()),
         compact = !wideLayout
     )
 
@@ -1098,6 +1284,201 @@ private fun SizePresetCard(
                     selected = preset == selectedPreset,
                     enabled = true,
                     onClick = { onSetSizePreset(preset) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LandingOverviewCard(
+    runtimeState: OverlayRuntimeState,
+    widgetConfigState: WidgetConfigScreenState,
+    readinessProblems: List<OverlayUnavailableReason>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "What MediaFloat does",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "MediaFloat keeps previous, play / pause, and next in a small movable overlay so transport controls stay close while you use other apps.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                MetricPill(
+                    label = "Runtime",
+                    value = runtimeState.landingStatusLabel(),
+                    modifier = Modifier.weight(1f)
+                )
+                MetricPill(
+                    label = "Buttons",
+                    value = widgetConfigState.config.layout.orderedButtons.size.toString(),
+                    modifier = Modifier.weight(1f)
+                )
+                MetricPill(
+                    label = "Size",
+                    value = widgetConfigState.config.sizePreset.displayTitle(),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Text(
+                text = when (runtimeState) {
+                    OverlayRuntimeState.Ready -> "System access is aligned, so you can start the overlay from this page."
+                    is OverlayRuntimeState.Showing -> "The overlay is already live. Stop it here or move into Settings to adjust the saved shell."
+                    is OverlayRuntimeState.Suspended -> "The runtime paused after startup. Recover the missing access and try the overlay again."
+                    is OverlayRuntimeState.Unavailable -> "A required system condition is missing. Use the recovery shortcuts below to unblock startup."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun LandingRecoveryCard(
+    readinessProblems: List<OverlayUnavailableReason>,
+    onOpenOverlaySettings: () -> Unit,
+    onOpenNotificationListenerSettings: () -> Unit,
+    onOpenNotificationSettings: () -> Unit,
+    compact: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val actions = readinessProblems.toRecoveryActions(
+        onOpenOverlaySettings = onOpenOverlaySettings,
+        onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
+        onOpenNotificationSettings = onOpenNotificationSettings
+    )
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Recovery shortcuts",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            Text(
+                text = if (actions.isEmpty()) {
+                    "No blocked system access is detected right now. If Android changes something later, the Settings and Support sections still keep the full recovery links."
+                } else {
+                    "Open the missing system access page, return here, and try the overlay again. Only the currently relevant recovery routes are shown."
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            readinessProblems.forEach { reason ->
+                Text(
+                    text = reason.toDisplayLine(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+            if (actions.isNotEmpty()) {
+                if (compact || actions.size == 1) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        actions.forEach { action ->
+                            OutlinedButton(
+                                onClick = action.onClick,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = action.label)
+                            }
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        actions.forEach { action ->
+                            OutlinedButton(
+                                onClick = action.onClick,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(text = action.label)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeveloperOptionsCard(
+    debugToolsEnabled: Boolean,
+    onSetDebugToolsEnabled: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Developer tools",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "Keep the Debug section hidden unless you need runtime inspection, transport dispatches, or recent log visibility. This setting is saved on the device.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "Show Debug section",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = if (debugToolsEnabled) {
+                            "Debug is visible in the section selector."
+                        } else {
+                            "Debug stays out of the main shell until you turn it on."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = debugToolsEnabled,
+                    onCheckedChange = onSetDebugToolsEnabled
                 )
             }
         }
@@ -1552,7 +1933,7 @@ private fun SupportActionsCard(
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "If the overlay does not appear, confirm display-over-apps access, notification listener access, and visible app notifications. The debug console can still send real media commands while you verify the runtime.",
+                text = "If the overlay does not appear, confirm display-over-apps access, notification listener access, and visible app notifications. If you enable Debug from Settings, the debug console can still send real media commands while you verify the runtime.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1674,7 +2055,7 @@ private fun ProductConstraintsCard(modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
-                text = "Those constraints keep the overlay predictable across phones and tablets while the debug console exercises the same real runtime path.",
+                text = "Those constraints keep the overlay predictable across phones and tablets while the optional debug console exercises the same real runtime path.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.84f)
             )
@@ -1790,6 +2171,11 @@ private fun PropertyLine(
     }
 }
 
+private data class RecoveryAction(
+    val label: String,
+    val onClick: () -> Unit
+)
+
 private fun buildVisibleButtons(includePrevious: Boolean, includeNext: Boolean): Set<WidgetButton> {
     return buildSet {
         if (includePrevious) {
@@ -1804,12 +2190,56 @@ private fun buildVisibleButtons(includePrevious: Boolean, includeNext: Boolean):
 
 private fun runtimeSupportingLine(runtimeState: OverlayRuntimeState): String {
     return when (runtimeState) {
-        OverlayRuntimeState.Ready -> "The foreground service can be started from the debug console or automation entry activity."
+        OverlayRuntimeState.Ready -> "The foreground service can be started from the landing screen, Settings, or the automation entry activity."
         is OverlayRuntimeState.Showing -> {
             "Live layout ${runtimeState.layout.summaryLabel()} on the ${runtimeState.position.anchor.displayLabel().lowercase()} edge."
         }
         is OverlayRuntimeState.Suspended -> "The runtime is paused and waiting for recovery."
         is OverlayRuntimeState.Unavailable -> "Resolve the blocking capability, then start the overlay again."
+    }
+}
+
+internal fun landingSupportingLine(
+    runtimeState: OverlayRuntimeState,
+    readinessProblems: List<OverlayUnavailableReason>
+): String {
+    return when {
+        readinessProblems.isEmpty() && runtimeState is OverlayRuntimeState.Showing -> {
+            "The overlay is already visible. Stop it here or head into Settings to change the saved shell."
+        }
+        readinessProblems.isEmpty() -> {
+            "Everything required for startup is aligned. You can launch the overlay from this screen or through automation."
+        }
+        else -> {
+            "Recover the missing system access below, come back here, and try the overlay again."
+        }
+    }
+}
+
+internal fun OverlayRuntimeState.landingStatusLabel(): String {
+    return when (this) {
+        OverlayRuntimeState.Ready -> "Ready"
+        is OverlayRuntimeState.Showing -> "Showing"
+        is OverlayRuntimeState.Suspended -> "Paused"
+        is OverlayRuntimeState.Unavailable -> "Blocked"
+    }
+}
+
+private fun List<OverlayUnavailableReason>.toRecoveryActions(
+    onOpenOverlaySettings: () -> Unit,
+    onOpenNotificationListenerSettings: () -> Unit,
+    onOpenNotificationSettings: () -> Unit
+): List<RecoveryAction> {
+    return buildList {
+        if (OverlayUnavailableReason.MissingOverlayAccess in this@toRecoveryActions) {
+            add(RecoveryAction(label = "Open overlay access", onClick = onOpenOverlaySettings))
+        }
+        if (OverlayUnavailableReason.MissingNotificationListenerAccess in this@toRecoveryActions) {
+            add(RecoveryAction(label = "Open listener access", onClick = onOpenNotificationListenerSettings))
+        }
+        if (OverlayUnavailableReason.NotificationPostureBlocked in this@toRecoveryActions) {
+            add(RecoveryAction(label = "Open notifications", onClick = onOpenNotificationSettings))
+        }
     }
 }
 
