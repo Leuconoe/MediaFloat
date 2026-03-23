@@ -21,7 +21,9 @@ import com.mediacontrol.floatingwidget.model.MediaSessionState
 import com.mediacontrol.floatingwidget.model.PlaybackStatus
 import com.mediacontrol.floatingwidget.model.WidgetAnchor
 import com.mediacontrol.floatingwidget.model.WidgetButton
+import com.mediacontrol.floatingwidget.model.WidgetOverlayAppearance
 import com.mediacontrol.floatingwidget.model.WidgetPosition
+import com.mediacontrol.floatingwidget.model.overlayAppearance
 import com.mediacontrol.floatingwidget.model.supports
 
 class WindowManagerOverlayHost(
@@ -54,11 +56,12 @@ class WindowManagerOverlayHost(
     private var attached = false
     private var currentViewState: OverlayViewState? = null
 
-    override fun attach(viewState: OverlayViewState, position: WidgetPosition) {
+    override fun attach(viewState: OverlayViewState) {
         currentViewState = viewState
+        updateOverlayAppearance(viewState)
         if (!attached) {
             rootView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-            applyPosition(position, rootView.measuredWidth)
+            applyPosition(viewState.position, rootView.measuredWidth)
             windowManager.addView(rootView, layoutParams)
             attached = true
             Log.d(TAG, "Attached overlay at x=${layoutParams.x}, y=${layoutParams.y}")
@@ -69,13 +72,15 @@ class WindowManagerOverlayHost(
 
     override fun update(viewState: OverlayViewState) {
         currentViewState = viewState
+        updateOverlayAppearance(viewState)
         previousButton.visibility = buttonVisibility(WidgetButton.Previous, viewState)
         playPauseButton.visibility = buttonVisibility(WidgetButton.PlayPause, viewState)
         nextButton.visibility = buttonVisibility(WidgetButton.Next, viewState)
 
-        bindButton(previousButton, MediaCommand.Previous, viewState.mediaState)
-        bindButton(playPauseButton, MediaCommand.TogglePlayPause, viewState.mediaState)
-        bindButton(nextButton, MediaCommand.Next, viewState.mediaState)
+        val appearance = viewState.config.overlayAppearance()
+        bindButton(previousButton, MediaCommand.Previous, viewState.mediaState, appearance)
+        bindButton(playPauseButton, MediaCommand.TogglePlayPause, viewState.mediaState, appearance)
+        bindButton(nextButton, MediaCommand.Next, viewState.mediaState, appearance)
 
         val playPauseIcon = if ((viewState.mediaState as? MediaSessionState.Active)?.playbackStatus == PlaybackStatus.Playing) {
             android.R.drawable.ic_media_pause
@@ -83,8 +88,10 @@ class WindowManagerOverlayHost(
             android.R.drawable.ic_media_play
         }
         playPauseButton.setImageResource(playPauseIcon)
+        rootView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
 
         if (attached) {
+            applyPosition(viewState.position, rootView.measuredWidth)
             windowManager.updateViewLayout(rootView, layoutParams)
         }
     }
@@ -104,13 +111,6 @@ class WindowManagerOverlayHost(
         return LinearLayout(appContext).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            setPadding(dp(12), dp(8), dp(8), dp(8))
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(26).toFloat()
-                setColor(0xE61B1F26.toInt())
-                setStroke(dp(1), 0x33FFFFFF)
-            }
             addView(previousButton)
             addView(playPauseButton)
             addView(nextButton)
@@ -133,16 +133,7 @@ class WindowManagerOverlayHost(
         return ImageButton(appContext).apply {
             setImageResource(iconRes)
             contentDescription = appContext.getString(labelRes)
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(0x1FFFFFFF)
-            }
             scaleType = ImageView.ScaleType.CENTER
-            layoutParams = LinearLayout.LayoutParams(dp(40), dp(40)).apply {
-                marginEnd = dp(8)
-            }
-            setPadding(dp(8), dp(8), dp(8), dp(8))
-            setColorFilter(0xFFFFFFFF.toInt())
             setOnClickListener { onMediaCommand(command) }
         }
     }
@@ -150,11 +141,8 @@ class WindowManagerOverlayHost(
     private fun createDragHandle(): TextView {
         return TextView(appContext).apply {
             text = "|||"
-            textSize = 14f
             contentDescription = appContext.getString(R.string.overlay_drag_handle)
-            setTextColor(0xCCFFFFFF.toInt())
             gravity = Gravity.CENTER
-            layoutParams = LinearLayout.LayoutParams(dp(28), dp(40))
             setOnTouchListener(DragTouchListener())
         }
     }
@@ -163,10 +151,66 @@ class WindowManagerOverlayHost(
         return if (button in viewState.layout.visibleButtons) View.VISIBLE else View.GONE
     }
 
-    private fun bindButton(button: ImageButton, command: MediaCommand, mediaState: MediaSessionState) {
+    private fun bindButton(
+        button: ImageButton,
+        command: MediaCommand,
+        mediaState: MediaSessionState,
+        appearance: WidgetOverlayAppearance
+    ) {
         val enabled = mediaState.supports(command)
         button.isEnabled = enabled
         button.alpha = if (enabled) 1f else 0.4f
+        button.background = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(if (enabled) appearance.colors.buttonEnabledColor else appearance.colors.buttonDisabledColor)
+        }
+        button.setColorFilter(if (enabled) appearance.colors.iconEnabledColor else appearance.colors.iconDisabledColor)
+    }
+
+    private fun updateOverlayAppearance(viewState: OverlayViewState) {
+        val appearance = viewState.config.overlayAppearance()
+        val sizing = appearance.sizing
+        val colors = appearance.colors
+
+        rootView.setPadding(
+            dp(sizing.containerStartPaddingDp),
+            dp(sizing.containerVerticalPaddingDp),
+            dp(sizing.containerEndPaddingDp),
+            dp(sizing.containerVerticalPaddingDp)
+        )
+        rootView.background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(sizing.containerCornerRadiusDp).toFloat()
+            setColor(colors.surfaceColor)
+            setStroke(dp(1), colors.surfaceStrokeColor)
+        }
+
+        updateButtonLayout(previousButton, sizing)
+        updateButtonLayout(playPauseButton, sizing)
+        updateButtonLayout(nextButton, sizing)
+
+        dragHandle.textSize = sizing.handleTextSizeSp
+        dragHandle.setTextColor(colors.handleTextColor)
+        dragHandle.background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(sizing.handleCornerRadiusDp).toFloat()
+            setColor(colors.handleColor)
+        }
+        dragHandle.layoutParams = LinearLayout.LayoutParams(
+            dp(sizing.handleWidthDp),
+            dp(sizing.handleHeightDp)
+        )
+    }
+
+    private fun updateButtonLayout(button: ImageButton, sizing: com.mediacontrol.floatingwidget.model.WidgetOverlaySizing) {
+        button.layoutParams = LinearLayout.LayoutParams(
+            dp(sizing.buttonWidthDp),
+            dp(sizing.buttonHeightDp)
+        ).apply {
+            marginEnd = dp(sizing.itemSpacingDp)
+        }
+        val buttonPadding = dp(sizing.buttonIconPaddingDp)
+        button.setPadding(buttonPadding, buttonPadding, buttonPadding, buttonPadding)
     }
 
     private fun applyPosition(position: WidgetPosition, overlayWidth: Int) {

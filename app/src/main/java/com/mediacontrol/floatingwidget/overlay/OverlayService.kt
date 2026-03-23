@@ -38,6 +38,7 @@ class OverlayService : Service() {
     private lateinit var overlayHost: OverlayHost
     private var currentMediaState: MediaSessionState = MediaSessionState.Unavailable
     private var currentWidgetConfig: WidgetConfig = WidgetConfig()
+    private var currentWidgetPosition = com.mediacontrol.floatingwidget.model.WidgetPosition()
     private var runtimeStarted = false
     private val mediaStateListener = MediaSessionStateListener { mediaState ->
         currentMediaState = mediaState
@@ -45,6 +46,7 @@ class OverlayService : Service() {
             overlayHost.update(
                 OverlayViewState(
                     config = currentWidgetConfig,
+                    position = currentWidgetPosition,
                     mediaState = mediaState
                 )
             )
@@ -53,10 +55,12 @@ class OverlayService : Service() {
     }
     private val widgetPreferencesListener = WidgetPreferencesListener { preferencesState ->
         currentWidgetConfig = preferencesState.config
+        currentWidgetPosition = preferencesState.position
         if (runtimeStarted) {
             overlayHost.update(
                 OverlayViewState(
                     config = preferencesState.config,
+                    position = preferencesState.position,
                     mediaState = currentMediaState
                 )
             )
@@ -75,6 +79,7 @@ class OverlayService : Service() {
         mediaDispatcher = appServices.mediaCommandDispatcher
         widgetPreferencesRepository = appServices.widgetPreferencesRepository
         currentWidgetConfig = widgetPreferencesRepository.currentState().config
+        currentWidgetPosition = widgetPreferencesRepository.currentState().position
         overlayHost = WindowManagerOverlayHost(
             context = this,
             positionStore = positionStore,
@@ -171,11 +176,11 @@ class OverlayService : Service() {
 
         currentMediaState = mediaRepository.currentState()
         overlayHost.attach(
-            viewState = OverlayViewState(
+            OverlayViewState(
                 config = currentWidgetConfig,
+                position = currentWidgetPosition,
                 mediaState = currentMediaState
-            ),
-            position = widgetPreferencesRepository.currentState().position
+            )
         )
         publishShowingState()
         Log.d(TAG, "Overlay runtime attached with media state $currentMediaState")

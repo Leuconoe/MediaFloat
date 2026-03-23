@@ -7,6 +7,7 @@ import com.mediacontrol.floatingwidget.model.WidgetPosition
 
 data class OverlayViewState(
     val config: WidgetConfig,
+    val position: WidgetPosition,
     val mediaState: MediaSessionState
 ) {
     val layout: WidgetLayout
@@ -14,10 +15,7 @@ data class OverlayViewState(
 }
 
 interface OverlayHost {
-    fun attach(
-        viewState: OverlayViewState,
-        position: WidgetPosition
-    )
+    fun attach(viewState: OverlayViewState)
 
     fun update(viewState: OverlayViewState)
 

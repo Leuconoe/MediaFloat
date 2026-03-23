@@ -5,6 +5,8 @@ import com.mediacontrol.floatingwidget.model.WidgetButton
 import com.mediacontrol.floatingwidget.model.WidgetConfig
 import com.mediacontrol.floatingwidget.model.WidgetLayout
 import com.mediacontrol.floatingwidget.model.WidgetSizePreset
+import com.mediacontrol.floatingwidget.model.WidgetThemePreset
+import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
 import com.mediacontrol.floatingwidget.storage.PreferencesStorage
 import com.mediacontrol.floatingwidget.storage.SharedPreferencesStorage
 
@@ -26,10 +28,18 @@ class WidgetConfigStore(
         val sizePreset = WidgetSizePreset.entries.firstOrNull {
             it.name == storage.getString(KEY_SIZE_PRESET, WidgetConfig().sizePreset.name)
         } ?: WidgetConfig().sizePreset
+        val widthStyle = WidgetWidthStyle.entries.firstOrNull {
+            it.name == storage.getString(KEY_WIDTH_STYLE, WidgetConfig().widthStyle.name)
+        } ?: WidgetConfig().widthStyle
+        val themePreset = WidgetThemePreset.entries.firstOrNull {
+            it.name == storage.getString(KEY_THEME_PRESET, WidgetConfig().themePreset.name)
+        } ?: WidgetConfig().themePreset
 
         return WidgetConfig(
             layout = layout,
             sizePreset = sizePreset,
+            widthStyle = widthStyle,
+            themePreset = themePreset,
             persistentOverlayEnabled = storage.getBoolean(
                 KEY_PERSISTENT_OVERLAY_ENABLED,
                 WidgetConfig().persistentOverlayEnabled
@@ -41,6 +51,8 @@ class WidgetConfigStore(
         storage.edit {
             putString(KEY_VISIBLE_BUTTONS, WidgetConfigStorageFormat.encodeVisibleButtons(config.layout.orderedButtons))
             putString(KEY_SIZE_PRESET, config.sizePreset.name)
+            putString(KEY_WIDTH_STYLE, config.widthStyle.name)
+            putString(KEY_THEME_PRESET, config.themePreset.name)
             putBoolean(KEY_PERSISTENT_OVERLAY_ENABLED, config.persistentOverlayEnabled)
         }
     }
@@ -53,6 +65,8 @@ class WidgetConfigStore(
         const val PREFERENCES_NAME = "widget_config"
         const val KEY_VISIBLE_BUTTONS = "visible_buttons"
         const val KEY_SIZE_PRESET = "size_preset"
+        const val KEY_WIDTH_STYLE = "width_style"
+        const val KEY_THEME_PRESET = "theme_preset"
         const val KEY_PERSISTENT_OVERLAY_ENABLED = "persistent_overlay_enabled"
     }
 }

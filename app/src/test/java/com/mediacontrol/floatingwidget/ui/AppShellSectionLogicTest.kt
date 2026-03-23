@@ -18,7 +18,7 @@ class AppShellSectionLogicTest {
         val sections = appSections(debugToolsEnabled = false)
 
         assertEquals(
-            listOf(AppSection.Landing, AppSection.Settings, AppSection.Support),
+            listOf(AppSection.Landing, AppSection.Settings, AppSection.Advanced, AppSection.Support),
             sections
         )
         assertFalse(AppSection.Debug in sections)
@@ -29,7 +29,7 @@ class AppShellSectionLogicTest {
         val sections = appSections(debugToolsEnabled = true)
 
         assertEquals(
-            listOf(AppSection.Landing, AppSection.Settings, AppSection.Support, AppSection.Debug),
+            listOf(AppSection.Landing, AppSection.Settings, AppSection.Advanced, AppSection.Support, AppSection.Debug),
             sections
         )
         assertTrue(AppSection.Debug in sections)

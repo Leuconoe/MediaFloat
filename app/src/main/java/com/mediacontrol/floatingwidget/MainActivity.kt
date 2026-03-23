@@ -19,6 +19,8 @@ import com.mediacontrol.floatingwidget.model.WidgetButton
 import com.mediacontrol.floatingwidget.model.WidgetConfig
 import com.mediacontrol.floatingwidget.model.WidgetPosition
 import com.mediacontrol.floatingwidget.model.WidgetSizePreset
+import com.mediacontrol.floatingwidget.model.WidgetThemePreset
+import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
 import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeCoordinator
 import com.mediacontrol.floatingwidget.state.AppPreferencesStateHolder
 import com.mediacontrol.floatingwidget.state.DebugLogScreenState
@@ -89,6 +91,8 @@ class MainActivity : ComponentActivity() {
                     onSetDebugToolsEnabled = ::setDebugToolsEnabled,
                     onSetVisibleButtons = ::setVisibleButtons,
                     onSetSizePreset = ::setSizePreset,
+                    onSetWidthStyle = ::setWidthStyle,
+                    onSetThemePreset = ::setThemePreset,
                     onSetPersistentOverlayEnabled = ::setPersistentOverlayEnabled,
                     onStartOverlay = ::startOverlay,
                     onStopOverlay = ::stopOverlay,
@@ -147,6 +151,14 @@ class MainActivity : ComponentActivity() {
 
     private fun setSizePreset(sizePreset: WidgetSizePreset) {
         widgetConfigStateHolder.setSizePreset(sizePreset)
+    }
+
+    private fun setWidthStyle(widthStyle: WidgetWidthStyle) {
+        widgetConfigStateHolder.setWidthStyle(widthStyle)
+    }
+
+    private fun setThemePreset(themePreset: WidgetThemePreset) {
+        widgetConfigStateHolder.setThemePreset(themePreset)
     }
 
     private fun setPersistentOverlayEnabled(enabled: Boolean) {

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -47,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,6 +75,8 @@ import com.mediacontrol.floatingwidget.model.WidgetConfig
 import com.mediacontrol.floatingwidget.model.WidgetLayout
 import com.mediacontrol.floatingwidget.model.WidgetPosition
 import com.mediacontrol.floatingwidget.model.WidgetSizePreset
+import com.mediacontrol.floatingwidget.model.WidgetThemePreset
+import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
 import com.mediacontrol.floatingwidget.model.supports
 import com.mediacontrol.floatingwidget.runtime.RuntimeStatusFormatter
 import com.mediacontrol.floatingwidget.state.DebugLogScreenState
@@ -100,9 +104,14 @@ internal enum class AppSection(
         description = "Check what MediaFloat needs, confirm the device is ready, and start or stop the overlay without digging through deeper tools."
     ),
     Settings(
-        title = "Widget settings",
+        title = "Settings",
         shortTitle = "Settings",
-        description = "Configure the horizontal overlay family, tune the supported button set, and preview the live shell before you launch it."
+        description = "Adjust the core overlay behavior you are likely to touch often: buttons, size, and start or stop access."
+    ),
+    Advanced(
+        title = "Advanced settings",
+        shortTitle = "Advanced",
+        description = "Fine-tune widget width, color presets, persistent behavior, and developer-facing options."
     ),
     Debug(
         title = "Debug console",
@@ -124,6 +133,7 @@ internal fun appSections(debugToolsEnabled: Boolean): List<AppSection> {
     return buildList {
         add(AppSection.Landing)
         add(AppSection.Settings)
+        add(AppSection.Advanced)
         add(AppSection.Support)
         if (debugToolsEnabled) {
             add(AppSection.Debug)
@@ -143,6 +153,8 @@ fun AppShell(
     onSetDebugToolsEnabled: (Boolean) -> Unit = {},
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit = {},
     onSetSizePreset: (WidgetSizePreset) -> Unit = {},
+    onSetWidthStyle: (WidgetWidthStyle) -> Unit = {},
+    onSetThemePreset: (WidgetThemePreset) -> Unit = {},
     onSetPersistentOverlayEnabled: (Boolean) -> Unit = {},
     onStartOverlay: () -> Unit = {},
     onStopOverlay: () -> Unit = {},
@@ -217,6 +229,8 @@ fun AppShell(
                             onSetDebugToolsEnabled = onSetDebugToolsEnabled,
                             onSetVisibleButtons = onSetVisibleButtons,
                             onSetSizePreset = onSetSizePreset,
+                            onSetWidthStyle = onSetWidthStyle,
+                            onSetThemePreset = onSetThemePreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
@@ -255,6 +269,8 @@ fun AppShell(
                             onSetDebugToolsEnabled = onSetDebugToolsEnabled,
                             onSetVisibleButtons = onSetVisibleButtons,
                             onSetSizePreset = onSetSizePreset,
+                            onSetWidthStyle = onSetWidthStyle,
+                            onSetThemePreset = onSetThemePreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
@@ -429,6 +445,8 @@ private fun SectionContent(
     onSetDebugToolsEnabled: (Boolean) -> Unit,
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit,
     onSetSizePreset: (WidgetSizePreset) -> Unit,
+    onSetWidthStyle: (WidgetWidthStyle) -> Unit,
+    onSetThemePreset: (WidgetThemePreset) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
@@ -469,23 +487,24 @@ private fun SectionContent(
                 )
 
                 AppSection.Settings -> SettingsScreen(
-                    appPreferences = appPreferences,
                     capabilityState = capabilityState,
                     runtimeState = runtimeState,
                     mediaSummaryState = mediaSummaryState,
                     widgetConfigState = widgetConfigState,
-                    onSetDebugToolsEnabled = onSetDebugToolsEnabled,
                     onSetVisibleButtons = onSetVisibleButtons,
                     onSetSizePreset = onSetSizePreset,
-                    onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                     onStartOverlay = onStartOverlay,
                     onStopOverlay = onStopOverlay,
-                    onDispatchPrevious = onDispatchPrevious,
-                    onDispatchPlayPause = onDispatchPlayPause,
-                    onDispatchNext = onDispatchNext,
-                    onOpenOverlaySettings = onOpenOverlaySettings,
-                    onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
-                    onOpenNotificationSettings = onOpenNotificationSettings,
+                    wideLayout = wideLayout
+                )
+
+                AppSection.Advanced -> AdvancedSettingsScreen(
+                    appPreferences = appPreferences,
+                    widgetConfigState = widgetConfigState,
+                    onSetDebugToolsEnabled = onSetDebugToolsEnabled,
+                    onSetWidthStyle = onSetWidthStyle,
+                    onSetThemePreset = onSetThemePreset,
+                    onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                     wideLayout = wideLayout
                 )
 
@@ -635,23 +654,14 @@ private fun LandingScreen(
 
 @Composable
 private fun SettingsScreen(
-    appPreferences: AppPreferences,
     capabilityState: CapabilityState,
     runtimeState: OverlayRuntimeState,
     mediaSummaryState: MediaSummaryState,
     widgetConfigState: WidgetConfigScreenState,
-    onSetDebugToolsEnabled: (Boolean) -> Unit,
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit,
     onSetSizePreset: (WidgetSizePreset) -> Unit,
-    onSetPersistentOverlayEnabled: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
-    onDispatchPrevious: () -> Unit,
-    onDispatchPlayPause: () -> Unit,
-    onDispatchNext: () -> Unit,
-    onOpenOverlaySettings: () -> Unit,
-    onOpenNotificationListenerSettings: () -> Unit,
-    onOpenNotificationSettings: () -> Unit,
     wideLayout: Boolean
 ) {
     ScreenHeaderCard(
@@ -666,16 +676,14 @@ private fun SettingsScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            WidgetPreviewEditorCard(
-                config = widgetConfigState.config,
-                position = widgetConfigState.position,
-                mediaState = mediaSummaryState.mediaState,
-                modifier = Modifier.weight(1.08f)
-            )
             Column(
-                modifier = Modifier.weight(0.92f),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                ActualOverlayNoticeCard(
+                    config = widgetConfigState.config,
+                    position = widgetConfigState.position
+                )
                 ButtonSetEditorCard(
                     config = widgetConfigState.config,
                     onSetVisibleButtons = onSetVisibleButtons
@@ -684,6 +692,88 @@ private fun SettingsScreen(
                     selectedPreset = widgetConfigState.config.sizePreset,
                     onSetSizePreset = onSetSizePreset
                 )
+                DebugControlsCard(
+                    readyForStart = capabilityState.isReadyForPersistentOverlay(),
+                    runtimeState = runtimeState,
+                    mediaSummaryState = mediaSummaryState,
+                    onStartOverlay = onStartOverlay,
+                    onStopOverlay = onStopOverlay,
+                    onDispatchPrevious = {},
+                    onDispatchPlayPause = {},
+                    onDispatchNext = {},
+                    title = "Overlay controls",
+                    detail = "Start or stop the real floating widget after changing the core shell settings.",
+                    showTransportControls = false
+                )
+            }
+        }
+    } else {
+        ActualOverlayNoticeCard(
+            config = widgetConfigState.config,
+            position = widgetConfigState.position
+        )
+        ButtonSetEditorCard(
+            config = widgetConfigState.config,
+            onSetVisibleButtons = onSetVisibleButtons
+        )
+        SizePresetCard(
+            selectedPreset = widgetConfigState.config.sizePreset,
+            onSetSizePreset = onSetSizePreset
+        )
+        DebugControlsCard(
+            readyForStart = capabilityState.isReadyForPersistentOverlay(),
+            runtimeState = runtimeState,
+            mediaSummaryState = mediaSummaryState,
+            onStartOverlay = onStartOverlay,
+            onStopOverlay = onStopOverlay,
+            onDispatchPrevious = {},
+            onDispatchPlayPause = {},
+            onDispatchNext = {},
+            title = "Overlay controls",
+            detail = "Start or stop the real floating widget after changing the core shell settings.",
+            showTransportControls = false
+        )
+    }
+}
+
+@Composable
+private fun AdvancedSettingsScreen(
+    appPreferences: AppPreferences,
+    widgetConfigState: WidgetConfigScreenState,
+    onSetDebugToolsEnabled: (Boolean) -> Unit,
+    onSetWidthStyle: (WidgetWidthStyle) -> Unit,
+    onSetThemePreset: (WidgetThemePreset) -> Unit,
+    onSetPersistentOverlayEnabled: (Boolean) -> Unit,
+    wideLayout: Boolean
+) {
+    ScreenHeaderCard(
+        title = AppSection.Advanced.title,
+        detail = AppSection.Advanced.description,
+        compact = !wideLayout
+    )
+
+    if (wideLayout) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                WidthStyleCard(
+                    selectedStyle = widgetConfigState.config.widthStyle,
+                    onSetWidthStyle = onSetWidthStyle
+                )
+                ThemePresetCard(
+                    selectedPreset = widgetConfigState.config.themePreset,
+                    onSetThemePreset = onSetThemePreset
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 WidgetBehaviorCard(
                     config = widgetConfigState.config,
                     position = widgetConfigState.position,
@@ -696,18 +786,13 @@ private fun SettingsScreen(
             }
         }
     } else {
-        WidgetPreviewEditorCard(
-            config = widgetConfigState.config,
-            position = widgetConfigState.position,
-            mediaState = mediaSummaryState.mediaState
+        WidthStyleCard(
+            selectedStyle = widgetConfigState.config.widthStyle,
+            onSetWidthStyle = onSetWidthStyle
         )
-        ButtonSetEditorCard(
-            config = widgetConfigState.config,
-            onSetVisibleButtons = onSetVisibleButtons
-        )
-        SizePresetCard(
-            selectedPreset = widgetConfigState.config.sizePreset,
-            onSetSizePreset = onSetSizePreset
+        ThemePresetCard(
+            selectedPreset = widgetConfigState.config.themePreset,
+            onSetThemePreset = onSetThemePreset
         )
         WidgetBehaviorCard(
             config = widgetConfigState.config,
@@ -719,33 +804,6 @@ private fun SettingsScreen(
             onSetDebugToolsEnabled = onSetDebugToolsEnabled
         )
     }
-
-    RuntimeStatusCard(
-        capabilityState = capabilityState,
-        runtimeState = runtimeState,
-        heading = "Runtime readiness",
-        supportingLine = runtimeSupportingLine(runtimeState)
-    )
-    DebugControlsCard(
-        readyForStart = capabilityState.isReadyForPersistentOverlay(),
-        runtimeState = runtimeState,
-        mediaSummaryState = mediaSummaryState,
-        onStartOverlay = onStartOverlay,
-        onStopOverlay = onStopOverlay,
-        onDispatchPrevious = onDispatchPrevious,
-        onDispatchPlayPause = onDispatchPlayPause,
-        onDispatchNext = onDispatchNext,
-        title = "Overlay controls",
-        detail = "Start or stop the floating overlay here while you tune settings, without jumping over to the debug console.",
-        showTransportControls = false
-    )
-    ReadinessActionsCard(
-        readinessProblems = capabilityState.unavailableReasons(),
-        onOpenOverlaySettings = onOpenOverlaySettings,
-        onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
-        onOpenNotificationSettings = onOpenNotificationSettings,
-        compact = !wideLayout
-    )
 }
 
 @Composable
@@ -1273,7 +1331,7 @@ private fun SizePresetCard(
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "Switch between the supported overlay shells instead of freeform resizing. The preview updates immediately so the live bar stays predictable.",
+                text = "Switch between the supported overlay shells instead of freeform resizing. The real floating widget updates as soon as you choose a preset.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1286,6 +1344,133 @@ private fun SizePresetCard(
                     onClick = { onSetSizePreset(preset) }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun WidthStyleCard(
+    selectedStyle: WidgetWidthStyle,
+    onSetWidthStyle: (WidgetWidthStyle) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "Button width",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "Choose whether the floating buttons keep their regular footprint or stretch into a wider touch target.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            WidgetWidthStyle.entries.forEach { style ->
+                ToggleOptionCard(
+                    title = style.displayTitle(),
+                    detail = when (style) {
+                        WidgetWidthStyle.Regular -> "Balanced button width for the default compact overlay feel."
+                        WidgetWidthStyle.Wide -> "Wider buttons and handle for easier tapping and stronger visibility."
+                    },
+                    selected = style == selectedStyle,
+                    enabled = true,
+                    onClick = { onSetWidthStyle(style) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemePresetCard(
+    selectedPreset: WidgetThemePreset,
+    onSetThemePreset: (WidgetThemePreset) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "Widget theme",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "Theme presets change the real floating widget immediately so you can tune contrast without guessing through a fake preview.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            WidgetThemePreset.entries.forEach { preset ->
+                ToggleOptionCard(
+                    title = preset.displayTitle(),
+                    detail = preset.description(),
+                    selected = preset == selectedPreset,
+                    enabled = true,
+                    onClick = { onSetThemePreset(preset) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActualOverlayNoticeCard(
+    config: WidgetConfig,
+    position: WidgetPosition,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "Real widget settings",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "The preview has been removed because it could drift from the actual runtime. Changes here now target the real floating widget directly.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                MetricPill(label = "Buttons", value = config.layout.summaryLabel(), modifier = Modifier.weight(1f))
+                MetricPill(label = "Size", value = config.sizePreset.displayTitle(), modifier = Modifier.weight(1f))
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                MetricPill(label = "Width", value = config.widthStyle.displayTitle(), modifier = Modifier.weight(1f))
+                MetricPill(label = "Theme", value = config.themePreset.displayTitle(), modifier = Modifier.weight(1f))
+            }
+            Text(
+                text = "Saved position: ${position.anchor.displayLabel()} edge, ${position.xOffsetDp}dp x ${position.yOffsetDp}dp.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -1454,6 +1639,14 @@ private fun DeveloperOptionsCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("debug-tools-toggle-row")
+                    .toggleable(
+                        value = debugToolsEnabled,
+                        role = Role.Switch,
+                        onValueChange = onSetDebugToolsEnabled
+                    ),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -1478,7 +1671,8 @@ private fun DeveloperOptionsCard(
                 }
                 Switch(
                     checked = debugToolsEnabled,
-                    onCheckedChange = onSetDebugToolsEnabled
+                    onCheckedChange = null,
+                    modifier = Modifier.testTag("debug-tools-toggle")
                 )
             }
         }
@@ -2271,6 +2465,33 @@ private fun WidgetSizePreset.displayTitle(): String {
         WidgetSizePreset.Compact -> "Compact"
         WidgetSizePreset.Standard -> "Standard"
         WidgetSizePreset.Large -> "Large"
+    }
+}
+
+private fun WidgetWidthStyle.displayTitle(): String {
+    return when (this) {
+        WidgetWidthStyle.Regular -> "Regular"
+        WidgetWidthStyle.Wide -> "Wide"
+    }
+}
+
+private fun WidgetThemePreset.displayTitle(): String {
+    return when (this) {
+        WidgetThemePreset.Light -> "Light"
+        WidgetThemePreset.Dark -> "Dark"
+        WidgetThemePreset.DarkBlue -> "Dark blue"
+        WidgetThemePreset.MediumYellow -> "Medium yellow"
+        WidgetThemePreset.Pink -> "Pink"
+    }
+}
+
+private fun WidgetThemePreset.description(): String {
+    return when (this) {
+        WidgetThemePreset.Light -> "Bright neutral shell with dark controls for daylight use."
+        WidgetThemePreset.Dark -> "Default low-glare shell tuned for general use."
+        WidgetThemePreset.DarkBlue -> "Cool dark shell with blue accents for stronger contrast."
+        WidgetThemePreset.MediumYellow -> "Warm yellow shell that stays readable without going neon."
+        WidgetThemePreset.Pink -> "Soft pink shell that keeps the controls playful but legible."
     }
 }
 

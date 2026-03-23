@@ -44,7 +44,7 @@ class WidgetPreferencesRepository(
         debugLogWriter.info(
             TAG,
             "Saved widget config",
-            "buttons=${config.layout.orderedButtons.joinToString()} size=${config.sizePreset.name} persistent=${config.persistentOverlayEnabled}"
+            "buttons=${config.layout.orderedButtons.joinToString()} size=${config.sizePreset.name} width=${config.widthStyle.name} theme=${config.themePreset.name} persistent=${config.persistentOverlayEnabled}"
         )
         notifyListeners()
     }
