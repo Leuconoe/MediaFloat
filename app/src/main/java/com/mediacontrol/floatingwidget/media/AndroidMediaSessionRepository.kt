@@ -5,6 +5,8 @@ import android.content.Context
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.mediacontrol.floatingwidget.debug.DebugLogWriter
 import com.mediacontrol.floatingwidget.debug.NoOpDebugLogWriter
@@ -23,6 +25,7 @@ class AndroidMediaSessionRepository(
     private val mediaSessionManager =
         appContext.getSystemService(MediaSessionManager::class.java)
     private val listenerComponent = ComponentName(appContext, MediaNotificationListenerService::class.java)
+    private val handler = Handler(Looper.getMainLooper())
     private val listeners = linkedSetOf<MediaSessionStateListener>()
     private val activeSessionsListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
         handleControllersChanged(controllers.orEmpty())
@@ -30,11 +33,14 @@ class AndroidMediaSessionRepository(
     private val controllerCallback = object : MediaController.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackState?) {
             publishState(resolveState(currentController))
+            if (shouldRecoverAfterPlaybackStateChange(state)) {
+                requestRecovery("playback_state_${state?.state ?: "unknown"}")
+            }
         }
 
         override fun onSessionDestroyed() {
             Log.d(TAG, "Active media session destroyed")
-            refresh()
+            requestRecovery("session_destroyed")
         }
     }
 
@@ -46,6 +52,7 @@ class AndroidMediaSessionRepository(
 
     private var connected = false
     private var connectionCount = 0
+    private var recoveryRunnable: Runnable? = null
 
     @Synchronized
     override fun connect() {
@@ -61,7 +68,7 @@ class AndroidMediaSessionRepository(
                 listenerComponent
             )
             connected = true
-            refresh()
+            refresh("connect")
             Log.d(TAG, "Connected active media session listener")
             debugLogWriter.info(TAG, "Connected media session listener", "connectionCount=$connectionCount")
         } catch (securityException: SecurityException) {
@@ -86,6 +93,7 @@ class AndroidMediaSessionRepository(
         }
 
         if (!connected) {
+            clearRecovery()
             unregisterController()
             return
         }
@@ -93,11 +101,21 @@ class AndroidMediaSessionRepository(
         runCatching {
             mediaSessionManager.removeOnActiveSessionsChangedListener(activeSessionsListener)
         }
+        clearRecovery()
         unregisterController()
         connected = false
         publishState(MediaSessionState.Unavailable)
         Log.d(TAG, "Disconnected active media session listener")
         debugLogWriter.info(TAG, "Disconnected media session listener")
+    }
+
+    @Synchronized
+    override fun prepareForOverlayActivation() {
+        if (!connected) {
+            return
+        }
+
+        requestRecovery("overlay_activation")
     }
 
     override fun currentState(): MediaSessionState = currentState
@@ -113,7 +131,9 @@ class AndroidMediaSessionRepository(
 
     fun currentController(): MediaController? = currentController
 
-    fun refresh(): MediaSessionState {
+    @Synchronized
+    fun refresh(reason: String = "manual"): MediaSessionState {
+        debugLogWriter.debug(TAG, "Refreshing media sessions", "reason=$reason")
         val nextState = try {
             val controllers = mediaSessionManager.getActiveSessions(listenerComponent).orEmpty()
             selectController(controllers)?.let { controller ->
@@ -139,16 +159,48 @@ class AndroidMediaSessionRepository(
         return nextState
     }
 
+    @Synchronized
+    fun requestRecovery(reason: String) {
+        if (!connected) {
+            return
+        }
+
+        if (currentState != MediaSessionState.Discovering && currentState !is MediaSessionState.Active) {
+            publishState(MediaSessionState.Discovering)
+        }
+        scheduleRecovery(reason = reason, attempt = 0)
+    }
+
+    @Synchronized
+    fun onNotificationListenerConnected() {
+        debugLogWriter.info(TAG, "Notification listener connected; refreshing tracked media session")
+        requestRecovery("listener_connected")
+    }
+
+    @Synchronized
+    fun onNotificationListenerDisconnected() {
+        debugLogWriter.warn(TAG, "Notification listener disconnected; clearing pending media recovery")
+        clearRecovery()
+        publishState(MediaSessionState.Discovering)
+    }
+
     private fun handleControllersChanged(controllers: List<MediaController>) {
         val nextController = selectController(controllers)
         if (nextController == null) {
             unregisterController()
             publishState(MediaSessionState.Unavailable)
+            requestRecovery("active_sessions_empty")
             return
         }
 
         registerController(nextController)
-        publishState(resolveState(nextController))
+        val nextState = resolveState(nextController)
+        publishState(nextState)
+        if (shouldContinueRecovery(nextState)) {
+            requestRecovery("controller_state_changed")
+        } else {
+            clearRecovery()
+        }
     }
 
     private fun selectController(controllers: List<MediaController>): MediaController? {
@@ -217,6 +269,53 @@ class AndroidMediaSessionRepository(
         listeners.forEach { it.onMediaSessionStateChanged(state) }
     }
 
+    @Synchronized
+    private fun scheduleRecovery(reason: String, attempt: Int) {
+        clearRecovery()
+        val runnable = Runnable {
+            val nextState = refresh(reason = "recovery_${attempt + 1}_$reason")
+            synchronized(this) {
+                recoveryRunnable = null
+                if (connected && attempt + 1 < MAX_RECOVERY_ATTEMPTS && shouldContinueRecovery(nextState)) {
+                    scheduleRecovery(reason = reason, attempt = attempt + 1)
+                }
+            }
+        }
+        recoveryRunnable = runnable
+        val delayMillis = if (attempt == 0) 0L else RECOVERY_RETRY_DELAY_MS
+        handler.postDelayed(runnable, delayMillis)
+    }
+
+    @Synchronized
+    private fun clearRecovery() {
+        recoveryRunnable?.let(handler::removeCallbacks)
+        recoveryRunnable = null
+    }
+
+    private fun shouldRecoverAfterPlaybackStateChange(state: PlaybackState?): Boolean {
+        if (state == null) {
+            return true
+        }
+
+        return when (state.state) {
+            PlaybackState.STATE_NONE,
+            PlaybackState.STATE_STOPPED,
+            PlaybackState.STATE_ERROR -> true
+            else -> state.actions.toSupportedCommands().isEmpty()
+        }
+    }
+
+    private fun shouldContinueRecovery(state: MediaSessionState): Boolean {
+        return when (state) {
+            is MediaSessionState.Active -> false
+            is MediaSessionState.Limited -> state.reason == MediaSessionLimitReason.PlaybackStateUnknown ||
+                state.reason == MediaSessionLimitReason.MissingTransportControls
+            MediaSessionState.Discovering,
+            MediaSessionState.Unavailable -> true
+            is MediaSessionState.Error -> false
+        }
+    }
+
     private fun Long.toSupportedCommands(): Set<MediaCommand> {
         val commands = linkedSetOf<MediaCommand>()
 
@@ -261,5 +360,7 @@ class AndroidMediaSessionRepository(
 
     private companion object {
         const val TAG = "MediaSessionRepo"
+        const val MAX_RECOVERY_ATTEMPTS = 3
+        const val RECOVERY_RETRY_DELAY_MS = 750L
     }
 }

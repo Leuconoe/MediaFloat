@@ -30,6 +30,7 @@ class AppDebugActions(
 ) : DebugActions {
 
     override fun startOverlay(): Boolean {
+        mediaSessionRepository.prepareForOverlayActivation()
         val started = runtimeController.startOverlay()
         debugLogWriter.info(TAG, "In-app start overlay action", "started=$started")
         return started

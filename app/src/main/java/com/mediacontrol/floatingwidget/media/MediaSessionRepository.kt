@@ -11,6 +11,8 @@ interface MediaSessionRepository {
 
     fun disconnect()
 
+    fun prepareForOverlayActivation() = Unit
+
     fun currentState(): MediaSessionState
 
     fun addListener(listener: MediaSessionStateListener)

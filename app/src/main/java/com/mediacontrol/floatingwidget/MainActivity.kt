@@ -1,5 +1,7 @@
 package com.mediacontrol.floatingwidget
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -246,5 +248,12 @@ class MainActivity : ComponentActivity() {
             retentionLimit = 200,
             entries = emptyList()
         )
+    }
+
+    companion object {
+        fun launchIntent(context: Context): Intent {
+            return Intent(context, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
     }
 }

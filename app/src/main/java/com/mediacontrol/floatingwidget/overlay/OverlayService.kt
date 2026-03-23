@@ -131,7 +131,7 @@ class OverlayService : Service() {
         val contentIntent = PendingIntent.getActivity(
             this,
             10,
-            Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            MainActivity.launchIntent(this),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val stopIntent = PendingIntent.getService(
@@ -174,7 +174,7 @@ class OverlayService : Service() {
             runtimeStarted = true
         }
 
-        currentMediaState = mediaRepository.currentState()
+        currentMediaState = mediaRepository.refresh(reason = "overlay_attach")
         overlayHost.attach(
             OverlayViewState(
                 config = currentWidgetConfig,

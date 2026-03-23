@@ -16,8 +16,14 @@ class MediaControllerCommandDispatcher(
 ) : MediaCommandDispatcher {
 
     override fun dispatch(command: MediaCommand): Boolean {
-        val controller = repository.currentController()
-        val controls = controller?.transportControls
+        var controller = repository.currentController()
+        var controls = controller?.transportControls
+
+        if (controller == null || controls == null) {
+            repository.refresh(reason = "dispatch_${command.name.lowercase()}")
+            controller = repository.currentController()
+            controls = controller?.transportControls
+        }
 
         if (controller == null || controls == null) {
             Log.w(TAG, "No active media controller for $command")
@@ -26,13 +32,16 @@ class MediaControllerCommandDispatcher(
         }
 
         if (command !in repository.currentState().supportedActions()) {
-            Log.d(TAG, "Ignoring unsupported media command $command")
-            debugLogWriter.debug(
-                TAG,
-                "Ignoring unsupported media command",
-                "command=${command.name} state=${repository.currentState()}"
-            )
-            return false
+            repository.refresh(reason = "dispatch_support_check_${command.name.lowercase()}")
+            if (command !in repository.currentState().supportedActions()) {
+                Log.d(TAG, "Ignoring unsupported media command $command")
+                debugLogWriter.debug(
+                    TAG,
+                    "Ignoring unsupported media command",
+                    "command=${command.name} state=${repository.currentState()}"
+                )
+                return false
+            }
         }
 
         when (command) {

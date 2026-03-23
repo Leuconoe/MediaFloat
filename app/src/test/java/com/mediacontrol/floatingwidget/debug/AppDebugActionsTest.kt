@@ -38,9 +38,28 @@ class AppDebugActionsTest {
         assertEquals(1, repository.disconnectCalls)
     }
 
+    @Test
+    fun startOverlay_preparesMediaTrackingBeforeRuntimeStart() {
+        val repository = FakeMediaSessionRepository()
+        val runtimeController = FakeOverlayRuntimeController()
+        val actions = AppDebugActions(
+            runtimeController = runtimeController,
+            mediaSessionRepository = repository,
+            mediaCommandDispatcher = RecordingMediaCommandDispatcher(),
+            debugLogRepository = PreferencesDebugLogRepository(storage = TestPreferencesStorage(), retentionLimit = 200, clock = { 1L })
+        )
+
+        val started = actions.startOverlay()
+
+        assertTrue(started)
+        assertEquals(1, repository.prepareForOverlayActivationCalls)
+        assertEquals(1, runtimeController.startOverlayCalls)
+    }
+
     private class FakeMediaSessionRepository : MediaSessionRepository {
         var connectCalls = 0
         var disconnectCalls = 0
+        var prepareForOverlayActivationCalls = 0
 
         override fun connect() {
             connectCalls += 1
@@ -48,6 +67,10 @@ class AppDebugActionsTest {
 
         override fun disconnect() {
             disconnectCalls += 1
+        }
+
+        override fun prepareForOverlayActivation() {
+            prepareForOverlayActivationCalls += 1
         }
 
         override fun currentState(): MediaSessionState = MediaSessionState.Unavailable
@@ -67,6 +90,8 @@ class AppDebugActionsTest {
     }
 
     private class FakeOverlayRuntimeController : OverlayRuntimeController {
+        var startOverlayCalls = 0
+
         override fun capabilityState(): CapabilityState {
             return CapabilityState(
                 overlayAccess = CapabilityGrantState.Granted,
@@ -82,7 +107,10 @@ class AppDebugActionsTest {
             return OverlayRuntimeState.Unavailable(OverlayUnavailableReason.UnknownRuntimeFailure)
         }
 
-        override fun startOverlay(): Boolean = true
+        override fun startOverlay(): Boolean {
+            startOverlayCalls += 1
+            return true
+        }
 
         override fun stopOverlay() = Unit
 
