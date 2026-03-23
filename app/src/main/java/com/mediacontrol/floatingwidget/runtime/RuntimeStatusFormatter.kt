@@ -41,10 +41,10 @@ object RuntimeStatusFormatter {
     private fun runtimeDetail(runtimeState: OverlayRuntimeState): String {
         return when (runtimeState) {
             OverlayRuntimeState.Ready -> {
-                "Permissions and notification posture are aligned for the future service-owned overlay runtime."
+                "Permissions and notification posture are aligned for the foreground service to show the overlay."
             }
             is OverlayRuntimeState.Showing -> {
-                "The overlay host will attach to the saved widget position once the WindowManager implementation lands."
+                "The foreground service owns a live WindowManager overlay and is updating media command availability in place."
             }
             is OverlayRuntimeState.Suspended -> {
                 "The runtime is paused until the owning foreground service can recover: ${runtimeState.reason.label()}."

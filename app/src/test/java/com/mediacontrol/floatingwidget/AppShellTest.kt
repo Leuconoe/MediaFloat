@@ -1,6 +1,7 @@
 package com.mediacontrol.floatingwidget
 
-import com.mediacontrol.floatingwidget.ui.defaultPlaceholderSections
+import com.mediacontrol.floatingwidget.model.WidgetButton
+import com.mediacontrol.floatingwidget.model.WidgetLayout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -8,13 +9,14 @@ import org.junit.Test
 class AppShellTest {
 
     @Test
-    fun defaultPlaceholderSections_matchPlannedAppBoundaries() {
-        val sections = defaultPlaceholderSections()
+    fun supportedWidgetLayouts_keepPlayPauseAndExpectedDefaultOrder() {
+        val supportedButtonSets = WidgetLayout.supportedButtonSets
 
-        assertEquals(3, sections.size)
-        assertEquals("Overlay runtime", sections[0].title)
-        assertEquals("Media controls", sections[1].title)
-        assertEquals("Settings and support", sections[2].title)
-        assertTrue(sections.all { it.detail.isNotBlank() })
+        assertEquals(4, supportedButtonSets.size)
+        assertTrue(supportedButtonSets.all { WidgetButton.PlayPause in it })
+        assertEquals(
+            listOf(WidgetButton.Previous, WidgetButton.PlayPause, WidgetButton.Next),
+            WidgetLayout.Default.orderedButtons
+        )
     }
 }

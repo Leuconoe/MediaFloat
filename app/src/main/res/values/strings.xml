@@ -3,6 +3,12 @@
     <string name="media_listener_service_label">Media session access</string>
     <string name="overlay_runtime_channel_name">Overlay runtime</string>
     <string name="overlay_runtime_channel_description">Keeps the media control widget runtime visible and recoverable.</string>
-    <string name="overlay_runtime_notification_title">Overlay runtime standby</string>
-    <string name="overlay_runtime_notification_body">The service shell is ready for the future floating widget runtime.</string>
+    <string name="overlay_runtime_notification_title">Floating media controls active</string>
+    <string name="overlay_runtime_notification_body">The foreground service is hosting the overlay bar and listening for media session changes.</string>
+    <string name="overlay_runtime_notification_stop">Stop overlay</string>
+    <string name="overlay_runtime_special_use_subtype">Persistent user-controlled overlay media controls</string>
+    <string name="overlay_button_previous">Previous track</string>
+    <string name="overlay_button_play_pause">Play or pause</string>
+    <string name="overlay_button_next">Next track</string>
+    <string name="overlay_drag_handle">Drag overlay</string>
 </resources>
