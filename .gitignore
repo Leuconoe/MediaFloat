@@ -53,6 +53,7 @@ build/
 node_modules/
 .rpt2_cache/
 local.properties
+.agents/
 keystore.properties
 keystore/*.jks
 keystore/*.keystore
