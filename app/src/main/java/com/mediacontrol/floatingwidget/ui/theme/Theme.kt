@@ -49,7 +49,7 @@ private val DarkColors = darkColorScheme(
 )
 
 @Composable
-fun MediaControlFloatingWidgetTheme(content: @Composable () -> Unit) {
+fun MediaFloatTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = LightColors,
         content = content

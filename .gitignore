@@ -53,6 +53,9 @@ build/
 node_modules/
 .rpt2_cache/
 local.properties
+keystore.properties
+keystore/*.jks
+keystore/*.keystore
 buildSrcTmp/
 distTmp/
 outTmp/

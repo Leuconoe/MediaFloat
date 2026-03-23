@@ -29,7 +29,7 @@ import com.mediacontrol.floatingwidget.state.StateListener
 import com.mediacontrol.floatingwidget.state.WidgetConfigScreenState
 import com.mediacontrol.floatingwidget.state.WidgetConfigStateHolder
 import com.mediacontrol.floatingwidget.ui.AppShell
-import com.mediacontrol.floatingwidget.ui.theme.MediaControlFloatingWidgetTheme
+import com.mediacontrol.floatingwidget.ui.theme.MediaFloatTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            MediaControlFloatingWidgetTheme {
+            MediaFloatTheme {
                 AppShell(
                     capabilityState = capabilityState,
                     runtimeState = runtimeState,

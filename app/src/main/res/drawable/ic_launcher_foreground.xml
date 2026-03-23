@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/launcher_icon_accent"
+        android:fillAlpha="0.42"
+        android:pathData="M42,36 H70 A18,18 0 0 1 88,54 A18,18 0 0 1 70,72 H42 A18,18 0 0 1 24,54 A18,18 0 0 1 42,36 Z" />
+    <path
+        android:fillColor="@color/launcher_icon_surface"
+        android:pathData="M36,28 H64 A18,18 0 0 1 82,46 A18,18 0 0 1 64,64 H36 A18,18 0 0 1 18,46 A18,18 0 0 1 36,28 Z" />
+    <path
+        android:fillColor="@color/launcher_icon_accent"
+        android:pathData="M80,46 m-7,0 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0" />
+    <path
+        android:fillColor="@color/launcher_icon_primary"
+        android:pathData="M34,46 m-4.5,0 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0" />
+    <path
+        android:fillColor="@color/launcher_icon_primary"
+        android:pathData="M47,38 L47,54 L60,46 Z" />
+    <path
+        android:fillColor="@color/launcher_icon_primary"
+        android:pathData="M68,46 m-4.5,0 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0" />
+    <path
+        android:fillColor="@color/launcher_icon_surface"
+        android:pathData="M80,46 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+    <path
+        android:fillColor="@color/launcher_icon_surface"
+        android:pathData="M80,40 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+    <path
+        android:fillColor="@color/launcher_icon_surface"
+        android:pathData="M80,52 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0" />
+</vector>

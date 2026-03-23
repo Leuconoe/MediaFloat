@@ -8,15 +8,15 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@android:drawable/sym_def_app_icon"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@android:drawable/sym_def_app_icon"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MediaControlFloatingWidget">
+        android:theme="@style/Theme.MediaFloat">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.MediaControlFloatingWidget">
+            android:theme="@style/Theme.MediaFloat">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,7 +29,7 @@
             android:exported="true"
             android:excludeFromRecents="true"
             android:noHistory="true"
-            android:theme="@style/Theme.MediaControlFloatingWidget">
+            android:theme="@style/Theme.MediaFloat">
             <intent-filter>
                 <action android:name="com.mediacontrol.floatingwidget.action.SHOW_OVERLAY" />
 

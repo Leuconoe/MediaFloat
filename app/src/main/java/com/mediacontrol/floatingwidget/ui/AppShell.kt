@@ -75,7 +75,7 @@ import com.mediacontrol.floatingwidget.runtime.RuntimeStatusFormatter
 import com.mediacontrol.floatingwidget.state.DebugLogScreenState
 import com.mediacontrol.floatingwidget.state.MediaSummaryState
 import com.mediacontrol.floatingwidget.state.WidgetConfigScreenState
-import com.mediacontrol.floatingwidget.ui.theme.MediaControlFloatingWidgetTheme
+import com.mediacontrol.floatingwidget.ui.theme.MediaFloatTheme
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -139,7 +139,7 @@ fun AppShell(
             TopAppBar(
                 title = {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(text = "Media Control Floating Widget")
+                        Text(text = "MediaFloat")
                         Text(
                             text = selectedSection.shortTitle,
                             style = MaterialTheme.typography.labelLarge,
@@ -417,6 +417,11 @@ private fun SectionContent(
                     onSetVisibleButtons = onSetVisibleButtons,
                     onSetSizePreset = onSetSizePreset,
                     onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
+                    onStartOverlay = onStartOverlay,
+                    onStopOverlay = onStopOverlay,
+                    onDispatchPrevious = onDispatchPrevious,
+                    onDispatchPlayPause = onDispatchPlayPause,
+                    onDispatchNext = onDispatchNext,
                     onOpenOverlaySettings = onOpenOverlaySettings,
                     onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
                     onOpenNotificationSettings = onOpenNotificationSettings,
@@ -464,6 +469,11 @@ private fun SettingsScreen(
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit,
     onSetSizePreset: (WidgetSizePreset) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
+    onStartOverlay: () -> Unit,
+    onStopOverlay: () -> Unit,
+    onDispatchPrevious: () -> Unit,
+    onDispatchPlayPause: () -> Unit,
+    onDispatchNext: () -> Unit,
     onOpenOverlaySettings: () -> Unit,
     onOpenNotificationListenerSettings: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
@@ -531,6 +541,19 @@ private fun SettingsScreen(
         runtimeState = runtimeState,
         heading = "Runtime readiness",
         supportingLine = runtimeSupportingLine(runtimeState)
+    )
+    DebugControlsCard(
+        readyForStart = capabilityState.isReadyForPersistentOverlay(),
+        runtimeState = runtimeState,
+        mediaSummaryState = mediaSummaryState,
+        onStartOverlay = onStartOverlay,
+        onStopOverlay = onStopOverlay,
+        onDispatchPrevious = onDispatchPrevious,
+        onDispatchPlayPause = onDispatchPlayPause,
+        onDispatchNext = onDispatchNext,
+        title = "Overlay controls",
+        detail = "Start or stop the floating overlay here while you tune settings, without jumping over to the debug console.",
+        showTransportControls = false
     )
     ReadinessActionsCard(
         readinessProblems = capabilityState.unavailableReasons(),
@@ -1326,6 +1349,9 @@ private fun DebugControlsCard(
     onDispatchPrevious: () -> Unit,
     onDispatchPlayPause: () -> Unit,
     onDispatchNext: () -> Unit,
+    title: String = "Debug controls",
+    detail: String = "These buttons travel through the same app services and dispatcher path as the runtime, so they double as a practical test surface when overlay touch input is unreliable.",
+    showTransportControls: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -1338,12 +1364,12 @@ private fun DebugControlsCard(
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Text(
-                text = "Debug controls",
+                text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "These buttons travel through the same app services and dispatcher path as the runtime, so they double as a practical test surface when overlay touch input is unreliable.",
+                text = detail,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -1366,30 +1392,32 @@ private fun DebugControlsCard(
                     Text(text = "Stop overlay")
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onDispatchPrevious,
-                    enabled = mediaSummaryState.previousEnabled,
-                    modifier = Modifier.weight(1f)
+            if (showTransportControls) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(text = "Prev")
-                }
-                Button(
-                    onClick = onDispatchPlayPause,
-                    enabled = mediaSummaryState.playPauseEnabled,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = "Play / pause")
-                }
-                OutlinedButton(
-                    onClick = onDispatchNext,
-                    enabled = mediaSummaryState.nextEnabled,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = "Next")
+                    OutlinedButton(
+                        onClick = onDispatchPrevious,
+                        enabled = mediaSummaryState.previousEnabled,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Prev")
+                    }
+                    Button(
+                        onClick = onDispatchPlayPause,
+                        enabled = mediaSummaryState.playPauseEnabled,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Play / pause")
+                    }
+                    OutlinedButton(
+                        onClick = onDispatchNext,
+                        enabled = mediaSummaryState.nextEnabled,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Next")
+                    }
                 }
             }
         }
@@ -1936,7 +1964,7 @@ private fun DebugLogEntry.timestampLabel(): String {
 @Preview(showBackground = true, widthDp = 412, heightDp = 960)
 @Composable
 private fun AppShellPhonePreview() {
-    MediaControlFloatingWidgetTheme {
+            MediaFloatTheme {
         AppShell()
     }
 }
@@ -1944,7 +1972,7 @@ private fun AppShellPhonePreview() {
 @Preview(showBackground = true, widthDp = 1180, heightDp = 900)
 @Composable
 private fun AppShellTabletPreview() {
-    MediaControlFloatingWidgetTheme {
+            MediaFloatTheme {
         AppShell()
     }
 }

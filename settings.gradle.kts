@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MediaControlFloatingWidget"
+rootProject.name = "MediaFloat"
 include(":app")
