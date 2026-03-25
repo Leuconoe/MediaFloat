@@ -57,6 +57,8 @@ class WindowManagerOverlayHost(
     }
     private var attached = false
     private var currentViewState: OverlayViewState? = null
+    private var isDragging = false
+    private var appliedDragHandlePlacement: DragHandlePlacement = DragHandlePlacement.Right
 
     override fun attach(viewState: OverlayViewState) {
         currentViewState = viewState
@@ -178,7 +180,9 @@ class WindowManagerOverlayHost(
         val colors = appearance.colors
 
         rootView.alpha = viewState.config.opacity
-        syncChildOrder(rootView, viewState.layout.dragHandlePlacement)
+        if (!isDragging && (appliedDragHandlePlacement != viewState.layout.dragHandlePlacement || rootView.childCount == 0)) {
+            syncChildOrder(rootView, viewState.layout.dragHandlePlacement)
+        }
 
         rootView.setPadding(
             dp(sizing.containerStartPaddingDp),
@@ -221,6 +225,7 @@ class WindowManagerOverlayHost(
         if (placement == DragHandlePlacement.Right) {
             container.addView(dragHandle)
         }
+        appliedDragHandlePlacement = placement
     }
 
     private fun updateButtonLayout(button: ImageButton, sizing: com.mediacontrol.floatingwidget.model.WidgetOverlaySizing) {
@@ -282,10 +287,12 @@ class WindowManagerOverlayHost(
         override fun onTouch(view: View, event: MotionEvent): Boolean {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
+                    isDragging = true
                     initialX = layoutParams.x
                     initialY = layoutParams.y
                     initialTouchX = event.rawX
                     initialTouchY = event.rawY
+                    debugLogWriter.debug(TAG, "Overlay drag started", "x=${layoutParams.x} y=${layoutParams.y}")
                     return true
                 }
 
@@ -300,7 +307,12 @@ class WindowManagerOverlayHost(
 
                 MotionEvent.ACTION_UP,
                 MotionEvent.ACTION_CANCEL -> {
-                    persistCurrentPosition()
+                    try {
+                        persistCurrentPosition()
+                    } finally {
+                        isDragging = false
+                        debugLogWriter.debug(TAG, "Overlay drag finished", "x=${layoutParams.x} y=${layoutParams.y}")
+                    }
                     return true
                 }
             }

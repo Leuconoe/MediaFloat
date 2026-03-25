@@ -51,6 +51,10 @@ class WidgetPreferencesRepository(
 
     @Synchronized
     fun savePosition(position: WidgetPosition) {
+        if (state.position == position) {
+            debugLogWriter.debug(TAG, "Skipped widget position save because nothing changed")
+            return
+        }
         positionStore.save(position)
         state = state.copy(position = position)
         debugLogWriter.debug(

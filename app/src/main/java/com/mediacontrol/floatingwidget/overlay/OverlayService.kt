@@ -39,6 +39,7 @@ class OverlayService : Service() {
     private var currentMediaState: MediaSessionState = MediaSessionState.Unavailable
     private var currentWidgetConfig: WidgetConfig = WidgetConfig()
     private var currentWidgetPosition = com.mediacontrol.floatingwidget.model.WidgetPosition()
+    private var suppressNextPositionEcho = false
     private var runtimeStarted = false
     private val mediaStateListener = MediaSessionStateListener { mediaState ->
         currentMediaState = mediaState
@@ -54,6 +55,12 @@ class OverlayService : Service() {
         }
     }
     private val widgetPreferencesListener = WidgetPreferencesListener { preferencesState ->
+        if (suppressNextPositionEcho && preferencesState.position == currentWidgetPosition) {
+            suppressNextPositionEcho = false
+            currentWidgetConfig = preferencesState.config
+            debugLogWriter.debug(TAG, "Ignored self-originated position echo")
+            return@WidgetPreferencesListener
+        }
         currentWidgetConfig = preferencesState.config
         currentWidgetPosition = preferencesState.position
         if (runtimeStarted) {
@@ -85,6 +92,8 @@ class OverlayService : Service() {
             positionStore = positionStore,
             onMediaCommand = { command -> mediaDispatcher.dispatch(command) },
             onPositionChanged = {
+                currentWidgetPosition = it
+                suppressNextPositionEcho = true
                 widgetPreferencesRepository.savePosition(it)
                 publishShowingState(position = it)
             },
