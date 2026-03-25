@@ -23,6 +23,7 @@ import com.mediacontrol.floatingwidget.model.WidgetPosition
 import com.mediacontrol.floatingwidget.model.WidgetSizePreset
 import com.mediacontrol.floatingwidget.model.WidgetThemePreset
 import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
+import com.mediacontrol.floatingwidget.model.DragHandlePlacement
 import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeCoordinator
 import com.mediacontrol.floatingwidget.state.AppPreferencesStateHolder
 import com.mediacontrol.floatingwidget.state.DebugLogScreenState
@@ -97,6 +98,8 @@ class MainActivity : AppCompatActivity() {
                     onSetSizePreset = ::setSizePreset,
                     onSetWidthStyle = ::setWidthStyle,
                     onSetThemePreset = ::setThemePreset,
+                    onSetOpacity = ::setOpacity,
+                    onSetDragHandlePlacement = ::setDragHandlePlacement,
                     onSetPersistentOverlayEnabled = ::setPersistentOverlayEnabled,
                     onStartOverlay = ::startOverlay,
                     onStopOverlay = ::stopOverlay,
@@ -168,6 +171,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun setThemePreset(themePreset: WidgetThemePreset) {
         widgetConfigStateHolder.setThemePreset(themePreset)
+    }
+
+    private fun setOpacity(opacity: Float) {
+        widgetConfigStateHolder.setOpacity(opacity)
+    }
+
+    private fun setDragHandlePlacement(placement: DragHandlePlacement) {
+        widgetConfigStateHolder.setDragHandlePlacement(placement)
     }
 
     private fun setPersistentOverlayEnabled(enabled: Boolean) {

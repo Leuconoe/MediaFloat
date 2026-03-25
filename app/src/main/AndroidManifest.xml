@@ -26,6 +26,9 @@
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MediaFloat">
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

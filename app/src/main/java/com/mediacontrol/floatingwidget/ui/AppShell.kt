@@ -33,6 +33,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -77,6 +78,7 @@ import com.mediacontrol.floatingwidget.model.PlaybackStatus
 import com.mediacontrol.floatingwidget.model.WidgetAnchor
 import com.mediacontrol.floatingwidget.model.WidgetButton
 import com.mediacontrol.floatingwidget.model.WidgetConfig
+import com.mediacontrol.floatingwidget.model.DragHandlePlacement
 import com.mediacontrol.floatingwidget.model.WidgetLayout
 import com.mediacontrol.floatingwidget.model.WidgetPosition
 import com.mediacontrol.floatingwidget.model.WidgetSizePreset
@@ -162,6 +164,8 @@ fun AppShell(
     onSetSizePreset: (WidgetSizePreset) -> Unit = {},
     onSetWidthStyle: (WidgetWidthStyle) -> Unit = {},
     onSetThemePreset: (WidgetThemePreset) -> Unit = {},
+    onSetOpacity: (Float) -> Unit = {},
+    onSetDragHandlePlacement: (DragHandlePlacement) -> Unit = {},
     onSetPersistentOverlayEnabled: (Boolean) -> Unit = {},
     onStartOverlay: () -> Unit = {},
     onStopOverlay: () -> Unit = {},
@@ -239,6 +243,8 @@ fun AppShell(
                             onSetSizePreset = onSetSizePreset,
                             onSetWidthStyle = onSetWidthStyle,
                             onSetThemePreset = onSetThemePreset,
+                            onSetOpacity = onSetOpacity,
+                            onSetDragHandlePlacement = onSetDragHandlePlacement,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
@@ -249,6 +255,7 @@ fun AppShell(
                             onOpenOverlaySettings = onOpenOverlaySettings,
                             onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
                             onOpenNotificationSettings = onOpenNotificationSettings,
+                            onOpenSupport = { selectedSection = AppSection.Support },
                             automationLaunchAction = automationLaunchAction,
                             wideLayout = true,
                             modifier = Modifier.weight(1f)
@@ -280,6 +287,8 @@ fun AppShell(
                             onSetSizePreset = onSetSizePreset,
                             onSetWidthStyle = onSetWidthStyle,
                             onSetThemePreset = onSetThemePreset,
+                            onSetOpacity = onSetOpacity,
+                            onSetDragHandlePlacement = onSetDragHandlePlacement,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
@@ -290,6 +299,7 @@ fun AppShell(
                             onOpenOverlaySettings = onOpenOverlaySettings,
                             onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
                             onOpenNotificationSettings = onOpenNotificationSettings,
+                            onOpenSupport = { selectedSection = AppSection.Support },
                             automationLaunchAction = automationLaunchAction,
                             wideLayout = false,
                             modifier = Modifier.weight(1f)
@@ -314,17 +324,10 @@ private fun SectionRail(
         modifier = modifier.fillMaxHeight(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ScreenHeaderCard(
-            title = stringResource(id = R.string.navigation_title),
-            detail = stringResource(id = R.string.navigation_detail),
-            compact = false
-        )
         sections.forEach { section ->
             SectionCard(
                 title = context.getString(section.shortTitleRes),
-                detail = context.getString(section.descriptionRes),
                 selected = section == selectedSection,
-                compact = false,
                 modifier = Modifier.testTag(section.selectorTag()),
                 onClick = { onSectionSelected(section) }
             )
@@ -401,9 +404,7 @@ private fun RowScope.CompactSectionButton(
 @Composable
 private fun SectionCard(
     title: String,
-    detail: String,
     selected: Boolean,
-    compact: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -427,7 +428,7 @@ private fun SectionCard(
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             Text(
                 text = title,
@@ -435,13 +436,6 @@ private fun SectionCard(
                 fontWeight = FontWeight.SemiBold,
                 color = contentColor
             )
-            if (!compact) {
-                Text(
-                    text = detail,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = contentColor.copy(alpha = 0.86f)
-                )
-            }
         }
     }
 }
@@ -461,6 +455,8 @@ private fun SectionContent(
     onSetSizePreset: (WidgetSizePreset) -> Unit,
     onSetWidthStyle: (WidgetWidthStyle) -> Unit,
     onSetThemePreset: (WidgetThemePreset) -> Unit,
+    onSetOpacity: (Float) -> Unit,
+    onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
@@ -471,6 +467,7 @@ private fun SectionContent(
     onOpenOverlaySettings: () -> Unit,
     onOpenNotificationListenerSettings: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
+    onOpenSupport: () -> Unit,
     automationLaunchAction: String,
     wideLayout: Boolean,
     modifier: Modifier = Modifier
@@ -494,20 +491,19 @@ private fun SectionContent(
                     widgetConfigState = widgetConfigState,
                     onStartOverlay = onStartOverlay,
                     onStopOverlay = onStopOverlay,
-                    onOpenOverlaySettings = onOpenOverlaySettings,
-                    onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
-                    onOpenNotificationSettings = onOpenNotificationSettings,
+                    onOpenSupport = onOpenSupport,
                     wideLayout = wideLayout
                 )
 
                 AppSection.Settings -> SettingsScreen(
-                    appPreferences = appPreferences,
                     capabilityState = capabilityState,
                     runtimeState = runtimeState,
                     mediaSummaryState = mediaSummaryState,
                     widgetConfigState = widgetConfigState,
                     onSetVisibleButtons = onSetVisibleButtons,
                     onSetSizePreset = onSetSizePreset,
+                    onSetWidthStyle = onSetWidthStyle,
+                    onSetOpacity = onSetOpacity,
                     onStartOverlay = onStartOverlay,
                     onStopOverlay = onStopOverlay,
                     wideLayout = wideLayout
@@ -518,8 +514,8 @@ private fun SectionContent(
                     widgetConfigState = widgetConfigState,
                     onSetDebugToolsEnabled = onSetDebugToolsEnabled,
                     onSetAppLanguage = onSetAppLanguage,
-                    onSetWidthStyle = onSetWidthStyle,
                     onSetThemePreset = onSetThemePreset,
+                    onSetDragHandlePlacement = onSetDragHandlePlacement,
                     onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                     wideLayout = wideLayout
                 )
@@ -542,9 +538,9 @@ private fun SectionContent(
                 )
 
                 AppSection.Support -> SupportScreen(
-                    appPreferences = appPreferences,
                     capabilityState = capabilityState,
-                    widgetConfigState = widgetConfigState,
+                    runtimeState = runtimeState,
+                    mediaSummaryState = mediaSummaryState,
                     debugLogState = debugLogState,
                     onOpenOverlaySettings = onOpenOverlaySettings,
                     onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
@@ -565,132 +561,50 @@ private fun LandingScreen(
     widgetConfigState: WidgetConfigScreenState,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
-    onOpenOverlaySettings: () -> Unit,
-    onOpenNotificationListenerSettings: () -> Unit,
-    onOpenNotificationSettings: () -> Unit,
+    onOpenSupport: () -> Unit,
     wideLayout: Boolean
 ) {
     val readinessProblems = capabilityState.unavailableReasons()
 
-    ScreenHeaderCard(
-        title = stringResource(id = AppSection.Landing.titleRes),
-        detail = stringResource(id = AppSection.Landing.descriptionRes),
-        modifier = Modifier.testTag(AppSection.Landing.headerTag()),
-        compact = !wideLayout
+    LandingMainCard(
+        runtimeState = runtimeState,
+        widgetConfigState = widgetConfigState,
+        readinessProblems = readinessProblems
     )
-
-    if (wideLayout) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                LandingOverviewCard(
-                    runtimeState = runtimeState,
-                    widgetConfigState = widgetConfigState,
-                    readinessProblems = readinessProblems
-                )
-                RuntimeStatusCard(
-                    capabilityState = capabilityState,
-                    runtimeState = runtimeState,
-                    heading = stringResource(id = R.string.current_readiness_title),
-                    supportingLine = landingSupportingLine(
-                        context = LocalContext.current,
-                        runtimeState = runtimeState,
-                        readinessProblems = readinessProblems
-                    )
-                )
-                LandingRecoveryCard(
-                    readinessProblems = readinessProblems,
-                    onOpenOverlaySettings = onOpenOverlaySettings,
-                    onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
-                    onOpenNotificationSettings = onOpenNotificationSettings,
-                    compact = false
-                )
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                DebugControlsCard(
-                    readyForStart = capabilityState.isReadyForPersistentOverlay(),
-                    runtimeState = runtimeState,
-                    mediaSummaryState = mediaSummaryState,
-                    onStartOverlay = onStartOverlay,
-                    onStopOverlay = onStopOverlay,
-                    onDispatchPrevious = {},
-                    onDispatchPlayPause = {},
-                    onDispatchNext = {},
-                    title = stringResource(id = R.string.overlay_controls_title),
-                    detail = stringResource(id = R.string.overlay_controls_landing_detail),
-                    showTransportControls = false
-                )
-                MediaStatusCard(mediaSummaryState = mediaSummaryState)
-            }
-        }
-    } else {
-        LandingOverviewCard(
-            runtimeState = runtimeState,
-            widgetConfigState = widgetConfigState,
-            readinessProblems = readinessProblems
-        )
-        RuntimeStatusCard(
-            capabilityState = capabilityState,
-            runtimeState = runtimeState,
-            heading = stringResource(id = R.string.current_readiness_title),
-            supportingLine = landingSupportingLine(
-                context = LocalContext.current,
-                runtimeState = runtimeState,
-                readinessProblems = readinessProblems
-            )
-        )
-        DebugControlsCard(
-            readyForStart = capabilityState.isReadyForPersistentOverlay(),
-            runtimeState = runtimeState,
-            mediaSummaryState = mediaSummaryState,
-            onStartOverlay = onStartOverlay,
-            onStopOverlay = onStopOverlay,
-            onDispatchPrevious = {},
-            onDispatchPlayPause = {},
-            onDispatchNext = {},
-            title = stringResource(id = R.string.overlay_controls_title),
-            detail = stringResource(id = R.string.overlay_controls_landing_detail),
-            showTransportControls = false
-        )
-        LandingRecoveryCard(
-            readinessProblems = readinessProblems,
-            onOpenOverlaySettings = onOpenOverlaySettings,
-            onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
-            onOpenNotificationSettings = onOpenNotificationSettings,
-            compact = true
-        )
-        MediaStatusCard(mediaSummaryState = mediaSummaryState)
-    }
+    DebugControlsCard(
+        readyForStart = capabilityState.isReadyForPersistentOverlay(),
+        runtimeState = runtimeState,
+        mediaSummaryState = mediaSummaryState,
+        onStartOverlay = onStartOverlay,
+        onStopOverlay = onStopOverlay,
+        onDispatchPrevious = {},
+        onDispatchPlayPause = {},
+        onDispatchNext = {},
+        title = stringResource(id = R.string.overlay_controls_title),
+        detail = stringResource(id = R.string.overlay_controls_landing_detail),
+        showTransportControls = false
+    )
+    LandingSetupStatusCard(
+        readinessProblems = readinessProblems,
+        capabilityState = capabilityState,
+        onOpenSupport = onOpenSupport
+    )
 }
 
 @Composable
 private fun SettingsScreen(
-    appPreferences: AppPreferences,
     capabilityState: CapabilityState,
     runtimeState: OverlayRuntimeState,
     mediaSummaryState: MediaSummaryState,
     widgetConfigState: WidgetConfigScreenState,
     onSetVisibleButtons: (Set<WidgetButton>) -> Unit,
     onSetSizePreset: (WidgetSizePreset) -> Unit,
+    onSetWidthStyle: (WidgetWidthStyle) -> Unit,
+    onSetOpacity: (Float) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
     wideLayout: Boolean
 ) {
-    ScreenHeaderCard(
-        title = stringResource(id = AppSection.Settings.titleRes),
-        detail = stringResource(id = AppSection.Settings.descriptionRes),
-        modifier = Modifier.testTag(AppSection.Settings.headerTag()),
-        compact = !wideLayout
-    )
-
     if (wideLayout) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -700,19 +614,6 @@ private fun SettingsScreen(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                ActualOverlayNoticeCard(
-                    appLanguage = appPreferences.appLanguage,
-                    config = widgetConfigState.config,
-                    position = widgetConfigState.position
-                )
-                ButtonSetEditorCard(
-                    config = widgetConfigState.config,
-                    onSetVisibleButtons = onSetVisibleButtons
-                )
-                SizePresetCard(
-                    selectedPreset = widgetConfigState.config.sizePreset,
-                    onSetSizePreset = onSetSizePreset
-                )
                 DebugControlsCard(
                     readyForStart = capabilityState.isReadyForPersistentOverlay(),
                     runtimeState = runtimeState,
@@ -726,22 +627,23 @@ private fun SettingsScreen(
                     detail = stringResource(id = R.string.overlay_controls_settings_detail),
                     showTransportControls = false
                 )
+                ButtonSetEditorCard(
+                    config = widgetConfigState.config,
+                    onSetVisibleButtons = onSetVisibleButtons
+                )
+                SizePresetCard(
+                    selectedPreset = widgetConfigState.config.sizePreset,
+                    selectedWidthStyle = widgetConfigState.config.widthStyle,
+                    onSetSizePreset = onSetSizePreset,
+                    onSetWidthStyle = onSetWidthStyle
+                )
+                WidgetOpacityCard(
+                    opacity = widgetConfigState.config.opacity,
+                    onSetOpacity = onSetOpacity
+                )
             }
         }
     } else {
-        ActualOverlayNoticeCard(
-            appLanguage = appPreferences.appLanguage,
-            config = widgetConfigState.config,
-            position = widgetConfigState.position
-        )
-        ButtonSetEditorCard(
-            config = widgetConfigState.config,
-            onSetVisibleButtons = onSetVisibleButtons
-        )
-        SizePresetCard(
-            selectedPreset = widgetConfigState.config.sizePreset,
-            onSetSizePreset = onSetSizePreset
-        )
         DebugControlsCard(
             readyForStart = capabilityState.isReadyForPersistentOverlay(),
             runtimeState = runtimeState,
@@ -755,6 +657,20 @@ private fun SettingsScreen(
             detail = stringResource(id = R.string.overlay_controls_settings_detail),
             showTransportControls = false
         )
+        ButtonSetEditorCard(
+            config = widgetConfigState.config,
+            onSetVisibleButtons = onSetVisibleButtons
+        )
+        SizePresetCard(
+            selectedPreset = widgetConfigState.config.sizePreset,
+            selectedWidthStyle = widgetConfigState.config.widthStyle,
+            onSetSizePreset = onSetSizePreset,
+            onSetWidthStyle = onSetWidthStyle
+        )
+        WidgetOpacityCard(
+            opacity = widgetConfigState.config.opacity,
+            onSetOpacity = onSetOpacity
+        )
     }
 }
 
@@ -764,17 +680,11 @@ private fun AdvancedSettingsScreen(
     widgetConfigState: WidgetConfigScreenState,
     onSetDebugToolsEnabled: (Boolean) -> Unit,
     onSetAppLanguage: (AppLanguage) -> Unit,
-    onSetWidthStyle: (WidgetWidthStyle) -> Unit,
     onSetThemePreset: (WidgetThemePreset) -> Unit,
+    onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
     wideLayout: Boolean
 ) {
-    ScreenHeaderCard(
-        title = stringResource(id = AppSection.Advanced.titleRes),
-        detail = stringResource(id = AppSection.Advanced.descriptionRes),
-        compact = !wideLayout
-    )
-
     if (wideLayout) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -784,13 +694,13 @@ private fun AdvancedSettingsScreen(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                WidthStyleCard(
-                    selectedStyle = widgetConfigState.config.widthStyle,
-                    onSetWidthStyle = onSetWidthStyle
-                )
                 ThemePresetCard(
                     selectedPreset = widgetConfigState.config.themePreset,
                     onSetThemePreset = onSetThemePreset
+                )
+                SidebarPlacementCard(
+                    selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
+                    onSetDragHandlePlacement = onSetDragHandlePlacement
                 )
             }
             Column(
@@ -803,7 +713,6 @@ private fun AdvancedSettingsScreen(
                 )
                 WidgetBehaviorCard(
                     config = widgetConfigState.config,
-                    position = widgetConfigState.position,
                     onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled
                 )
                 DeveloperOptionsCard(
@@ -813,13 +722,13 @@ private fun AdvancedSettingsScreen(
             }
         }
     } else {
-        WidthStyleCard(
-            selectedStyle = widgetConfigState.config.widthStyle,
-            onSetWidthStyle = onSetWidthStyle
-        )
         ThemePresetCard(
             selectedPreset = widgetConfigState.config.themePreset,
             onSetThemePreset = onSetThemePreset
+        )
+        SidebarPlacementCard(
+            selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
+            onSetDragHandlePlacement = onSetDragHandlePlacement
         )
         AppLanguageCard(
             selectedLanguage = appPreferences.appLanguage,
@@ -827,7 +736,6 @@ private fun AdvancedSettingsScreen(
         )
         WidgetBehaviorCard(
             config = widgetConfigState.config,
-            position = widgetConfigState.position,
             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled
         )
         DeveloperOptionsCard(
@@ -854,13 +762,6 @@ private fun DebugScreen(
     onOpenNotificationSettings: () -> Unit,
     wideLayout: Boolean
 ) {
-    ScreenHeaderCard(
-        title = stringResource(id = AppSection.Debug.titleRes),
-        detail = stringResource(id = AppSection.Debug.descriptionRes),
-        modifier = Modifier.testTag(AppSection.Debug.headerTag()),
-        compact = !wideLayout
-    )
-
     if (wideLayout) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -935,9 +836,9 @@ private fun DebugScreen(
 
 @Composable
 private fun SupportScreen(
-    appPreferences: AppPreferences,
     capabilityState: CapabilityState,
-    widgetConfigState: WidgetConfigScreenState,
+    runtimeState: OverlayRuntimeState,
+    mediaSummaryState: MediaSummaryState,
     debugLogState: DebugLogScreenState,
     onOpenOverlaySettings: () -> Unit,
     onOpenNotificationListenerSettings: () -> Unit,
@@ -945,13 +846,6 @@ private fun SupportScreen(
     automationLaunchAction: String,
     wideLayout: Boolean
 ) {
-    ScreenHeaderCard(
-        title = stringResource(id = AppSection.Support.titleRes),
-        detail = stringResource(id = AppSection.Support.descriptionRes),
-        modifier = Modifier.testTag(AppSection.Support.headerTag()),
-        compact = !wideLayout
-    )
-
     if (wideLayout) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -969,8 +863,6 @@ private fun SupportScreen(
                     compact = false
                 )
                 AboutCard(
-                    appLanguage = appPreferences.appLanguage,
-                    widgetConfigState = widgetConfigState,
                     automationLaunchAction = automationLaunchAction
                 )
             }
@@ -978,6 +870,11 @@ private fun SupportScreen(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                SupportStatusSummaryCard(
+                    capabilityState = capabilityState,
+                    runtimeState = runtimeState,
+                    mediaSummaryState = mediaSummaryState
+                )
                 ProductConstraintsCard()
                 LicenseCard(retentionLimit = debugLogState.retentionLimit)
             }
@@ -991,9 +888,12 @@ private fun SupportScreen(
             compact = true
         )
         AboutCard(
-            appLanguage = appPreferences.appLanguage,
-            widgetConfigState = widgetConfigState,
             automationLaunchAction = automationLaunchAction
+        )
+        SupportStatusSummaryCard(
+            capabilityState = capabilityState,
+            runtimeState = runtimeState,
+            mediaSummaryState = mediaSummaryState
         )
         ProductConstraintsCard()
         LicenseCard(retentionLimit = debugLogState.retentionLimit)
@@ -1247,36 +1147,36 @@ private fun ButtonSetEditorCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
-            Text(
-                text = stringResource(id = R.string.visible_buttons_detail),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            ToggleOptionCard(
-                title = stringResource(id = R.string.media_previous),
-                detail = stringResource(id = R.string.visible_buttons_previous_detail),
-                selected = hasPrevious,
-                enabled = true,
-                onClick = {
-                    onSetVisibleButtons(buildVisibleButtons(includePrevious = !hasPrevious, includeNext = hasNext))
-                }
-            )
-            ToggleOptionCard(
-                title = stringResource(id = R.string.media_play_pause),
-                detail = stringResource(id = R.string.visible_buttons_play_pause_detail),
-                selected = true,
-                enabled = false,
-                onClick = {}
-            )
-            ToggleOptionCard(
-                title = stringResource(id = R.string.media_next),
-                detail = stringResource(id = R.string.visible_buttons_next_detail),
-                selected = hasNext,
-                enabled = true,
-                onClick = {
-                    onSetVisibleButtons(buildVisibleButtons(includePrevious = hasPrevious, includeNext = !hasNext))
-                }
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                SelectionPill(
+                    text = stringResource(id = R.string.media_previous),
+                    selected = hasPrevious,
+                    enabled = true,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        onSetVisibleButtons(buildVisibleButtons(includePrevious = !hasPrevious, includeNext = hasNext))
+                    }
+                )
+                SelectionPill(
+                    text = stringResource(id = R.string.media_play_pause),
+                    selected = true,
+                    enabled = false,
+                    modifier = Modifier.weight(1f),
+                    onClick = {}
+                )
+                SelectionPill(
+                    text = stringResource(id = R.string.media_next),
+                    selected = hasNext,
+                    enabled = true,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        onSetVisibleButtons(buildVisibleButtons(includePrevious = hasPrevious, includeNext = !hasNext))
+                    }
+                )
+            }
         }
     }
 }
@@ -1329,21 +1229,14 @@ private fun ToggleOptionCard(
                     fontWeight = FontWeight.Medium,
                     color = contentColor
                 )
-                Text(
-                    text = detail,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = contentColor.copy(alpha = 0.84f)
-                )
+                if (detail.isNotBlank()) {
+                    Text(
+                        text = detail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = contentColor.copy(alpha = 0.84f)
+                    )
+                }
             }
-            Text(
-                text = when {
-                    !enabled -> stringResource(id = R.string.toggle_state_fixed)
-                    selected -> stringResource(id = R.string.toggle_state_on)
-                    else -> stringResource(id = R.string.toggle_state_off)
-                },
-                style = MaterialTheme.typography.labelLarge,
-                color = contentColor
-            )
         }
     }
 }
@@ -1351,7 +1244,9 @@ private fun ToggleOptionCard(
 @Composable
 private fun SizePresetCard(
     selectedPreset: WidgetSizePreset,
+    selectedWidthStyle: WidgetWidthStyle,
     onSetSizePreset: (WidgetSizePreset) -> Unit,
+    onSetWidthStyle: (WidgetWidthStyle) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -1368,19 +1263,39 @@ private fun SizePresetCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                WidgetSizePreset.entries.forEach { preset ->
+                    SelectionPill(
+                        text = preset.displayTitle(LocalContext.current),
+                        selected = preset == selectedPreset,
+                        enabled = true,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onSetSizePreset(preset) }
+                    )
+                }
+            }
             Text(
-                text = stringResource(id = R.string.size_preset_detail),
-                style = MaterialTheme.typography.bodyMedium,
+                text = stringResource(id = R.string.button_width_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            WidgetSizePreset.entries.forEach { preset ->
-                ToggleOptionCard(
-                    title = preset.displayTitle(LocalContext.current),
-                    detail = stringResource(id = R.string.size_preset_option_detail, preset.widthDp, preset.heightDp),
-                    selected = preset == selectedPreset,
-                    enabled = true,
-                    onClick = { onSetSizePreset(preset) }
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                WidgetWidthStyle.entries.forEach { style ->
+                    SelectionPill(
+                        text = style.displayTitle(LocalContext.current),
+                        selected = style == selectedWidthStyle,
+                        enabled = true,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onSetWidthStyle(style) }
+                    )
+                }
             }
         }
     }
@@ -1428,6 +1343,83 @@ private fun WidthStyleCard(
 }
 
 @Composable
+private fun WidgetOpacityCard(
+    opacity: Float,
+    onSetOpacity: (Float) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.widget_opacity_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(id = R.string.widget_opacity_value, (opacity * 100).roundToInt()),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Slider(
+                value = opacity,
+                onValueChange = onSetOpacity,
+                valueRange = 0.35f..1f
+            )
+        }
+    }
+}
+
+@Composable
+private fun SelectionPill(
+    text: String,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val containerColor = when {
+        !enabled -> MaterialTheme.colorScheme.surfaceVariant
+        selected -> MaterialTheme.colorScheme.primaryContainer
+        else -> MaterialTheme.colorScheme.surface
+    }
+    val contentColor = when {
+        !enabled -> MaterialTheme.colorScheme.onSurfaceVariant
+        selected -> MaterialTheme.colorScheme.onPrimaryContainer
+        else -> MaterialTheme.colorScheme.onSurface
+    }
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(18.dp))
+            .background(containerColor)
+            .border(
+                width = 1.dp,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                shape = RoundedCornerShape(18.dp)
+            )
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Medium,
+            color = contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
 private fun ThemePresetCard(
     selectedPreset: WidgetThemePreset,
     onSetThemePreset: (WidgetThemePreset) -> Unit,
@@ -1460,6 +1452,44 @@ private fun ThemePresetCard(
                     enabled = true,
                     onClick = { onSetThemePreset(preset) }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SidebarPlacementCard(
+    selectedPlacement: DragHandlePlacement,
+    onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.sidebar_side_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                DragHandlePlacement.entries.forEach { placement ->
+                    SelectionPill(
+                        text = placement.displayTitle(LocalContext.current),
+                        selected = placement == selectedPlacement,
+                        enabled = true,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onSetDragHandlePlacement(placement) }
+                    )
+                }
             }
         }
     }
@@ -1522,6 +1552,103 @@ private fun ActualOverlayNoticeCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+@Composable
+private fun LandingMainCard(
+    runtimeState: OverlayRuntimeState,
+    widgetConfigState: WidgetConfigScreenState,
+    readinessProblems: List<OverlayUnavailableReason>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.main_intro_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(id = R.string.main_intro_detail),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                MetricPill(
+                    label = stringResource(id = R.string.metric_buttons),
+                    value = widgetConfigState.config.layout.summaryLabel(LocalContext.current),
+                    modifier = Modifier.weight(1f)
+                )
+                MetricPill(
+                    label = stringResource(id = R.string.metric_size),
+                    value = widgetConfigState.config.sizePreset.displayTitle(LocalContext.current),
+                    modifier = Modifier.weight(1f)
+                )
+                MetricPill(
+                    label = stringResource(id = R.string.metric_runtime),
+                    value = runtimeState.landingStatusLabel(LocalContext.current),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            if (readinessProblems.isNotEmpty()) {
+                Text(
+                    text = stringResource(id = R.string.main_intro_blocked_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LandingSetupStatusCard(
+    readinessProblems: List<OverlayUnavailableReason>,
+    capabilityState: CapabilityState,
+    onOpenSupport: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val ready = capabilityState.isReadyForPersistentOverlay()
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(
+            containerColor = if (ready) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.tertiaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.main_status_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = if (ready) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            Text(
+                text = if (ready) stringResource(id = R.string.main_status_ready) else stringResource(id = R.string.main_status_blocked),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (ready) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onTertiaryContainer
+            )
+            if (readinessProblems.isNotEmpty()) {
+                OutlinedButton(onClick = onOpenSupport) {
+                    Text(text = stringResource(id = R.string.main_status_open_support))
+                }
+            }
         }
     }
 }
@@ -1706,15 +1833,6 @@ private fun DeveloperOptionsCard(
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Medium
                     )
-                    Text(
-                        text = if (debugToolsEnabled) {
-                            stringResource(id = R.string.developer_tools_toggle_on)
-                        } else {
-                            stringResource(id = R.string.developer_tools_toggle_off)
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
                 Switch(
                     checked = debugToolsEnabled,
@@ -1729,7 +1847,6 @@ private fun DeveloperOptionsCard(
 @Composable
 private fun WidgetBehaviorCard(
     config: WidgetConfig,
-    position: WidgetPosition,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -1771,15 +1888,6 @@ private fun WidgetBehaviorCard(
                     onCheckedChange = onSetPersistentOverlayEnabled
                 )
             }
-            HorizontalDivider()
-            PropertyLine(label = stringResource(id = R.string.current_edge_label), value = position.anchor.displayLabel(LocalContext.current))
-            PropertyLine(label = stringResource(id = R.string.horizontal_offset_label), value = stringResource(id = R.string.dp_value, position.xOffsetDp))
-            PropertyLine(label = stringResource(id = R.string.vertical_offset_label), value = stringResource(id = R.string.dp_value, position.yOffsetDp))
-            Text(
-                text = stringResource(id = R.string.behavior_footer),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -1814,7 +1922,7 @@ private fun AppLanguageCard(
             AppLanguage.entries.forEach { appLanguage ->
                 ToggleOptionCard(
                     title = appLanguage.displayLabel(context),
-                    detail = appLanguage.supportingLabel(context),
+                    detail = "",
                     selected = appLanguage == selectedLanguage,
                     enabled = true,
                     onClick = { onSetAppLanguage(appLanguage) }
@@ -2271,14 +2379,51 @@ private fun SupportActionsCard(
 }
 
 @Composable
-private fun AboutCard(
-    appLanguage: AppLanguage,
-    widgetConfigState: WidgetConfigScreenState,
-    automationLaunchAction: String,
+private fun SupportStatusSummaryCard(
+    capabilityState: CapabilityState,
+    runtimeState: OverlayRuntimeState,
+    mediaSummaryState: MediaSummaryState,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val runtimeSummary = RuntimeStatusFormatter.format(context, capabilityState, runtimeState)
 
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.support_status_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            PropertyLine(
+                label = stringResource(id = R.string.current_readiness_title),
+                value = runtimeSummary.title,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                supportingColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+            )
+            PropertyLine(
+                label = stringResource(id = R.string.media_readiness_title),
+                value = mediaSummaryState.mediaState.title(context),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                supportingColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun AboutCard(
+    automationLaunchAction: String,
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = PanelShape,
@@ -2313,14 +2458,8 @@ private fun AboutCard(
                 supportingColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
             )
             PropertyLine(
-                label = stringResource(id = R.string.about_language_label),
-                value = appLanguage.displayLabel(context),
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                supportingColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-            )
-            PropertyLine(
-                label = stringResource(id = R.string.about_saved_widget_label),
-                value = "${widgetConfigState.config.sizePreset.displayTitle(context)} / ${widgetConfigState.config.layout.summaryLabel(context)}",
+                label = stringResource(id = R.string.about_activity_label),
+                value = AutomationEntryActivity::class.java.name,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 supportingColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
             )
@@ -2620,6 +2759,13 @@ private fun WidgetWidthStyle.displayTitle(context: Context): String {
     return when (this) {
         WidgetWidthStyle.Regular -> context.getString(R.string.button_width_regular)
         WidgetWidthStyle.Wide -> context.getString(R.string.button_width_wide)
+    }
+}
+
+private fun DragHandlePlacement.displayTitle(context: Context): String {
+    return when (this) {
+        DragHandlePlacement.Left -> context.getString(R.string.sidebar_left)
+        DragHandlePlacement.Right -> context.getString(R.string.sidebar_right)
     }
 }
 

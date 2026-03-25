@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -32,7 +33,7 @@ class AppShellInstrumentedTest {
             }
         }
 
-        composeRule.onNodeWithTag("screen-header-landing").assertIsDisplayed()
+        composeRule.onNodeWithText("Keep previous, play / pause, and next within reach while you stay in other apps.").assertIsDisplayed()
         composeRule.onAllNodesWithTag("section-landing").assertCountEquals(1)
         composeRule.onAllNodesWithText("Debug").assertCountEquals(0)
     }
@@ -47,7 +48,7 @@ class AppShellInstrumentedTest {
 
         composeRule.onAllNodesWithTag("section-debug").assertCountEquals(1)
         composeRule.onNodeWithTag("section-debug").performClick()
-        composeRule.onNodeWithTag("screen-header-debug").assertIsDisplayed()
+        composeRule.onNodeWithText("Debug controls").assertIsDisplayed()
     }
 
     @Test

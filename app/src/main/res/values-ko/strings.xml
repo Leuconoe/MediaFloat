@@ -11,9 +11,10 @@
     <string name="overlay_button_play_pause">재생 또는 일시정지</string>
     <string name="overlay_button_next">다음 트랙</string>
     <string name="overlay_drag_handle">오버레이 드래그</string>
+    <string name="action_launch_widget">위젯 실행</string>
 
-    <string name="section_landing_title">오버레이 시작</string>
-    <string name="section_landing_short">시작</string>
+    <string name="section_landing_title">메인</string>
+    <string name="section_landing_short">메인</string>
     <string name="section_landing_description">준비 상태를 확인하고 오버레이를 시작하거나 중지합니다.</string>
     <string name="section_settings_title">설정</string>
     <string name="section_settings_short">설정</string>
@@ -59,6 +60,8 @@
     <string name="button_width_wide">넓게</string>
     <string name="button_width_regular_detail">기본 컴팩트 느낌에 맞는 균형 잡힌 너비입니다.</string>
     <string name="button_width_wide_detail">탭하기 쉽도록 버튼과 핸들이 더 넓어집니다.</string>
+    <string name="widget_opacity_title">위젯 투명도</string>
+    <string name="widget_opacity_value">%1$d%% 표시</string>
 
     <string name="widget_theme_title">위젯 테마</string>
     <string name="widget_theme_detail">테마 프리셋이 실제 플로팅 위젯에 즉시 적용됩니다.</string>
@@ -83,6 +86,13 @@
     <string name="preview_button_pause">일시정지</string>
     <string name="preview_button_next">다음</string>
 
+    <string name="main_intro_title">메인</string>
+    <string name="main_intro_detail">다른 앱을 사용하는 동안에도 이전, 재생 / 일시정지, 다음을 가까이에 유지합니다.</string>
+    <string name="main_intro_blocked_hint">시작이 계속 막히면 지원에서 복구 바로가기를 여세요.</string>
+    <string name="main_status_title">설정 상태</string>
+    <string name="main_status_ready">위젯에 필요한 설정이 모두 준비되었습니다.</string>
+    <string name="main_status_blocked">필수 설정 일부가 아직 누락되었습니다. 지원으로 이동해 차단된 접근을 복구하세요.</string>
+    <string name="main_status_open_support">지원 바로가기 열기</string>
     <string name="landing_overview_title">MediaFloat 기능</string>
     <string name="landing_overview_detail">MediaFloat는 작고 움직일 수 있는 오버레이 안에 이전, 재생 / 일시정지, 다음 버튼을 가까이에 유지합니다.</string>
     <string name="landing_overview_ready">시스템 접근 상태가 맞춰져 있어 이 페이지에서 오버레이를 시작할 수 있습니다.</string>
@@ -106,6 +116,7 @@
     <string name="behavior_title">동작</string>
     <string name="persistent_overlay_title">지속 오버레이</string>
     <string name="persistent_overlay_detail">런타임 설정을 저장된 위젯 구성과 일치하게 유지합니다.</string>
+    <string name="sidebar_side_title">사이드바 위치</string>
     <string name="current_edge_label">현재 가장자리</string>
     <string name="horizontal_offset_label">가로 오프셋</string>
     <string name="vertical_offset_label">세로 오프셋</string>
@@ -206,9 +217,11 @@
     <string name="about_version_label">버전</string>
     <string name="about_package_label">패키지</string>
     <string name="about_automation_label">자동화 동작</string>
+    <string name="about_activity_label">활성화 액티비티</string>
     <string name="about_language_label">앱 언어</string>
     <string name="about_saved_widget_label">저장된 위젯</string>
     <string name="app_info_footer">이 릴리스는 단일 가로 오버레이 계열만 유지해 구성이 의도적이고 테스트 가능하며 런타임과 일관되게 유지되도록 합니다.</string>
+    <string name="support_status_title">현재 상태</string>
 
     <string name="product_constraints_title">제품 제약</string>
     <string name="product_constraints_list">- 가로 오버레이 계열만 지원
@@ -238,6 +251,8 @@
     <string name="media_prev_short">이전</string>
     <string name="media_play_pause">재생 / 일시정지</string>
     <string name="media_next">다음</string>
+    <string name="sidebar_left">왼쪽</string>
+    <string name="sidebar_right">오른쪽</string>
     <string name="edge_left">왼쪽</string>
     <string name="edge_right">오른쪽</string>
     <string name="dp_value">%1$ddp</string>

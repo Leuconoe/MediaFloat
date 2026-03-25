@@ -7,6 +7,7 @@ import com.mediacontrol.floatingwidget.model.WidgetPosition
 import com.mediacontrol.floatingwidget.model.WidgetSizePreset
 import com.mediacontrol.floatingwidget.model.WidgetThemePreset
 import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
+import com.mediacontrol.floatingwidget.model.DragHandlePlacement
 import com.mediacontrol.floatingwidget.widget.WidgetPreferencesListener
 import com.mediacontrol.floatingwidget.widget.WidgetPreferencesRepository
 import com.mediacontrol.floatingwidget.widget.WidgetPreferencesState
@@ -46,6 +47,18 @@ class WidgetConfigStateHolder(
 
     fun setThemePreset(themePreset: WidgetThemePreset) {
         repository.saveConfig(currentState().config.copy(themePreset = themePreset))
+    }
+
+    fun setOpacity(opacity: Float) {
+        repository.saveConfig(currentState().config.copy(opacity = opacity.coerceIn(0.35f, 1f)))
+    }
+
+    fun setDragHandlePlacement(placement: DragHandlePlacement) {
+        repository.saveConfig(
+            currentState().config.copy(
+                layout = currentState().config.layout.copy(dragHandlePlacement = placement)
+            )
+        )
     }
 
     fun setPersistentOverlayEnabled(enabled: Boolean) {

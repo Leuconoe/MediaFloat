@@ -7,6 +7,7 @@ enum class WidgetButton {
 }
 
 enum class DragHandlePlacement {
+    Left,
     Right
 }
 
@@ -57,7 +58,7 @@ data class WidgetLayout(
         get() = WidgetButton.entries.filter { it in visibleButtons }
 
     fun isSupported(): Boolean {
-        return dragHandlePlacement == DragHandlePlacement.Right && visibleButtons in supportedButtonSets
+        return dragHandlePlacement in DragHandlePlacement.entries && visibleButtons in supportedButtonSets
     }
 
     companion object {
@@ -79,6 +80,7 @@ data class WidgetConfig(
     val sizePreset: WidgetSizePreset = WidgetSizePreset.Standard,
     val widthStyle: WidgetWidthStyle = WidgetWidthStyle.Regular,
     val themePreset: WidgetThemePreset = WidgetThemePreset.Dark,
+    val opacity: Float = 1f,
     val persistentOverlayEnabled: Boolean = true
 )
 

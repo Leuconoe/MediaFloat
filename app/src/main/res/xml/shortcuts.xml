@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="launch_widget"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/action_launch_widget"
+        android:shortcutLongLabel="@string/action_launch_widget">
+        <intent
+            android:action="com.mediacontrol.floatingwidget.action.SHOW_OVERLAY"
+            android:targetPackage="com.mediacontrol.floatingwidget"
+            android:targetClass="com.mediacontrol.floatingwidget.AutomationEntryActivity" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+</shortcuts>

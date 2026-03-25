@@ -3,12 +3,14 @@ package com.mediacontrol.floatingwidget.widget
 import android.content.Context
 import com.mediacontrol.floatingwidget.model.WidgetButton
 import com.mediacontrol.floatingwidget.model.WidgetConfig
+import com.mediacontrol.floatingwidget.model.DragHandlePlacement
 import com.mediacontrol.floatingwidget.model.WidgetLayout
 import com.mediacontrol.floatingwidget.model.WidgetSizePreset
 import com.mediacontrol.floatingwidget.model.WidgetThemePreset
 import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
 import com.mediacontrol.floatingwidget.storage.PreferencesStorage
 import com.mediacontrol.floatingwidget.storage.SharedPreferencesStorage
+import kotlin.math.roundToInt
 
 class WidgetConfigStore(
     private val storage: PreferencesStorage
@@ -23,7 +25,15 @@ class WidgetConfigStore(
     fun load(): WidgetConfig {
         val rawButtons = storage.getString(KEY_VISIBLE_BUTTONS, defaultButtonValue())
         val visibleButtons = WidgetConfigStorageFormat.decodeVisibleButtons(rawButtons)
-        val layout = runCatching { WidgetLayout(visibleButtons = visibleButtons) }
+        val dragHandlePlacement = DragHandlePlacement.entries.firstOrNull {
+            it.name == storage.getString(KEY_DRAG_HANDLE_PLACEMENT, WidgetLayout.Default.dragHandlePlacement.name)
+        } ?: WidgetLayout.Default.dragHandlePlacement
+        val layout = runCatching {
+            WidgetLayout(
+                visibleButtons = visibleButtons,
+                dragHandlePlacement = dragHandlePlacement
+            )
+        }
             .getOrElse { WidgetLayout.Default }
         val sizePreset = WidgetSizePreset.entries.firstOrNull {
             it.name == storage.getString(KEY_SIZE_PRESET, WidgetConfig().sizePreset.name)
@@ -34,12 +44,14 @@ class WidgetConfigStore(
         val themePreset = WidgetThemePreset.entries.firstOrNull {
             it.name == storage.getString(KEY_THEME_PRESET, WidgetConfig().themePreset.name)
         } ?: WidgetConfig().themePreset
+        val opacity = storage.getInt(KEY_OPACITY_PERCENT, (WidgetConfig().opacity * 100).roundToInt()) / 100f
 
         return WidgetConfig(
             layout = layout,
             sizePreset = sizePreset,
             widthStyle = widthStyle,
             themePreset = themePreset,
+            opacity = opacity.coerceIn(0.35f, 1f),
             persistentOverlayEnabled = storage.getBoolean(
                 KEY_PERSISTENT_OVERLAY_ENABLED,
                 WidgetConfig().persistentOverlayEnabled
@@ -50,9 +62,11 @@ class WidgetConfigStore(
     fun save(config: WidgetConfig) {
         storage.edit {
             putString(KEY_VISIBLE_BUTTONS, WidgetConfigStorageFormat.encodeVisibleButtons(config.layout.orderedButtons))
+            putString(KEY_DRAG_HANDLE_PLACEMENT, config.layout.dragHandlePlacement.name)
             putString(KEY_SIZE_PRESET, config.sizePreset.name)
             putString(KEY_WIDTH_STYLE, config.widthStyle.name)
             putString(KEY_THEME_PRESET, config.themePreset.name)
+            putInt(KEY_OPACITY_PERCENT, (config.opacity.coerceIn(0.35f, 1f) * 100).roundToInt())
             putBoolean(KEY_PERSISTENT_OVERLAY_ENABLED, config.persistentOverlayEnabled)
         }
     }
@@ -64,9 +78,11 @@ class WidgetConfigStore(
     private companion object {
         const val PREFERENCES_NAME = "widget_config"
         const val KEY_VISIBLE_BUTTONS = "visible_buttons"
+        const val KEY_DRAG_HANDLE_PLACEMENT = "drag_handle_placement"
         const val KEY_SIZE_PRESET = "size_preset"
         const val KEY_WIDTH_STYLE = "width_style"
         const val KEY_THEME_PRESET = "theme_preset"
+        const val KEY_OPACITY_PERCENT = "opacity_percent"
         const val KEY_PERSISTENT_OVERLAY_ENABLED = "persistent_overlay_enabled"
     }
 }

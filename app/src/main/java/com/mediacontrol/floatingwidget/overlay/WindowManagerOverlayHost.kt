@@ -21,6 +21,8 @@ import com.mediacontrol.floatingwidget.model.MediaSessionState
 import com.mediacontrol.floatingwidget.model.PlaybackStatus
 import com.mediacontrol.floatingwidget.model.WidgetAnchor
 import com.mediacontrol.floatingwidget.model.WidgetButton
+import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
+import com.mediacontrol.floatingwidget.model.DragHandlePlacement
 import com.mediacontrol.floatingwidget.model.WidgetOverlayAppearance
 import com.mediacontrol.floatingwidget.model.WidgetPosition
 import com.mediacontrol.floatingwidget.model.overlayAppearance
@@ -78,9 +80,9 @@ class WindowManagerOverlayHost(
         nextButton.visibility = buttonVisibility(WidgetButton.Next, viewState)
 
         val appearance = viewState.config.overlayAppearance()
-        bindButton(previousButton, MediaCommand.Previous, viewState.mediaState, appearance)
-        bindButton(playPauseButton, MediaCommand.TogglePlayPause, viewState.mediaState, appearance)
-        bindButton(nextButton, MediaCommand.Next, viewState.mediaState, appearance)
+        bindButton(previousButton, MediaCommand.Previous, viewState.mediaState, appearance, viewState.config.widthStyle)
+        bindButton(playPauseButton, MediaCommand.TogglePlayPause, viewState.mediaState, appearance, viewState.config.widthStyle)
+        bindButton(nextButton, MediaCommand.Next, viewState.mediaState, appearance, viewState.config.widthStyle)
 
         val playPauseIcon = if ((viewState.mediaState as? MediaSessionState.Active)?.playbackStatus == PlaybackStatus.Playing) {
             android.R.drawable.ic_media_pause
@@ -111,10 +113,7 @@ class WindowManagerOverlayHost(
         return LinearLayout(appContext).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            addView(previousButton)
-            addView(playPauseButton)
-            addView(nextButton)
-            addView(dragHandle)
+            syncChildOrder(DragHandlePlacement.Right)
         }
     }
 
@@ -155,13 +154,19 @@ class WindowManagerOverlayHost(
         button: ImageButton,
         command: MediaCommand,
         mediaState: MediaSessionState,
-        appearance: WidgetOverlayAppearance
+        appearance: WidgetOverlayAppearance,
+        widthStyle: WidgetWidthStyle
     ) {
         val enabled = mediaState.supports(command)
         button.isEnabled = enabled
         button.alpha = if (enabled) 1f else 0.4f
         button.background = GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = if (widthStyle == WidgetWidthStyle.Wide) {
+                dp(appearance.sizing.buttonHeightDp).toFloat() * 0.34f
+            } else {
+                dp(appearance.sizing.buttonHeightDp / 2).toFloat()
+            }
             setColor(if (enabled) appearance.colors.buttonEnabledColor else appearance.colors.buttonDisabledColor)
         }
         button.setColorFilter(if (enabled) appearance.colors.iconEnabledColor else appearance.colors.iconDisabledColor)
@@ -171,6 +176,9 @@ class WindowManagerOverlayHost(
         val appearance = viewState.config.overlayAppearance()
         val sizing = appearance.sizing
         val colors = appearance.colors
+
+        rootView.alpha = viewState.config.opacity
+        syncChildOrder(viewState.layout.dragHandlePlacement)
 
         rootView.setPadding(
             dp(sizing.containerStartPaddingDp),
@@ -200,6 +208,19 @@ class WindowManagerOverlayHost(
             dp(sizing.handleWidthDp),
             dp(sizing.handleHeightDp)
         )
+    }
+
+    private fun syncChildOrder(placement: DragHandlePlacement) {
+        rootView.removeAllViews()
+        if (placement == DragHandlePlacement.Left) {
+            rootView.addView(dragHandle)
+        }
+        rootView.addView(previousButton)
+        rootView.addView(playPauseButton)
+        rootView.addView(nextButton)
+        if (placement == DragHandlePlacement.Right) {
+            rootView.addView(dragHandle)
+        }
     }
 
     private fun updateButtonLayout(button: ImageButton, sizing: com.mediacontrol.floatingwidget.model.WidgetOverlaySizing) {
