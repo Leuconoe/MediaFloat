@@ -110,10 +110,10 @@ class WindowManagerOverlayHost(
     }
 
     private fun createRootView(): LinearLayout {
-        return LinearLayout(appContext).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            syncChildOrder(DragHandlePlacement.Right)
+        return LinearLayout(appContext).also { container ->
+            container.orientation = LinearLayout.HORIZONTAL
+            container.gravity = Gravity.CENTER_VERTICAL
+            syncChildOrder(container, DragHandlePlacement.Right)
         }
     }
 
@@ -178,7 +178,7 @@ class WindowManagerOverlayHost(
         val colors = appearance.colors
 
         rootView.alpha = viewState.config.opacity
-        syncChildOrder(viewState.layout.dragHandlePlacement)
+        syncChildOrder(rootView, viewState.layout.dragHandlePlacement)
 
         rootView.setPadding(
             dp(sizing.containerStartPaddingDp),
@@ -210,16 +210,16 @@ class WindowManagerOverlayHost(
         )
     }
 
-    private fun syncChildOrder(placement: DragHandlePlacement) {
-        rootView.removeAllViews()
+    private fun syncChildOrder(container: LinearLayout, placement: DragHandlePlacement) {
+        container.removeAllViews()
         if (placement == DragHandlePlacement.Left) {
-            rootView.addView(dragHandle)
+            container.addView(dragHandle)
         }
-        rootView.addView(previousButton)
-        rootView.addView(playPauseButton)
-        rootView.addView(nextButton)
+        container.addView(previousButton)
+        container.addView(playPauseButton)
+        container.addView(nextButton)
         if (placement == DragHandlePlacement.Right) {
-            rootView.addView(dragHandle)
+            container.addView(dragHandle)
         }
     }
 

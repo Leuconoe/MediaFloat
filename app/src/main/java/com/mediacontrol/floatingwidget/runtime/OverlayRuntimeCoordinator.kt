@@ -2,6 +2,7 @@ package com.mediacontrol.floatingwidget.runtime
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.mediacontrol.floatingwidget.debug.DebugLogWriter
 import com.mediacontrol.floatingwidget.debug.NoOpDebugLogWriter
@@ -54,9 +55,16 @@ class OverlayRuntimeCoordinator(
             return false
         }
 
-        ContextCompat.startForegroundService(appContext, OverlayService.startIntent(appContext))
-        debugLogWriter.info(TAG, "Requested overlay foreground service start")
-        return true
+        return try {
+            ContextCompat.startForegroundService(appContext, OverlayService.startIntent(appContext))
+            debugLogWriter.info(TAG, "Requested overlay foreground service start")
+            true
+        } catch (error: Exception) {
+            OverlayRuntimeRegistry.update(readinessRuntimeState())
+            debugLogWriter.error(TAG, "Overlay foreground service start failed", error.stackTraceToString())
+            Log.e(TAG, "Failed to start overlay foreground service", error)
+            false
+        }
     }
 
     override fun stopOverlay() {

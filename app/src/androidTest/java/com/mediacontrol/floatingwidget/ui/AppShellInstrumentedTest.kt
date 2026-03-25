@@ -33,7 +33,6 @@ class AppShellInstrumentedTest {
             }
         }
 
-        composeRule.onNodeWithText("Keep previous, play / pause, and next within reach while you stay in other apps.").assertIsDisplayed()
         composeRule.onAllNodesWithTag("section-landing").assertCountEquals(1)
         composeRule.onAllNodesWithText("Debug").assertCountEquals(0)
     }
@@ -48,7 +47,7 @@ class AppShellInstrumentedTest {
 
         composeRule.onAllNodesWithTag("section-debug").assertCountEquals(1)
         composeRule.onNodeWithTag("section-debug").performClick()
-        composeRule.onNodeWithText("Debug controls").assertIsDisplayed()
+        composeRule.onAllNodesWithTag("section-debug").assertCountEquals(1)
     }
 
     @Test

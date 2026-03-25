@@ -2,7 +2,11 @@ package com.mediacontrol.floatingwidget
 
 import android.content.Context
 import android.content.Intent
+import android.content.ActivityNotFoundException
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -108,13 +112,13 @@ class MainActivity : AppCompatActivity() {
                     onDispatchNext = ::dispatchNext,
                     onClearLogs = ::clearLogs,
                     onOpenOverlaySettings = {
-                        startActivity(runtimeCoordinator.overlaySettingsIntent())
+                        openSystemSettings(runtimeCoordinator::overlaySettingsIntent)
                     },
                     onOpenNotificationListenerSettings = {
-                        startActivity(runtimeCoordinator.notificationListenerSettingsIntent())
+                        openSystemSettings(runtimeCoordinator::notificationListenerSettingsIntent)
                     },
                     onOpenNotificationSettings = {
-                        startActivity(runtimeCoordinator.notificationSettingsIntent())
+                        openSystemSettings(runtimeCoordinator::notificationSettingsIntent)
                     },
                     automationLaunchAction = AutomationEntryActivity.ACTION_SHOW_OVERLAY
                 )
@@ -227,6 +231,30 @@ class MainActivity : AppCompatActivity() {
         debugActions.clearLogs()
     }
 
+    private fun openSystemSettings(intentProvider: () -> Intent) {
+        val primaryIntent = intentProvider()
+        try {
+            startActivity(primaryIntent)
+        } catch (error: ActivityNotFoundException) {
+            Log.w(TAG, "Primary settings intent unavailable; falling back to app details", error)
+            openAppDetailsSettings()
+        } catch (error: Exception) {
+            Log.e(TAG, "Failed to open system settings", error)
+            openAppDetailsSettings()
+        }
+    }
+
+    private fun openAppDetailsSettings() {
+        runCatching {
+            startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    .setData(Uri.parse("package:$packageName"))
+            )
+        }.onFailure { error ->
+            Log.e(TAG, "Failed to open app details settings fallback", error)
+        }
+    }
+
     private fun applySummaryState(summaryState: RuntimeSummaryState) {
         capabilityState = summaryState.capabilityState
         runtimeState = summaryState.runtimeState
@@ -269,6 +297,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val TAG = "MainActivity"
+
         fun launchIntent(context: Context): Intent {
             return Intent(context, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)

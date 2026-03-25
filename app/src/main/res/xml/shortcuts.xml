@@ -10,6 +10,5 @@
             android:action="com.mediacontrol.floatingwidget.action.SHOW_OVERLAY"
             android:targetPackage="com.mediacontrol.floatingwidget"
             android:targetClass="com.mediacontrol.floatingwidget.AutomationEntryActivity" />
-        <categories android:name="android.shortcut.conversation" />
     </shortcut>
 </shortcuts>
