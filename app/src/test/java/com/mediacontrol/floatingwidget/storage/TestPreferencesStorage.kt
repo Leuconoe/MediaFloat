@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.storage
+package sw2.io.mediafloat.storage
 
 class TestPreferencesStorage : PreferencesStorage {
     private val values = linkedMapOf<String, Any?>()

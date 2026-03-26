@@ -40,10 +40,12 @@
             android:name=".AutomationEntryActivity"
             android:exported="true"
             android:excludeFromRecents="true"
+            android:launchMode="singleTop"
             android:noHistory="true"
             android:theme="@style/Theme.MediaFloat">
             <intent-filter>
-                <action android:name="com.mediacontrol.floatingwidget.action.SHOW_OVERLAY" />
+                <action android:name="sw2.io.mediafloat.action.SHOW_OVERLAY" />
+                <action android:name="sw2.io.mediafloat.action.STOP_OVERLAY" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>

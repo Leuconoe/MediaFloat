@@ -1,7 +1,7 @@
-package com.mediacontrol.floatingwidget
+package sw2.io.mediafloat
 
-import com.mediacontrol.floatingwidget.model.WidgetButton
-import com.mediacontrol.floatingwidget.model.WidgetLayout
+import sw2.io.mediafloat.model.WidgetButton
+import sw2.io.mediafloat.model.WidgetLayout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

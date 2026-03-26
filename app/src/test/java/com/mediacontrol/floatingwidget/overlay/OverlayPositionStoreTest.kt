@@ -1,8 +1,8 @@
-package com.mediacontrol.floatingwidget.overlay
+package sw2.io.mediafloat.overlay
 
-import com.mediacontrol.floatingwidget.model.WidgetAnchor
-import com.mediacontrol.floatingwidget.model.WidgetPosition
-import com.mediacontrol.floatingwidget.storage.TestPreferencesStorage
+import sw2.io.mediafloat.model.WidgetAnchor
+import sw2.io.mediafloat.model.WidgetPosition
+import sw2.io.mediafloat.storage.TestPreferencesStorage
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

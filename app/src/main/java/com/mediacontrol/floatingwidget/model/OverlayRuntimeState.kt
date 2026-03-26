@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.model
+package sw2.io.mediafloat.model
 
 sealed interface OverlayRuntimeState {
     data class Unavailable(

@@ -1,9 +1,9 @@
-package com.mediacontrol.floatingwidget.state
+package sw2.io.mediafloat.state
 
-import com.mediacontrol.floatingwidget.model.AppPreferences
-import com.mediacontrol.floatingwidget.model.AppLanguage
-import com.mediacontrol.floatingwidget.preferences.AppPreferencesListener
-import com.mediacontrol.floatingwidget.preferences.AppPreferencesRepository
+import sw2.io.mediafloat.model.AppPreferences
+import sw2.io.mediafloat.model.AppLanguage
+import sw2.io.mediafloat.preferences.AppPreferencesListener
+import sw2.io.mediafloat.preferences.AppPreferencesRepository
 
 class AppPreferencesStateHolder(
     private val repository: AppPreferencesRepository

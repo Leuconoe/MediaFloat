@@ -1,8 +1,8 @@
-package com.mediacontrol.floatingwidget
+package sw2.io.mediafloat
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
-import com.mediacontrol.floatingwidget.model.AppLanguage
+import sw2.io.mediafloat.model.AppLanguage
 
 object AppLocaleManager {
 

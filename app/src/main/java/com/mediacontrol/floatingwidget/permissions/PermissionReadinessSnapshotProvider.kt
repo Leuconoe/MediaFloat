@@ -1,6 +1,6 @@
-package com.mediacontrol.floatingwidget.permissions
+package sw2.io.mediafloat.permissions
 
-import com.mediacontrol.floatingwidget.model.CapabilityGrantState
+import sw2.io.mediafloat.model.CapabilityGrantState
 
 class PermissionReadinessSnapshotProvider(
     private val overlayPermissionChecker: OverlayPermissionChecker,

@@ -1,9 +1,9 @@
-package com.mediacontrol.floatingwidget.debug
+package sw2.io.mediafloat.debug
 
-import com.mediacontrol.floatingwidget.media.MediaCommandDispatcher
-import com.mediacontrol.floatingwidget.media.MediaSessionRepository
-import com.mediacontrol.floatingwidget.model.MediaCommand
-import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeController
+import sw2.io.mediafloat.media.MediaCommandDispatcher
+import sw2.io.mediafloat.media.MediaSessionRepository
+import sw2.io.mediafloat.model.MediaCommand
+import sw2.io.mediafloat.runtime.OverlayRuntimeController
 
 interface DebugActions {
     fun startOverlay(): Boolean

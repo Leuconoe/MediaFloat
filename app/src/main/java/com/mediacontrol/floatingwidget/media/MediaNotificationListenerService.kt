@@ -1,9 +1,9 @@
-package com.mediacontrol.floatingwidget.media
+package sw2.io.mediafloat.media
 
 import android.service.notification.StatusBarNotification
 import android.service.notification.NotificationListenerService
 import android.util.Log
-import com.mediacontrol.floatingwidget.MediaControlAppServices
+import sw2.io.mediafloat.MediaControlAppServices
 
 class MediaNotificationListenerService : NotificationListenerService() {
 

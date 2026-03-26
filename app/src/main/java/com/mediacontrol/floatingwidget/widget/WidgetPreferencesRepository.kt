@@ -1,10 +1,10 @@
-package com.mediacontrol.floatingwidget.widget
+package sw2.io.mediafloat.widget
 
-import com.mediacontrol.floatingwidget.debug.DebugLogWriter
-import com.mediacontrol.floatingwidget.debug.NoOpDebugLogWriter
-import com.mediacontrol.floatingwidget.model.WidgetConfig
-import com.mediacontrol.floatingwidget.model.WidgetPosition
-import com.mediacontrol.floatingwidget.overlay.OverlayPositionStore
+import sw2.io.mediafloat.debug.DebugLogWriter
+import sw2.io.mediafloat.debug.NoOpDebugLogWriter
+import sw2.io.mediafloat.model.WidgetConfig
+import sw2.io.mediafloat.model.WidgetPosition
+import sw2.io.mediafloat.overlay.OverlayPositionStore
 
 data class WidgetPreferencesState(
     val config: WidgetConfig,

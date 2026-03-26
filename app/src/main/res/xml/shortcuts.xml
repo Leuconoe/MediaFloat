@@ -7,8 +7,19 @@
         android:shortcutShortLabel="@string/action_launch_widget"
         android:shortcutLongLabel="@string/action_launch_widget">
         <intent
-            android:action="com.mediacontrol.floatingwidget.action.SHOW_OVERLAY"
-            android:targetPackage="com.mediacontrol.floatingwidget"
-            android:targetClass="com.mediacontrol.floatingwidget.AutomationEntryActivity" />
+            android:action="sw2.io.mediafloat.action.SHOW_OVERLAY"
+            android:targetPackage="sw2.io.mediafloat"
+            android:targetClass="sw2.io.mediafloat.AutomationEntryActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="stop_widget"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/action_stop_widget"
+        android:shortcutLongLabel="@string/action_stop_widget">
+        <intent
+            android:action="sw2.io.mediafloat.action.STOP_OVERLAY"
+            android:targetPackage="sw2.io.mediafloat"
+            android:targetClass="sw2.io.mediafloat.AutomationEntryActivity" />
     </shortcut>
 </shortcuts>

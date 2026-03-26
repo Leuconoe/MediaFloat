@@ -1,10 +1,10 @@
-package com.mediacontrol.floatingwidget.overlay
+package sw2.io.mediafloat.overlay
 
 import android.content.Context
-import com.mediacontrol.floatingwidget.model.WidgetAnchor
-import com.mediacontrol.floatingwidget.model.WidgetPosition
-import com.mediacontrol.floatingwidget.storage.PreferencesStorage
-import com.mediacontrol.floatingwidget.storage.SharedPreferencesStorage
+import sw2.io.mediafloat.model.WidgetAnchor
+import sw2.io.mediafloat.model.WidgetPosition
+import sw2.io.mediafloat.storage.PreferencesStorage
+import sw2.io.mediafloat.storage.SharedPreferencesStorage
 import kotlin.math.roundToInt
 
 class OverlayPositionStore(

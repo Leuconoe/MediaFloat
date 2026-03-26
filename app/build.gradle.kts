@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.mediacontrol.floatingwidget"
+    namespace = "sw2.io.mediafloat"
     compileSdk = 35
 
     val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -32,7 +32,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.mediacontrol.floatingwidget"
+        applicationId = "sw2.io.mediafloat"
         minSdk = 29
         targetSdk = 35
         versionCode = 2

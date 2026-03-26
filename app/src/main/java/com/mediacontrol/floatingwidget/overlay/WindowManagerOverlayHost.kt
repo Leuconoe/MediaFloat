@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.overlay
+package sw2.io.mediafloat.overlay
 
 import android.content.Context
 import android.graphics.PixelFormat
@@ -13,20 +13,20 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.mediacontrol.floatingwidget.R
-import com.mediacontrol.floatingwidget.debug.DebugLogWriter
-import com.mediacontrol.floatingwidget.debug.NoOpDebugLogWriter
-import com.mediacontrol.floatingwidget.model.MediaCommand
-import com.mediacontrol.floatingwidget.model.MediaSessionState
-import com.mediacontrol.floatingwidget.model.PlaybackStatus
-import com.mediacontrol.floatingwidget.model.WidgetAnchor
-import com.mediacontrol.floatingwidget.model.WidgetButton
-import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
-import com.mediacontrol.floatingwidget.model.DragHandlePlacement
-import com.mediacontrol.floatingwidget.model.WidgetOverlayAppearance
-import com.mediacontrol.floatingwidget.model.WidgetPosition
-import com.mediacontrol.floatingwidget.model.overlayAppearance
-import com.mediacontrol.floatingwidget.model.supports
+import sw2.io.mediafloat.R
+import sw2.io.mediafloat.debug.DebugLogWriter
+import sw2.io.mediafloat.debug.NoOpDebugLogWriter
+import sw2.io.mediafloat.model.MediaCommand
+import sw2.io.mediafloat.model.MediaSessionState
+import sw2.io.mediafloat.model.PlaybackStatus
+import sw2.io.mediafloat.model.WidgetAnchor
+import sw2.io.mediafloat.model.WidgetButton
+import sw2.io.mediafloat.model.WidgetWidthStyle
+import sw2.io.mediafloat.model.DragHandlePlacement
+import sw2.io.mediafloat.model.WidgetOverlayAppearance
+import sw2.io.mediafloat.model.WidgetPosition
+import sw2.io.mediafloat.model.overlayAppearance
+import sw2.io.mediafloat.model.supports
 
 class WindowManagerOverlayHost(
     context: Context,
@@ -228,7 +228,7 @@ class WindowManagerOverlayHost(
         appliedDragHandlePlacement = placement
     }
 
-    private fun updateButtonLayout(button: ImageButton, sizing: com.mediacontrol.floatingwidget.model.WidgetOverlaySizing) {
+    private fun updateButtonLayout(button: ImageButton, sizing: sw2.io.mediafloat.model.WidgetOverlaySizing) {
         button.layoutParams = LinearLayout.LayoutParams(
             dp(sizing.buttonWidthDp),
             dp(sizing.buttonHeightDp)

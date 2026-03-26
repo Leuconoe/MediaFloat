@@ -101,7 +101,7 @@ The language picker lives in `Advanced`, and the current app language is reflect
 MediaFloat includes an exported action for launching the overlay flow from automation tools:
 
 ```text
-com.mediacontrol.floatingwidget.action.SHOW_OVERLAY
+sw2.io.mediafloat.action.SHOW_OVERLAY
 ```
 
 If readiness is blocked, the app falls back to the main interface so the missing access can be fixed.

@@ -1,12 +1,12 @@
-package com.mediacontrol.floatingwidget.widget
+package sw2.io.mediafloat.widget
 
-import com.mediacontrol.floatingwidget.model.WidgetButton
-import com.mediacontrol.floatingwidget.model.WidgetConfig
-import com.mediacontrol.floatingwidget.model.WidgetLayout
-import com.mediacontrol.floatingwidget.model.WidgetSizePreset
-import com.mediacontrol.floatingwidget.model.WidgetThemePreset
-import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
-import com.mediacontrol.floatingwidget.storage.TestPreferencesStorage
+import sw2.io.mediafloat.model.WidgetButton
+import sw2.io.mediafloat.model.WidgetConfig
+import sw2.io.mediafloat.model.WidgetLayout
+import sw2.io.mediafloat.model.WidgetSizePreset
+import sw2.io.mediafloat.model.WidgetThemePreset
+import sw2.io.mediafloat.model.WidgetWidthStyle
+import sw2.io.mediafloat.storage.TestPreferencesStorage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

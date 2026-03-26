@@ -1,8 +1,8 @@
-package com.mediacontrol.floatingwidget.runtime
+package sw2.io.mediafloat.runtime
 
 import android.content.Intent
-import com.mediacontrol.floatingwidget.model.CapabilityState
-import com.mediacontrol.floatingwidget.model.OverlayRuntimeState
+import sw2.io.mediafloat.model.CapabilityState
+import sw2.io.mediafloat.model.OverlayRuntimeState
 
 interface OverlayRuntimeController {
     fun capabilityState(): CapabilityState

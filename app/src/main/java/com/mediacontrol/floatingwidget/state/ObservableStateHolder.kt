@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.state
+package sw2.io.mediafloat.state
 
 fun interface StateListener<T> {
     fun onStateChanged(state: T)

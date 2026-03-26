@@ -1,8 +1,8 @@
-package com.mediacontrol.floatingwidget.debug
+package sw2.io.mediafloat.debug
 
 import android.content.Context
-import com.mediacontrol.floatingwidget.storage.PreferencesStorage
-import com.mediacontrol.floatingwidget.storage.SharedPreferencesStorage
+import sw2.io.mediafloat.storage.PreferencesStorage
+import sw2.io.mediafloat.storage.SharedPreferencesStorage
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 

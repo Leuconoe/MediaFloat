@@ -1,11 +1,11 @@
-package com.mediacontrol.floatingwidget.ui
+package sw2.io.mediafloat.ui
 
-import com.mediacontrol.floatingwidget.model.MediaSessionState
-import com.mediacontrol.floatingwidget.model.OverlayRuntimeState
-import com.mediacontrol.floatingwidget.model.OverlayUnavailableReason
-import com.mediacontrol.floatingwidget.model.WidgetAnchor
-import com.mediacontrol.floatingwidget.model.WidgetLayout
-import com.mediacontrol.floatingwidget.model.WidgetPosition
+import sw2.io.mediafloat.model.MediaSessionState
+import sw2.io.mediafloat.model.OverlayRuntimeState
+import sw2.io.mediafloat.model.OverlayUnavailableReason
+import sw2.io.mediafloat.model.WidgetAnchor
+import sw2.io.mediafloat.model.WidgetLayout
+import sw2.io.mediafloat.model.WidgetPosition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

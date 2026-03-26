@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget
+package sw2.io.mediafloat
 
 import android.app.Activity
 import android.os.Bundle
@@ -10,20 +10,42 @@ class AutomationEntryActivity : Activity() {
         AppLocaleManager.apply(MediaControlAppServices.from(this).appPreferencesRepository.currentState().appLanguage)
         super.onCreate(savedInstanceState)
 
-        val started = MediaControlAppServices.from(this).debugActions.startOverlay()
-
-        if (!started) {
-            Log.w(TAG, "Automation launch fell back to MainActivity because readiness is blocked")
-            startActivity(MainActivity.launchIntent(this))
-        } else {
-            Log.d(TAG, "Automation launch requested overlay runtime")
-        }
-
+        handleAutomationAction(intent?.action)
         finish()
     }
 
+    override fun onNewIntent(intent: android.content.Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleAutomationAction(intent?.action)
+        finish()
+    }
+
+    private fun handleAutomationAction(action: String?) {
+        val debugActions = MediaControlAppServices.from(this).debugActions
+
+        when (action) {
+            ACTION_STOP_OVERLAY -> {
+                debugActions.stopOverlay()
+                Log.d(TAG, "Automation shortcut requested overlay stop")
+            }
+
+            else -> {
+                val started = debugActions.startOverlay()
+
+                if (!started) {
+                    Log.w(TAG, "Automation launch fell back to MainActivity because readiness is blocked")
+                    startActivity(MainActivity.launchIntent(this))
+                } else {
+                    Log.d(TAG, "Automation launch requested overlay runtime")
+                }
+            }
+        }
+    }
+
     companion object {
-        const val ACTION_SHOW_OVERLAY = "com.mediacontrol.floatingwidget.action.SHOW_OVERLAY"
+        const val ACTION_SHOW_OVERLAY = "sw2.io.mediafloat.action.SHOW_OVERLAY"
+        const val ACTION_STOP_OVERLAY = "sw2.io.mediafloat.action.STOP_OVERLAY"
         private const val TAG = "AutomationEntry"
     }
 }

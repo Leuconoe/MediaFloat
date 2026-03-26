@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget
+package sw2.io.mediafloat
 
 import android.content.Context
 import android.content.Intent
@@ -13,34 +13,34 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.mediacontrol.floatingwidget.debug.DebugActions
-import com.mediacontrol.floatingwidget.model.AppPreferences
-import com.mediacontrol.floatingwidget.model.CapabilityGrantState
-import com.mediacontrol.floatingwidget.model.CapabilityState
-import com.mediacontrol.floatingwidget.model.MediaSessionState
-import com.mediacontrol.floatingwidget.model.NotificationPosture
-import com.mediacontrol.floatingwidget.model.OverlayRuntimeState
-import com.mediacontrol.floatingwidget.model.OverlayUnavailableReason
-import com.mediacontrol.floatingwidget.model.WidgetButton
-import com.mediacontrol.floatingwidget.model.WidgetConfig
-import com.mediacontrol.floatingwidget.model.WidgetPosition
-import com.mediacontrol.floatingwidget.model.WidgetSizePreset
-import com.mediacontrol.floatingwidget.model.WidgetThemePreset
-import com.mediacontrol.floatingwidget.model.WidgetWidthStyle
-import com.mediacontrol.floatingwidget.model.DragHandlePlacement
-import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeCoordinator
-import com.mediacontrol.floatingwidget.state.AppPreferencesStateHolder
-import com.mediacontrol.floatingwidget.state.DebugLogScreenState
-import com.mediacontrol.floatingwidget.state.DebugLogStateHolder
-import com.mediacontrol.floatingwidget.state.MediaSummaryState
-import com.mediacontrol.floatingwidget.state.MediaSummaryStateHolder
-import com.mediacontrol.floatingwidget.state.RuntimeSummaryState
-import com.mediacontrol.floatingwidget.state.RuntimeSummaryStateHolder
-import com.mediacontrol.floatingwidget.state.StateListener
-import com.mediacontrol.floatingwidget.state.WidgetConfigScreenState
-import com.mediacontrol.floatingwidget.state.WidgetConfigStateHolder
-import com.mediacontrol.floatingwidget.ui.AppShell
-import com.mediacontrol.floatingwidget.ui.theme.MediaFloatTheme
+import sw2.io.mediafloat.debug.DebugActions
+import sw2.io.mediafloat.model.AppPreferences
+import sw2.io.mediafloat.model.CapabilityGrantState
+import sw2.io.mediafloat.model.CapabilityState
+import sw2.io.mediafloat.model.MediaSessionState
+import sw2.io.mediafloat.model.NotificationPosture
+import sw2.io.mediafloat.model.OverlayRuntimeState
+import sw2.io.mediafloat.model.OverlayUnavailableReason
+import sw2.io.mediafloat.model.WidgetButton
+import sw2.io.mediafloat.model.WidgetConfig
+import sw2.io.mediafloat.model.WidgetPosition
+import sw2.io.mediafloat.model.WidgetSizePreset
+import sw2.io.mediafloat.model.WidgetThemePreset
+import sw2.io.mediafloat.model.WidgetWidthStyle
+import sw2.io.mediafloat.model.DragHandlePlacement
+import sw2.io.mediafloat.runtime.OverlayRuntimeCoordinator
+import sw2.io.mediafloat.state.AppPreferencesStateHolder
+import sw2.io.mediafloat.state.DebugLogScreenState
+import sw2.io.mediafloat.state.DebugLogStateHolder
+import sw2.io.mediafloat.state.MediaSummaryState
+import sw2.io.mediafloat.state.MediaSummaryStateHolder
+import sw2.io.mediafloat.state.RuntimeSummaryState
+import sw2.io.mediafloat.state.RuntimeSummaryStateHolder
+import sw2.io.mediafloat.state.StateListener
+import sw2.io.mediafloat.state.WidgetConfigScreenState
+import sw2.io.mediafloat.state.WidgetConfigStateHolder
+import sw2.io.mediafloat.ui.AppShell
+import sw2.io.mediafloat.ui.theme.MediaFloatTheme
 
 class MainActivity : AppCompatActivity() {
 
@@ -160,7 +160,7 @@ class MainActivity : AppCompatActivity() {
         appPreferencesStateHolder.setDebugToolsEnabled(enabled)
     }
 
-    private fun setAppLanguage(appLanguage: com.mediacontrol.floatingwidget.model.AppLanguage) {
+    private fun setAppLanguage(appLanguage: sw2.io.mediafloat.model.AppLanguage) {
         AppLocaleManager.apply(appLanguage)
         appPreferencesStateHolder.setAppLanguage(appLanguage)
     }

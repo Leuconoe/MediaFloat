@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.ui
+package sw2.io.mediafloat.ui
 
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.mutableStateOf
@@ -12,8 +12,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.mediacontrol.floatingwidget.model.AppPreferences
-import com.mediacontrol.floatingwidget.ui.theme.MediaFloatTheme
+import sw2.io.mediafloat.model.AppPreferences
+import sw2.io.mediafloat.ui.theme.MediaFloatTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test

@@ -1,7 +1,7 @@
-package com.mediacontrol.floatingwidget.preferences
+package sw2.io.mediafloat.preferences
 
-import com.mediacontrol.floatingwidget.model.AppPreferences
-import com.mediacontrol.floatingwidget.model.AppLanguage
+import sw2.io.mediafloat.model.AppPreferences
+import sw2.io.mediafloat.model.AppLanguage
 
 fun interface AppPreferencesListener {
     fun onAppPreferencesChanged(preferences: AppPreferences)

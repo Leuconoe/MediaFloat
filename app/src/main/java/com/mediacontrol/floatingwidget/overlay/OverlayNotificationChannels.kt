@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.overlay
+package sw2.io.mediafloat.overlay
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -16,10 +16,10 @@ object OverlayNotificationChannels {
         val notificationManager = context.getSystemService(NotificationManager::class.java) ?: return
         val channel = NotificationChannel(
             RUNTIME_CHANNEL_ID,
-            context.getString(com.mediacontrol.floatingwidget.R.string.overlay_runtime_channel_name),
+            context.getString(sw2.io.mediafloat.R.string.overlay_runtime_channel_name),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = context.getString(com.mediacontrol.floatingwidget.R.string.overlay_runtime_channel_description)
+            description = context.getString(sw2.io.mediafloat.R.string.overlay_runtime_channel_description)
         }
         notificationManager.createNotificationChannel(channel)
     }

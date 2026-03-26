@@ -1,19 +1,19 @@
-package com.mediacontrol.floatingwidget.runtime
+package sw2.io.mediafloat.runtime
 
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.content.ContextCompat
-import com.mediacontrol.floatingwidget.debug.DebugLogWriter
-import com.mediacontrol.floatingwidget.debug.NoOpDebugLogWriter
-import com.mediacontrol.floatingwidget.model.CapabilityState
-import com.mediacontrol.floatingwidget.model.OverlayRuntimeState
-import com.mediacontrol.floatingwidget.overlay.OverlayService
-import com.mediacontrol.floatingwidget.permissions.NotificationListenerAccessChecker
-import com.mediacontrol.floatingwidget.permissions.NotificationPermissionChecker
-import com.mediacontrol.floatingwidget.permissions.OverlayPermissionChecker
-import com.mediacontrol.floatingwidget.permissions.OverlayReadinessResolver
-import com.mediacontrol.floatingwidget.permissions.PermissionReadinessSnapshotProvider
+import sw2.io.mediafloat.debug.DebugLogWriter
+import sw2.io.mediafloat.debug.NoOpDebugLogWriter
+import sw2.io.mediafloat.model.CapabilityState
+import sw2.io.mediafloat.model.OverlayRuntimeState
+import sw2.io.mediafloat.overlay.OverlayService
+import sw2.io.mediafloat.permissions.NotificationListenerAccessChecker
+import sw2.io.mediafloat.permissions.NotificationPermissionChecker
+import sw2.io.mediafloat.permissions.OverlayPermissionChecker
+import sw2.io.mediafloat.permissions.OverlayReadinessResolver
+import sw2.io.mediafloat.permissions.PermissionReadinessSnapshotProvider
 
 class OverlayRuntimeCoordinator(
     context: Context,
