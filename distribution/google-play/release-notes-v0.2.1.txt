@@ -1,0 +1,1 @@
+v0.2.1 adds a dedicated stop-widget shortcut, keeps launcher shortcut behavior aligned with the main runtime path, and prepares the app for wider store distribution.

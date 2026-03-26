@@ -1,0 +1,22 @@
+MediaFloat keeps Android media controls close without forcing you back into the player app.
+
+What MediaFloat does:
+
+- shows a compact floating widget for previous, play / pause, and next
+- starts or stops the widget quickly from the app or from launcher shortcuts
+- keeps widget size, width, opacity, sidebar side, and theme presets in sync with the real overlay
+- guides you through overlay access, notification listener access, and notification setup when Android blocks runtime features
+- supports Main, Settings, Advanced, Support, and hidden Debug surfaces
+- supports System default, English, Korean, Chinese, Japanese, Spanish, and French
+
+Why this release matters:
+
+- v0.2.1 adds a dedicated stop-widget shortcut to pair with the existing launch shortcut
+- the launcher shortcut flow stays on the same runtime activation contract as the rest of the app
+- recent runtime crash fixes make overlay start, stop, drag, and recovery paths more stable
+
+Current limits:
+
+- one horizontal widget family
+- no freeform resizing or freeform button placement
+- overlay behavior still depends on Android permissions and active media-session availability
