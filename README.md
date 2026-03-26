@@ -24,7 +24,8 @@ MediaFloat focuses on one job: giving Android media controls a small, movable su
 
 - A floating overlay bar for `Previous`, `Play / pause`, and `Next`
 - Saved overlay position, width presets, theme presets, and persistent runtime behavior
-- Landing, Settings, Advanced, Support, and hidden Debug surfaces inside the single-module app
+- Main, Settings, Advanced, Support, and hidden Debug surfaces inside the single-module app
+- Real widget controls for opacity and left/right sidebar placement
 - App-language support for `System default`, English, Korean, Chinese, Japanese, Spanish, and French
 - Android resource-backed shell text for the shipped app surfaces and runtime-facing notices
 - A foreground-service runtime with readiness checks for overlay, notification listener, and notification posture
@@ -58,7 +59,7 @@ MediaFloat depends on Android system capabilities before the overlay can remain 
 3. Grant notification-listener access so MediaFloat can observe active media sessions.
 4. Allow app notifications, especially on Android 13+, so the foreground-service notification stays visible.
 5. Start playback in a media app.
-6. Use `Landing`, `Settings`, or `Debug` to start the overlay.
+6. Use `Main`, `Settings`, or `Debug` to start the overlay.
 
 If readiness is blocked, the app exposes shortcuts back to the relevant system settings screens.
 
@@ -73,10 +74,10 @@ If readiness is blocked, the app exposes shortcuts back to the relevant system s
 
 ## App surfaces
 
-- `Landing` - check readiness and start or stop the overlay quickly
-- `Settings` - adjust visible buttons, size presets, and real widget behavior
-- `Advanced` - choose app language, width style, theme preset, persistent overlay mode, and Debug visibility
-- `Support` - review setup guidance, version details, saved widget details, product constraints, and license notices
+- `Main` - start or stop the overlay quickly and see whether setup is ready
+- `Settings` - adjust visible buttons, size presets, width, opacity, and core widget behavior
+- `Advanced` - choose app language, theme preset, sidebar side, persistent overlay mode, and Debug visibility
+- `Support` - review setup guidance, runtime/media status, version details, product constraints, and license notices
 - `Debug` - inspect runtime readiness, inspect media readiness, send transport commands, start or stop the overlay, clear logs, and review recent events
 
 ## App language support
@@ -124,7 +125,7 @@ MediaFloat `v0.2.0` is still intentionally constrained.
 
 - The overlay supports one horizontal control family
 - Freeform resizing is not supported; use the built-in size presets
-- The drag handle stays on the right side
+- Sidebar placement is configurable, but the overlay still uses one horizontal control family
 - Button combinations are limited to supported previous, play/pause, and next layouts
 - Overlay behavior still depends on Android permission state and whether an active media session is available
 - Emulator validation is useful for setup and UI checks, but target-device validation still matters before wider release

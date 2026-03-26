@@ -4,14 +4,14 @@ All notable user-facing changes to MediaFloat are recorded here.
 
 ## v0.2.0
 
-Final v0.2.0 feature-complete release of the current single-module MediaFloat app.
+First full product-shape release of MediaFloat.
 
 - Added app-language support with `System default`, English, Korean, Chinese, Japanese, Spanish, and French
-- Added Android resource-backed shell text for the main shipped surfaces and runtime-facing user notices
-- Added the Advanced app-language picker and current-language visibility in Support
-- Added the AppCompat locale-selection path for Android 13+ and older supported versions
-- Added Apache-2.0 licensing and refreshed release-facing project documentation for v0.2.0
-- Kept the existing overlay, recovery, theme, width, persistence, automation, and hidden Debug flows intact
+- Added Main, Settings, Advanced, Support, and hidden Debug surfaces with simplified control grouping
+- Added real widget controls for size, width, opacity, sidebar side, and theme presets
+- Added safer runtime entry handling for notification settings, overlay start, and launcher shortcut activation
+- Added media-session recovery after temporary interruption paths
+- Added Apache-2.0 licensing and refreshed release-facing project documentation
 
 Notes:
 
