@@ -1,0 +1,1 @@
+v0.2.1 adds a dedicated stop-widget shortcut, renames the app package to sw2.io.mediafloat, hardens shortcut and overlay runtime entry paths, fixes overlay drag crashes, and prepares signed app bundle and listing assets for store distribution.

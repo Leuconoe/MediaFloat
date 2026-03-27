@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.ui.theme
+package sw2.io.mediafloat.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

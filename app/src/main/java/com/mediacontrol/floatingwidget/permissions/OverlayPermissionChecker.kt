@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.permissions
+package sw2.io.mediafloat.permissions
 
 import android.content.Context
 import android.content.Intent

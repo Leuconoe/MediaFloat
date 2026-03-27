@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.media
+package sw2.io.mediafloat.media
 
 import android.content.ComponentName
 import android.content.Context
@@ -8,13 +8,13 @@ import android.media.session.PlaybackState
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import com.mediacontrol.floatingwidget.debug.DebugLogWriter
-import com.mediacontrol.floatingwidget.debug.NoOpDebugLogWriter
-import com.mediacontrol.floatingwidget.model.MediaCommand
-import com.mediacontrol.floatingwidget.model.MediaSessionErrorReason
-import com.mediacontrol.floatingwidget.model.MediaSessionLimitReason
-import com.mediacontrol.floatingwidget.model.MediaSessionState
-import com.mediacontrol.floatingwidget.model.PlaybackStatus
+import sw2.io.mediafloat.debug.DebugLogWriter
+import sw2.io.mediafloat.debug.NoOpDebugLogWriter
+import sw2.io.mediafloat.model.MediaCommand
+import sw2.io.mediafloat.model.MediaSessionErrorReason
+import sw2.io.mediafloat.model.MediaSessionLimitReason
+import sw2.io.mediafloat.model.MediaSessionState
+import sw2.io.mediafloat.model.PlaybackStatus
 
 class AndroidMediaSessionRepository(
     context: Context,

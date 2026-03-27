@@ -1,6 +1,6 @@
-package com.mediacontrol.floatingwidget.media
+package sw2.io.mediafloat.media
 
-import com.mediacontrol.floatingwidget.model.MediaSessionState
+import sw2.io.mediafloat.model.MediaSessionState
 
 fun interface MediaSessionStateListener {
     fun onMediaSessionStateChanged(state: MediaSessionState)

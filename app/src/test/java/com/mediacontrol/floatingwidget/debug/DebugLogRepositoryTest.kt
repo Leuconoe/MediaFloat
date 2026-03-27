@@ -1,6 +1,6 @@
-package com.mediacontrol.floatingwidget.debug
+package sw2.io.mediafloat.debug
 
-import com.mediacontrol.floatingwidget.storage.TestPreferencesStorage
+import sw2.io.mediafloat.storage.TestPreferencesStorage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

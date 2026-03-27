@@ -1,9 +1,9 @@
-package com.mediacontrol.floatingwidget.overlay
+package sw2.io.mediafloat.overlay
 
-import com.mediacontrol.floatingwidget.model.MediaSessionState
-import com.mediacontrol.floatingwidget.model.WidgetConfig
-import com.mediacontrol.floatingwidget.model.WidgetLayout
-import com.mediacontrol.floatingwidget.model.WidgetPosition
+import sw2.io.mediafloat.model.MediaSessionState
+import sw2.io.mediafloat.model.WidgetConfig
+import sw2.io.mediafloat.model.WidgetLayout
+import sw2.io.mediafloat.model.WidgetPosition
 
 data class OverlayViewState(
     val config: WidgetConfig,

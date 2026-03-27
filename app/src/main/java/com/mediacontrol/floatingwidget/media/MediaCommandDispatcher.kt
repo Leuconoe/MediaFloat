@@ -1,10 +1,10 @@
-package com.mediacontrol.floatingwidget.media
+package sw2.io.mediafloat.media
 
 import android.media.session.PlaybackState
 import android.util.Log
-import com.mediacontrol.floatingwidget.debug.DebugLogWriter
-import com.mediacontrol.floatingwidget.debug.NoOpDebugLogWriter
-import com.mediacontrol.floatingwidget.model.MediaCommand
+import sw2.io.mediafloat.debug.DebugLogWriter
+import sw2.io.mediafloat.debug.NoOpDebugLogWriter
+import sw2.io.mediafloat.model.MediaCommand
 
 interface MediaCommandDispatcher {
     fun dispatch(command: MediaCommand): Boolean
@@ -66,13 +66,13 @@ class MediaControllerCommandDispatcher(
         return true
     }
 
-    private fun com.mediacontrol.floatingwidget.model.MediaSessionState.supportedActions(): Set<MediaCommand> {
+    private fun sw2.io.mediafloat.model.MediaSessionState.supportedActions(): Set<MediaCommand> {
         return when (this) {
-            is com.mediacontrol.floatingwidget.model.MediaSessionState.Active -> supportedActions
-            is com.mediacontrol.floatingwidget.model.MediaSessionState.Limited -> supportedActions
-            com.mediacontrol.floatingwidget.model.MediaSessionState.Discovering,
-            com.mediacontrol.floatingwidget.model.MediaSessionState.Unavailable,
-            is com.mediacontrol.floatingwidget.model.MediaSessionState.Error -> emptySet()
+            is sw2.io.mediafloat.model.MediaSessionState.Active -> supportedActions
+            is sw2.io.mediafloat.model.MediaSessionState.Limited -> supportedActions
+            sw2.io.mediafloat.model.MediaSessionState.Discovering,
+            sw2.io.mediafloat.model.MediaSessionState.Unavailable,
+            is sw2.io.mediafloat.model.MediaSessionState.Error -> emptySet()
         }
     }
 

@@ -1,10 +1,10 @@
-package com.mediacontrol.floatingwidget.state
+package sw2.io.mediafloat.state
 
-import com.mediacontrol.floatingwidget.model.CapabilityState
-import com.mediacontrol.floatingwidget.model.OverlayRuntimeState
-import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeController
-import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeListener
-import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeRegistry
+import sw2.io.mediafloat.model.CapabilityState
+import sw2.io.mediafloat.model.OverlayRuntimeState
+import sw2.io.mediafloat.runtime.OverlayRuntimeController
+import sw2.io.mediafloat.runtime.OverlayRuntimeListener
+import sw2.io.mediafloat.runtime.OverlayRuntimeRegistry
 
 data class RuntimeSummaryState(
     val capabilityState: CapabilityState,

@@ -11,6 +11,7 @@
     <string name="overlay_button_next">다음 트랙</string>
     <string name="overlay_drag_handle">오버레이 드래그</string>
     <string name="action_launch_widget">위젯 실행</string>
+    <string name="action_stop_widget">위젯 중지</string>
 
     <string name="section_landing_title">메인</string>
     <string name="section_landing_short">메인</string>

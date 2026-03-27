@@ -1,10 +1,10 @@
-package com.mediacontrol.floatingwidget.preferences
+package sw2.io.mediafloat.preferences
 
 import android.content.Context
-import com.mediacontrol.floatingwidget.model.AppPreferences
-import com.mediacontrol.floatingwidget.model.AppLanguage
-import com.mediacontrol.floatingwidget.storage.PreferencesStorage
-import com.mediacontrol.floatingwidget.storage.SharedPreferencesStorage
+import sw2.io.mediafloat.model.AppPreferences
+import sw2.io.mediafloat.model.AppLanguage
+import sw2.io.mediafloat.storage.PreferencesStorage
+import sw2.io.mediafloat.storage.SharedPreferencesStorage
 
 class AppPreferencesStore(
     private val storage: PreferencesStorage

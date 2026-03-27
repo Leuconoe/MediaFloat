@@ -2,6 +2,17 @@
 
 All notable user-facing changes to MediaFloat are recorded here.
 
+## v0.2.1
+
+Focused follow-up release for shortcut convenience and distribution prep.
+
+- Added a `Stop widget` launcher shortcut to pair with `Launch widget`
+- Moved the app package/application id to `sw2.io.mediafloat`
+- Hardened runtime entry paths and fixed overlay drag crashes
+- Added reusable screenshots and listing metadata for Google Play, F-Droid, and IzzyOnDroid
+
+See also: `docs/releases/v0.2.1.md`
+
 ## v0.2.0
 
 First full product-shape release of MediaFloat.

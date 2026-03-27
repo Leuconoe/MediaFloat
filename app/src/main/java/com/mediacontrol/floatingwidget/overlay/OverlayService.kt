@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.overlay
+package sw2.io.mediafloat.overlay
 
 import android.app.Notification
 import android.app.PendingIntent
@@ -11,20 +11,20 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
-import com.mediacontrol.floatingwidget.MediaControlAppServices
-import com.mediacontrol.floatingwidget.R
-import com.mediacontrol.floatingwidget.MainActivity
-import com.mediacontrol.floatingwidget.debug.DebugLogWriter
-import com.mediacontrol.floatingwidget.media.AndroidMediaSessionRepository
-import com.mediacontrol.floatingwidget.media.MediaControllerCommandDispatcher
-import com.mediacontrol.floatingwidget.media.MediaSessionStateListener
-import com.mediacontrol.floatingwidget.model.MediaSessionState
-import com.mediacontrol.floatingwidget.model.OverlayRuntimeState
-import com.mediacontrol.floatingwidget.model.WidgetConfig
-import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeCoordinator
-import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeRegistry
-import com.mediacontrol.floatingwidget.widget.WidgetPreferencesListener
-import com.mediacontrol.floatingwidget.widget.WidgetPreferencesRepository
+import sw2.io.mediafloat.MediaControlAppServices
+import sw2.io.mediafloat.R
+import sw2.io.mediafloat.MainActivity
+import sw2.io.mediafloat.debug.DebugLogWriter
+import sw2.io.mediafloat.media.AndroidMediaSessionRepository
+import sw2.io.mediafloat.media.MediaControllerCommandDispatcher
+import sw2.io.mediafloat.media.MediaSessionStateListener
+import sw2.io.mediafloat.model.MediaSessionState
+import sw2.io.mediafloat.model.OverlayRuntimeState
+import sw2.io.mediafloat.model.WidgetConfig
+import sw2.io.mediafloat.runtime.OverlayRuntimeCoordinator
+import sw2.io.mediafloat.runtime.OverlayRuntimeRegistry
+import sw2.io.mediafloat.widget.WidgetPreferencesListener
+import sw2.io.mediafloat.widget.WidgetPreferencesRepository
 
 class OverlayService : Service() {
 
@@ -38,7 +38,7 @@ class OverlayService : Service() {
     private lateinit var overlayHost: OverlayHost
     private var currentMediaState: MediaSessionState = MediaSessionState.Unavailable
     private var currentWidgetConfig: WidgetConfig = WidgetConfig()
-    private var currentWidgetPosition = com.mediacontrol.floatingwidget.model.WidgetPosition()
+    private var currentWidgetPosition = sw2.io.mediafloat.model.WidgetPosition()
     private var suppressNextPositionEcho = false
     private var runtimeStarted = false
     private val mediaStateListener = MediaSessionStateListener { mediaState ->
@@ -196,7 +196,7 @@ class OverlayService : Service() {
         debugLogWriter.info(TAG, "Overlay runtime attached", "mediaState=$currentMediaState config=$currentWidgetConfig")
     }
 
-    private fun publishShowingState(position: com.mediacontrol.floatingwidget.model.WidgetPosition = widgetPreferencesRepository.currentState().position) {
+    private fun publishShowingState(position: sw2.io.mediafloat.model.WidgetPosition = widgetPreferencesRepository.currentState().position) {
         OverlayRuntimeRegistry.update(
             OverlayRuntimeState.Showing(
                 position = position,
@@ -228,8 +228,8 @@ class OverlayService : Service() {
     }
 
     companion object {
-        const val ACTION_START = "com.mediacontrol.floatingwidget.action.START_OVERLAY_RUNTIME"
-        const val ACTION_STOP = "com.mediacontrol.floatingwidget.action.STOP_OVERLAY_RUNTIME"
+        const val ACTION_START = "sw2.io.mediafloat.action.START_OVERLAY_RUNTIME"
+        const val ACTION_STOP = "sw2.io.mediafloat.action.STOP_OVERLAY_RUNTIME"
         private const val NOTIFICATION_ID = 41
         private const val TAG = "OverlayService"
 

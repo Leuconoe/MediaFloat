@@ -1,0 +1,1 @@
+Added a stop-widget shortcut, updated package naming to sw2.io.mediafloat, and prepared release/store assets for broader distribution.

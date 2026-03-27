@@ -1,12 +1,12 @@
-package com.mediacontrol.floatingwidget.runtime
+package sw2.io.mediafloat.runtime
 
 import android.content.Context
-import com.mediacontrol.floatingwidget.R
-import com.mediacontrol.floatingwidget.model.CapabilityGrantState
-import com.mediacontrol.floatingwidget.model.CapabilityState
-import com.mediacontrol.floatingwidget.model.NotificationPosture
-import com.mediacontrol.floatingwidget.model.OverlayRuntimeState
-import com.mediacontrol.floatingwidget.model.OverlayUnavailableReason
+import sw2.io.mediafloat.R
+import sw2.io.mediafloat.model.CapabilityGrantState
+import sw2.io.mediafloat.model.CapabilityState
+import sw2.io.mediafloat.model.NotificationPosture
+import sw2.io.mediafloat.model.OverlayRuntimeState
+import sw2.io.mediafloat.model.OverlayUnavailableReason
 
 data class RuntimeStatusSummary(
     val title: String,

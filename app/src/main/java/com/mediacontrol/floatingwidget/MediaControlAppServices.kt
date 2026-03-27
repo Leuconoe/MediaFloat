@@ -1,21 +1,21 @@
-package com.mediacontrol.floatingwidget
+package sw2.io.mediafloat
 
 import android.content.Context
-import com.mediacontrol.floatingwidget.debug.AppDebugActions
-import com.mediacontrol.floatingwidget.debug.PreferencesDebugLogRepository
-import com.mediacontrol.floatingwidget.media.AndroidMediaSessionRepository
-import com.mediacontrol.floatingwidget.media.MediaControllerCommandDispatcher
-import com.mediacontrol.floatingwidget.preferences.AppPreferencesRepository
-import com.mediacontrol.floatingwidget.preferences.AppPreferencesStore
-import com.mediacontrol.floatingwidget.overlay.OverlayPositionStore
-import com.mediacontrol.floatingwidget.runtime.OverlayRuntimeCoordinator
-import com.mediacontrol.floatingwidget.state.AppPreferencesStateHolder
-import com.mediacontrol.floatingwidget.state.DebugLogStateHolder
-import com.mediacontrol.floatingwidget.state.MediaSummaryStateHolder
-import com.mediacontrol.floatingwidget.state.RuntimeSummaryStateHolder
-import com.mediacontrol.floatingwidget.state.WidgetConfigStateHolder
-import com.mediacontrol.floatingwidget.widget.WidgetConfigStore
-import com.mediacontrol.floatingwidget.widget.WidgetPreferencesRepository
+import sw2.io.mediafloat.debug.AppDebugActions
+import sw2.io.mediafloat.debug.PreferencesDebugLogRepository
+import sw2.io.mediafloat.media.AndroidMediaSessionRepository
+import sw2.io.mediafloat.media.MediaControllerCommandDispatcher
+import sw2.io.mediafloat.preferences.AppPreferencesRepository
+import sw2.io.mediafloat.preferences.AppPreferencesStore
+import sw2.io.mediafloat.overlay.OverlayPositionStore
+import sw2.io.mediafloat.runtime.OverlayRuntimeCoordinator
+import sw2.io.mediafloat.state.AppPreferencesStateHolder
+import sw2.io.mediafloat.state.DebugLogStateHolder
+import sw2.io.mediafloat.state.MediaSummaryStateHolder
+import sw2.io.mediafloat.state.RuntimeSummaryStateHolder
+import sw2.io.mediafloat.state.WidgetConfigStateHolder
+import sw2.io.mediafloat.widget.WidgetConfigStore
+import sw2.io.mediafloat.widget.WidgetPreferencesRepository
 
 class MediaControlAppServices private constructor(
     context: Context

@@ -1,4 +1,4 @@
-package com.mediacontrol.floatingwidget.debug
+package sw2.io.mediafloat.debug
 
 enum class DebugLogLevel {
     Debug,

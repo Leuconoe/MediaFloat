@@ -1,8 +1,8 @@
-package com.mediacontrol.floatingwidget.state
+package sw2.io.mediafloat.state
 
-import com.mediacontrol.floatingwidget.debug.DebugLogEntry
-import com.mediacontrol.floatingwidget.debug.DebugLogListener
-import com.mediacontrol.floatingwidget.debug.DebugLogRepository
+import sw2.io.mediafloat.debug.DebugLogEntry
+import sw2.io.mediafloat.debug.DebugLogListener
+import sw2.io.mediafloat.debug.DebugLogRepository
 
 data class DebugLogScreenState(
     val retentionLimit: Int,

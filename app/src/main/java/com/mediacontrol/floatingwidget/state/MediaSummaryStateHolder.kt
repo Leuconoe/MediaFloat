@@ -1,10 +1,10 @@
-package com.mediacontrol.floatingwidget.state
+package sw2.io.mediafloat.state
 
-import com.mediacontrol.floatingwidget.media.MediaSessionRepository
-import com.mediacontrol.floatingwidget.media.MediaSessionStateListener
-import com.mediacontrol.floatingwidget.model.MediaCommand
-import com.mediacontrol.floatingwidget.model.MediaSessionState
-import com.mediacontrol.floatingwidget.model.supports
+import sw2.io.mediafloat.media.MediaSessionRepository
+import sw2.io.mediafloat.media.MediaSessionStateListener
+import sw2.io.mediafloat.model.MediaCommand
+import sw2.io.mediafloat.model.MediaSessionState
+import sw2.io.mediafloat.model.supports
 
 data class MediaSummaryState(
     val mediaState: MediaSessionState,

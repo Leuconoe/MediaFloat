@@ -1,7 +1,7 @@
-package com.mediacontrol.floatingwidget.runtime
+package sw2.io.mediafloat.runtime
 
-import com.mediacontrol.floatingwidget.model.OverlayRuntimeState
-import com.mediacontrol.floatingwidget.model.OverlayUnavailableReason
+import sw2.io.mediafloat.model.OverlayRuntimeState
+import sw2.io.mediafloat.model.OverlayUnavailableReason
 
 fun interface OverlayRuntimeListener {
     fun onRuntimeStateChanged(state: OverlayRuntimeState)
