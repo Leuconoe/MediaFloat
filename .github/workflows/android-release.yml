@@ -44,14 +44,17 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: Run release checks
-        run: ./gradlew :app:testDebugUnitTest :app:assembleRelease -Pkotlin.incremental=false
+        run: ./gradlew :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease -Pkotlin.incremental=false
 
       - name: Prepare release artifact
         run: |
           mkdir -p release-artifacts
           cp app/build/outputs/apk/release/app-release.apk release-artifacts/MediaFloat-android-${GITHUB_REF_NAME}-signed.apk
+          cp app/build/outputs/bundle/release/app-release.aab release-artifacts/MediaFloat-android-${GITHUB_REF_NAME}-signed.aab
 
       - name: Publish GitHub release asset
         uses: softprops/action-gh-release@v2
         with:
-          files: release-artifacts/MediaFloat-android-${{ github.ref_name }}-signed.apk
+          files: |
+            release-artifacts/MediaFloat-android-${{ github.ref_name }}-signed.apk
+            release-artifacts/MediaFloat-android-${{ github.ref_name }}-signed.aab

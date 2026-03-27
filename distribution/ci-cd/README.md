@@ -12,8 +12,8 @@
   - runs on `v*` tags or manual dispatch
   - restores the signing keystore from GitHub Actions secrets
   - runs release checks
-  - builds the signed release APK
-  - publishes `MediaFloat-android-<tag>-signed.apk` to the GitHub Release
+  - builds the signed release APK and signed Android App Bundle
+  - publishes `MediaFloat-android-<tag>-signed.apk` and `MediaFloat-android-<tag>-signed.aab` to the GitHub Release
 
 ## Required GitHub secrets
 
