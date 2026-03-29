@@ -87,6 +87,12 @@ data class WidgetConfig(
 data class WidgetOverlaySizing(
     val containerWidthDp: Int,
     val containerHeightDp: Int,
+    val titleStripWidthDp: Int,
+    val titleStripMinHeightDp: Int,
+    val titleStripSpacingDp: Int,
+    val titleStripHorizontalPaddingDp: Int,
+    val titleStripCornerRadiusDp: Int,
+    val titleTextSizeSp: Float,
     val containerStartPaddingDp: Int,
     val containerEndPaddingDp: Int,
     val containerVerticalPaddingDp: Int,
@@ -104,6 +110,8 @@ data class WidgetOverlaySizing(
 data class WidgetOverlayColors(
     val surfaceColor: Int,
     val surfaceStrokeColor: Int,
+    val titleBackgroundColor: Int,
+    val titleTextColor: Int,
     val buttonEnabledColor: Int,
     val buttonDisabledColor: Int,
     val iconEnabledColor: Int,
@@ -164,10 +172,37 @@ private fun WidgetConfig.overlaySizing(): WidgetOverlaySizing {
     val itemSpacingDp = if (widthStyle == WidgetWidthStyle.Wide) 10 else 8
     val buttonWidthDp = regularButtonWidthDp + if (widthStyle == WidgetWidthStyle.Wide) wideButtonExtraDp else 0
     val handleWidthDp = regularHandleWidthDp + if (widthStyle == WidgetWidthStyle.Wide) wideHandleExtraDp else 0
+    val containerWidthDp = sizePreset.widthDp + if (widthStyle == WidgetWidthStyle.Wide) containerWidthDeltaDp else 0
 
     return WidgetOverlaySizing(
-        containerWidthDp = sizePreset.widthDp + if (widthStyle == WidgetWidthStyle.Wide) containerWidthDeltaDp else 0,
+        containerWidthDp = containerWidthDp,
         containerHeightDp = sizePreset.heightDp,
+        titleStripWidthDp = containerWidthDp,
+        titleStripMinHeightDp = when (sizePreset) {
+            WidgetSizePreset.Compact -> 18
+            WidgetSizePreset.Standard -> 20
+            WidgetSizePreset.Large -> 22
+        },
+        titleStripSpacingDp = when (sizePreset) {
+            WidgetSizePreset.Compact -> 4
+            WidgetSizePreset.Standard -> 5
+            WidgetSizePreset.Large -> 6
+        },
+        titleStripHorizontalPaddingDp = when (sizePreset) {
+            WidgetSizePreset.Compact -> 10
+            WidgetSizePreset.Standard -> 12
+            WidgetSizePreset.Large -> 14
+        },
+        titleStripCornerRadiusDp = when (sizePreset) {
+            WidgetSizePreset.Compact -> 10
+            WidgetSizePreset.Standard -> 12
+            WidgetSizePreset.Large -> 13
+        },
+        titleTextSizeSp = when (sizePreset) {
+            WidgetSizePreset.Compact -> 10f
+            WidgetSizePreset.Standard -> 11f
+            WidgetSizePreset.Large -> 12f
+        },
         containerStartPaddingDp = containerStartPaddingDp,
         containerEndPaddingDp = containerEndPaddingDp,
         containerVerticalPaddingDp = ((sizePreset.heightDp - buttonHeightDp) / 2).coerceAtLeast(6),
@@ -196,6 +231,8 @@ private fun WidgetThemePreset.overlayColors(): WidgetOverlayColors {
         WidgetThemePreset.Light -> WidgetOverlayColors(
             surfaceColor = 0xF7F4EEE3.toInt(),
             surfaceStrokeColor = 0x331C1A18,
+            titleBackgroundColor = 0xFFF7EFE2.toInt(),
+            titleTextColor = 0xFF3A3024.toInt(),
             buttonEnabledColor = 0xFFFFFFFF.toInt(),
             buttonDisabledColor = 0xFFE5DDD2.toInt(),
             iconEnabledColor = 0xFF201D1A.toInt(),
@@ -207,6 +244,8 @@ private fun WidgetThemePreset.overlayColors(): WidgetOverlayColors {
         WidgetThemePreset.Dark -> WidgetOverlayColors(
             surfaceColor = 0xE61B1F26.toInt(),
             surfaceStrokeColor = 0x33FFFFFF,
+            titleBackgroundColor = 0xE62A3039.toInt(),
+            titleTextColor = 0xFFFFFFFF.toInt(),
             buttonEnabledColor = 0x1FFFFFFF,
             buttonDisabledColor = 0x12FFFFFF,
             iconEnabledColor = 0xFFFFFFFF.toInt(),
@@ -218,6 +257,8 @@ private fun WidgetThemePreset.overlayColors(): WidgetOverlayColors {
         WidgetThemePreset.DarkBlue -> WidgetOverlayColors(
             surfaceColor = 0xE6122237.toInt(),
             surfaceStrokeColor = 0x4D8FC4FF,
+            titleBackgroundColor = 0xE61C3554.toInt(),
+            titleTextColor = 0xFFF3F8FF.toInt(),
             buttonEnabledColor = 0x265384B8,
             buttonDisabledColor = 0x163D628A,
             iconEnabledColor = 0xFFF3F8FF.toInt(),
@@ -229,6 +270,8 @@ private fun WidgetThemePreset.overlayColors(): WidgetOverlayColors {
         WidgetThemePreset.MediumYellow -> WidgetOverlayColors(
             surfaceColor = 0xF0D7B45A.toInt(),
             surfaceStrokeColor = 0x667A5A16,
+            titleBackgroundColor = 0xF2E6C777.toInt(),
+            titleTextColor = 0xFF4A3510.toInt(),
             buttonEnabledColor = 0xFFF7EBC2.toInt(),
             buttonDisabledColor = 0xFFD9C88F.toInt(),
             iconEnabledColor = 0xFF4A3510.toInt(),
@@ -240,6 +283,8 @@ private fun WidgetThemePreset.overlayColors(): WidgetOverlayColors {
         WidgetThemePreset.Pink -> WidgetOverlayColors(
             surfaceColor = 0xF0BB5C80.toInt(),
             surfaceStrokeColor = 0x66FFF0F5.toInt(),
+            titleBackgroundColor = 0xF2D97A9D.toInt(),
+            titleTextColor = 0xFFFFF4F8.toInt(),
             buttonEnabledColor = 0xFFFCE4EC.toInt(),
             buttonDisabledColor = 0xFFE6B9CA.toInt(),
             iconEnabledColor = 0xFF5F1837.toInt(),

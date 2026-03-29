@@ -42,6 +42,19 @@ class WidgetModelsTest {
     }
 
     @Test
+    fun overlayAppearance_keepsTitleStripWidthLockedToContainerWidthAcrossPresets() {
+        WidgetSizePreset.entries.forEach { preset ->
+            WidgetWidthStyle.entries.forEach { widthStyle ->
+                val sizing = WidgetConfig(sizePreset = preset, widthStyle = widthStyle).overlayAppearance().sizing
+
+                assertEquals(sizing.containerWidthDp, sizing.titleStripWidthDp)
+                assertTrue(sizing.titleStripMinHeightDp > 0)
+                assertTrue(sizing.titleStripHorizontalPaddingDp > 0)
+            }
+        }
+    }
+
+    @Test
     fun overlayAppearance_returnsThemeSpecificColors() {
         val darkBlue = WidgetConfig(themePreset = WidgetThemePreset.DarkBlue).overlayAppearance()
         val pink = WidgetConfig(themePreset = WidgetThemePreset.Pink).overlayAppearance()
