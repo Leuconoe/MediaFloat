@@ -48,6 +48,7 @@ class WidgetModelsTest {
                 val sizing = WidgetConfig(sizePreset = preset, widthStyle = widthStyle).overlayAppearance().sizing
 
                 assertEquals(sizing.containerWidthDp, sizing.titleStripWidthDp)
+                assertEquals(sizing.containerHeightDp, sizing.thumbnailSizeDp)
                 assertTrue(sizing.titleStripMinHeightDp > 0)
                 assertTrue(sizing.titleStripHorizontalPaddingDp > 0)
             }

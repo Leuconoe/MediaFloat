@@ -81,7 +81,8 @@ data class WidgetConfig(
     val widthStyle: WidgetWidthStyle = WidgetWidthStyle.Regular,
     val themePreset: WidgetThemePreset = WidgetThemePreset.Dark,
     val opacity: Float = 1f,
-    val persistentOverlayEnabled: Boolean = true
+    val persistentOverlayEnabled: Boolean = true,
+    val allowLowQualityThumbnailFallback: Boolean = false
 )
 
 data class WidgetOverlaySizing(
@@ -97,6 +98,8 @@ data class WidgetOverlaySizing(
     val containerEndPaddingDp: Int,
     val containerVerticalPaddingDp: Int,
     val containerCornerRadiusDp: Int,
+    val thumbnailSizeDp: Int,
+    val thumbnailCornerRadiusDp: Int,
     val itemSpacingDp: Int,
     val buttonWidthDp: Int,
     val buttonHeightDp: Int,
@@ -207,6 +210,8 @@ private fun WidgetConfig.overlaySizing(): WidgetOverlaySizing {
         containerEndPaddingDp = containerEndPaddingDp,
         containerVerticalPaddingDp = ((sizePreset.heightDp - buttonHeightDp) / 2).coerceAtLeast(6),
         containerCornerRadiusDp = sizePreset.heightDp / 2,
+        thumbnailSizeDp = sizePreset.heightDp,
+        thumbnailCornerRadiusDp = sizePreset.heightDp / 2,
         itemSpacingDp = itemSpacingDp,
         buttonWidthDp = buttonWidthDp,
         buttonHeightDp = buttonHeightDp,
