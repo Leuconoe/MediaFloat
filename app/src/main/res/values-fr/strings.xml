@@ -33,6 +33,9 @@
     <string name="developer_tools_toggle_title">Afficher la section Debug</string>
     <string name="behavior_title">Comportement</string>
     <string name="persistent_overlay_title">Overlay persistant</string>
+    <string name="low_quality_thumbnail_fallback_title">Autoriser les miniatures basse qualite</string>
+    <string name="low_quality_thumbnail_fallback_detail">Utilise une illustration plus petite seulement en absence de source de miniature de 320 px ou plus.</string>
+    <string name="action_toggle_widget">Basculer le widget</string>
     <string name="current_edge_label">Bord actuel</string>
     <string name="horizontal_offset_label">Décalage horizontal</string>
     <string name="vertical_offset_label">Décalage vertical</string>
