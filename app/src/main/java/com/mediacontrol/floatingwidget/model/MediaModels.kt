@@ -33,12 +33,14 @@ sealed interface MediaSessionState {
 
     data class Active(
         val sessionId: String,
+        val title: String?,
         val supportedActions: Set<MediaCommand>,
         val playbackStatus: PlaybackStatus
     ) : MediaSessionState
 
     data class Limited(
         val reason: MediaSessionLimitReason,
+        val title: String?,
         val supportedActions: Set<MediaCommand>
     ) : MediaSessionState
 
@@ -54,5 +56,15 @@ fun MediaSessionState.supports(command: MediaCommand): Boolean {
         MediaSessionState.Discovering,
         MediaSessionState.Unavailable,
         is MediaSessionState.Error -> false
+    }
+}
+
+fun MediaSessionState.currentTitle(): String? {
+    return when (this) {
+        is MediaSessionState.Active -> title
+        is MediaSessionState.Limited -> title
+        MediaSessionState.Discovering,
+        MediaSessionState.Unavailable,
+        is MediaSessionState.Error -> null
     }
 }
