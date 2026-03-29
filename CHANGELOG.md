@@ -2,6 +2,16 @@
 
 All notable user-facing changes to MediaFloat are recorded here.
 
+## v0.2.3
+
+Stability and shortcut follow-up release.
+
+- Kept the title strip visible during track-to-track metadata gaps so the overlay no longer flickers away
+- Added a `Toggle widget` launcher shortcut alongside `Launch widget` and `Stop widget`
+- Deferred thumbnail artwork support for future improvement instead of shipping inconsistent behavior
+
+See also: `docs/releases/v0.2.3.md`
+
 ## v0.2.2
 
 Title display release for the floating widget.
