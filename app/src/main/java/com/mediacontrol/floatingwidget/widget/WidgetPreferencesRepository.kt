@@ -44,7 +44,7 @@ class WidgetPreferencesRepository(
         debugLogWriter.info(
             TAG,
             "Saved widget config",
-            "buttons=${config.layout.orderedButtons.joinToString()} side=${config.layout.dragHandlePlacement.name} size=${config.sizePreset.name} width=${config.widthStyle.name} theme=${config.themePreset.name} opacity=${config.opacity} persistent=${config.persistentOverlayEnabled}"
+            "buttons=${config.layout.orderedButtons.joinToString()} side=${config.layout.dragHandlePlacement.name} size=${config.sizePreset.name} width=${config.widthStyle.name} theme=${config.themePreset.name} opacity=${config.opacity} persistent=${config.persistentOverlayEnabled} lowQualityThumbs=${config.allowLowQualityThumbnailFallback}"
         )
         notifyListeners()
     }
