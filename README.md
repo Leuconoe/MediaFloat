@@ -35,10 +35,10 @@ MediaFloat focuses on one job: giving Android media controls a small, movable su
 ## Screenshots
 
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/01-main.png" width="220" alt="MediaFloat Main screen" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/02-settings.png" width="220" alt="MediaFloat Settings screen" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/03-support.png" width="220" alt="MediaFloat Support screen" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/04-youtube-overlay.png" width="220" alt="MediaFloat overlay on YouTube" />
+  <img src="docs/assets/screenshots/01-main-v0.2.3.png" width="220" alt="MediaFloat Main screen" />
+  <img src="docs/assets/screenshots/02-settings-v0.2.3.png" width="220" alt="MediaFloat Settings screen" />
+  <img src="docs/assets/screenshots/03-support-v0.2.3.png" width="220" alt="MediaFloat Support screen" />
+  <img src="docs/assets/screenshots/04-youtube-overlay-v0.2.3.png" width="220" alt="MediaFloat overlay on YouTube" />
 </p>
 
 ## Quick start
