@@ -61,8 +61,8 @@ fun MediaSessionState.supports(command: MediaCommand): Boolean {
 
 fun MediaSessionState.currentTitle(): String? {
     return when (this) {
-        is MediaSessionState.Active -> title
-        is MediaSessionState.Limited -> title
+        is MediaSessionState.Active -> title.orEmpty()
+        is MediaSessionState.Limited -> title.orEmpty()
         MediaSessionState.Discovering,
         MediaSessionState.Unavailable,
         is MediaSessionState.Error -> null
