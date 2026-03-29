@@ -1,8 +1,11 @@
 package sw2.io.mediafloat.overlay
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.text.TextUtils
 import android.util.Log
 import android.view.Gravity
@@ -18,6 +21,7 @@ import sw2.io.mediafloat.R
 import sw2.io.mediafloat.debug.DebugLogWriter
 import sw2.io.mediafloat.debug.NoOpDebugLogWriter
 import sw2.io.mediafloat.model.MediaCommand
+import sw2.io.mediafloat.model.MediaArtwork
 import sw2.io.mediafloat.model.MediaSessionState
 import sw2.io.mediafloat.model.PlaybackStatus
 import sw2.io.mediafloat.model.currentTitle
@@ -44,7 +48,9 @@ class WindowManagerOverlayHost(
     private val playPauseButton by lazy { createCommandButton(MediaCommand.TogglePlayPause) }
     private val nextButton by lazy { createCommandButton(MediaCommand.Next) }
     private val dragHandle by lazy { createDragHandle() }
+    private val thumbnailView by lazy { createThumbnailView() }
     private val titleStrip by lazy { createTitleStrip() }
+    private val mediaRow by lazy { createMediaRow() }
     private val controlsRow by lazy { createControlsRow() }
     private val rootView by lazy { createRootView() }
     private val layoutParams by lazy {
@@ -63,6 +69,7 @@ class WindowManagerOverlayHost(
     private var currentViewState: OverlayViewState? = null
     private var isDragging = false
     private var appliedDragHandlePlacement: DragHandlePlacement = DragHandlePlacement.Right
+    private var appliedThumbnailSignature: String? = null
 
     override fun attach(viewState: OverlayViewState) {
         currentViewState = viewState
@@ -97,6 +104,7 @@ class WindowManagerOverlayHost(
         }
         playPauseButton.setImageResource(playPauseIcon)
         bindTitleStrip(viewState.mediaState, appearance)
+        bindThumbnail(viewState, appearance)
         rootView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
 
         if (attached) {
@@ -121,6 +129,15 @@ class WindowManagerOverlayHost(
             container.orientation = LinearLayout.VERTICAL
             container.gravity = Gravity.CENTER_HORIZONTAL
             container.addView(titleStrip)
+            container.addView(mediaRow)
+        }
+    }
+
+    private fun createMediaRow(): LinearLayout {
+        return LinearLayout(appContext).also { container ->
+            container.orientation = LinearLayout.HORIZONTAL
+            container.gravity = Gravity.CENTER_VERTICAL
+            container.addView(thumbnailView)
             container.addView(controlsRow)
         }
     }
@@ -142,6 +159,14 @@ class WindowManagerOverlayHost(
             isSelected = true
             setHorizontallyScrolling(true)
             isHorizontalFadingEdgeEnabled = true
+        }
+    }
+
+    private fun createThumbnailView(): ImageView {
+        return ImageView(appContext).apply {
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            clipToOutline = true
+            contentDescription = null
         }
     }
 
@@ -227,6 +252,13 @@ class WindowManagerOverlayHost(
             dp(sizing.containerHeightDp)
         )
 
+        thumbnailView.background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(sizing.thumbnailCornerRadiusDp).toFloat()
+            setColor(colors.titleBackgroundColor)
+            setStroke(dp(1), colors.surfaceStrokeColor)
+        }
+
         titleStrip.textSize = sizing.titleTextSizeSp
         titleStrip.setTextColor(colors.titleTextColor)
         titleStrip.setPadding(
@@ -295,6 +327,118 @@ class WindowManagerOverlayHost(
             params.bottomMargin = if (title == null) 0 else dp(appearance.sizing.titleStripSpacingDp)
             titleStrip.layoutParams = params
         }
+    }
+
+    private fun bindThumbnail(viewState: OverlayViewState, appearance: WidgetOverlayAppearance) {
+        val presentation = resolveOverlayThumbnailPresentation(
+            mediaState = viewState.mediaState,
+            sizing = appearance.sizing,
+            allowLowQualityFallback = viewState.config.allowLowQualityThumbnailFallback
+        )
+
+        if (presentation == null) {
+            thumbnailView.visibility = View.GONE
+            thumbnailView.setImageDrawable(null)
+            appliedThumbnailSignature = null
+            return
+        }
+
+        thumbnailView.visibility = View.VISIBLE
+        thumbnailView.layoutParams = LinearLayout.LayoutParams(
+            dp(presentation.sizeDp),
+            dp(presentation.sizeDp)
+        ).apply {
+            marginEnd = dp(appearance.sizing.itemSpacingDp)
+        }
+
+        val thumbnailSignature = presentation.signature()
+        if (appliedThumbnailSignature == thumbnailSignature) {
+            return
+        }
+
+        val thumbnailBitmap = loadThumbnailBitmap(
+            artwork = presentation.artwork,
+            targetSizePx = dp(presentation.sizeDp)
+        )
+
+        if (thumbnailBitmap == null) {
+            thumbnailView.visibility = View.GONE
+            thumbnailView.setImageDrawable(null)
+            appliedThumbnailSignature = null
+            return
+        }
+
+        thumbnailView.setImageBitmap(thumbnailBitmap)
+        appliedThumbnailSignature = thumbnailSignature
+    }
+
+    private fun loadThumbnailBitmap(artwork: MediaArtwork, targetSizePx: Int): Bitmap? {
+        return when (artwork) {
+            is MediaArtwork.BitmapSource -> artwork.bitmap?.centerCropSquare(targetSizePx)
+            is MediaArtwork.UriSource -> decodeUriThumbnail(
+                uri = artwork.uri,
+                targetSizePx = targetSizePx
+            )
+        }
+    }
+
+    private fun decodeUriThumbnail(uri: String, targetSizePx: Int): Bitmap? {
+        val parsedUri = Uri.parse(uri)
+        val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        appContext.contentResolver.openInputStream(parsedUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, boundsOptions)
+        } ?: return null
+
+        if (boundsOptions.outWidth <= 0 || boundsOptions.outHeight <= 0) {
+            return null
+        }
+
+        val decodeOptions = BitmapFactory.Options().apply {
+            inSampleSize = calculateInSampleSize(boundsOptions, targetSizePx, targetSizePx)
+        }
+        val decodedBitmap = appContext.contentResolver.openInputStream(parsedUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, decodeOptions)
+        } ?: return null
+
+        return decodedBitmap.centerCropSquare(targetSizePx)
+    }
+
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        requestedWidth: Int,
+        requestedHeight: Int
+    ): Int {
+        var inSampleSize = 1
+        var halfHeight = options.outHeight / 2
+        var halfWidth = options.outWidth / 2
+
+        while (halfHeight / inSampleSize >= requestedHeight && halfWidth / inSampleSize >= requestedWidth) {
+            inSampleSize *= 2
+        }
+
+        return inSampleSize.coerceAtLeast(1)
+    }
+
+    private fun Bitmap.centerCropSquare(targetSizePx: Int): Bitmap {
+        val squareSize = minOf(width, height)
+        val startX = ((width - squareSize) / 2).coerceAtLeast(0)
+        val startY = ((height - squareSize) / 2).coerceAtLeast(0)
+        val croppedBitmap = Bitmap.createBitmap(this, startX, startY, squareSize, squareSize)
+
+        return if (croppedBitmap.width == targetSizePx && croppedBitmap.height == targetSizePx) {
+            croppedBitmap
+        } else {
+            Bitmap.createScaledBitmap(croppedBitmap, targetSizePx, targetSizePx, true)
+        }
+    }
+
+    private fun OverlayThumbnailPresentation.signature(): String {
+        val artworkKey = when (val resolvedArtwork = artwork) {
+            is MediaArtwork.UriSource -> resolvedArtwork.uri
+            is MediaArtwork.BitmapSource -> System.identityHashCode(resolvedArtwork.bitmap).toString()
+        }
+
+        return "${artwork.source.name}|$artworkKey|${artwork.widthPx}x${artwork.heightPx}|$sizeDp"
     }
 
     private fun updateButtonLayout(button: ImageButton, sizing: sw2.io.mediafloat.model.WidgetOverlaySizing) {
