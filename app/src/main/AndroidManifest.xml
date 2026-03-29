@@ -46,6 +46,7 @@
             <intent-filter>
                 <action android:name="sw2.io.mediafloat.action.SHOW_OVERLAY" />
                 <action android:name="sw2.io.mediafloat.action.STOP_OVERLAY" />
+                <action android:name="sw2.io.mediafloat.action.TOGGLE_OVERLAY" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>

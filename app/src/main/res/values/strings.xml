@@ -13,6 +13,7 @@
     <string name="overlay_drag_handle">Drag overlay</string>
     <string name="action_launch_widget">Launch widget</string>
     <string name="action_stop_widget">Stop widget</string>
+    <string name="action_toggle_widget">Toggle widget</string>
 
     <string name="section_landing_title">Main</string>
     <string name="section_landing_short">Main</string>

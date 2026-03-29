@@ -22,12 +22,25 @@ class AutomationEntryActivity : Activity() {
     }
 
     private fun handleAutomationAction(action: String?) {
-        val debugActions = MediaControlAppServices.from(this).debugActions
+        val services = MediaControlAppServices.from(this)
+        val debugActions = services.debugActions
 
         when (action) {
             ACTION_STOP_OVERLAY -> {
                 debugActions.stopOverlay()
                 Log.d(TAG, "Automation shortcut requested overlay stop")
+            }
+
+            ACTION_TOGGLE_OVERLAY -> {
+                val wasShowing = services.runtimeCoordinator.runtimeState() is sw2.io.mediafloat.model.OverlayRuntimeState.Showing
+                val started = debugActions.toggleOverlay()
+
+                if (!wasShowing && !started) {
+                    Log.w(TAG, "Automation toggle fell back to MainActivity because readiness is blocked")
+                    startActivity(MainActivity.launchIntent(this))
+                } else {
+                    Log.d(TAG, "Automation shortcut toggled overlay runtime")
+                }
             }
 
             else -> {
@@ -46,6 +59,7 @@ class AutomationEntryActivity : Activity() {
     companion object {
         const val ACTION_SHOW_OVERLAY = "sw2.io.mediafloat.action.SHOW_OVERLAY"
         const val ACTION_STOP_OVERLAY = "sw2.io.mediafloat.action.STOP_OVERLAY"
+        const val ACTION_TOGGLE_OVERLAY = "sw2.io.mediafloat.action.TOGGLE_OVERLAY"
         private const val TAG = "AutomationEntry"
     }
 }
