@@ -3,6 +3,7 @@ package sw2.io.mediafloat.overlay
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
+import android.text.TextUtils
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
@@ -19,6 +20,7 @@ import sw2.io.mediafloat.debug.NoOpDebugLogWriter
 import sw2.io.mediafloat.model.MediaCommand
 import sw2.io.mediafloat.model.MediaSessionState
 import sw2.io.mediafloat.model.PlaybackStatus
+import sw2.io.mediafloat.model.currentTitle
 import sw2.io.mediafloat.model.WidgetAnchor
 import sw2.io.mediafloat.model.WidgetButton
 import sw2.io.mediafloat.model.WidgetWidthStyle
@@ -42,6 +44,8 @@ class WindowManagerOverlayHost(
     private val playPauseButton by lazy { createCommandButton(MediaCommand.TogglePlayPause) }
     private val nextButton by lazy { createCommandButton(MediaCommand.Next) }
     private val dragHandle by lazy { createDragHandle() }
+    private val titleStrip by lazy { createTitleStrip() }
+    private val controlsRow by lazy { createControlsRow() }
     private val rootView by lazy { createRootView() }
     private val layoutParams by lazy {
         WindowManager.LayoutParams(
@@ -92,6 +96,7 @@ class WindowManagerOverlayHost(
             android.R.drawable.ic_media_play
         }
         playPauseButton.setImageResource(playPauseIcon)
+        bindTitleStrip(viewState.mediaState, appearance)
         rootView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
 
         if (attached) {
@@ -113,9 +118,30 @@ class WindowManagerOverlayHost(
 
     private fun createRootView(): LinearLayout {
         return LinearLayout(appContext).also { container ->
+            container.orientation = LinearLayout.VERTICAL
+            container.gravity = Gravity.CENTER_HORIZONTAL
+            container.addView(titleStrip)
+            container.addView(controlsRow)
+        }
+    }
+
+    private fun createControlsRow(): LinearLayout {
+        return LinearLayout(appContext).also { container ->
             container.orientation = LinearLayout.HORIZONTAL
-            container.gravity = Gravity.CENTER_VERTICAL
+            container.gravity = Gravity.CENTER
             syncChildOrder(container, DragHandlePlacement.Right)
+        }
+    }
+
+    private fun createTitleStrip(): TextView {
+        return TextView(appContext).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            isSingleLine = true
+            ellipsize = TextUtils.TruncateAt.MARQUEE
+            marqueeRepeatLimit = -1
+            isSelected = true
+            setHorizontallyScrolling(true)
+            isHorizontalFadingEdgeEnabled = true
         }
     }
 
@@ -180,21 +206,47 @@ class WindowManagerOverlayHost(
         val colors = appearance.colors
 
         rootView.alpha = viewState.config.opacity
-        if (!isDragging && (appliedDragHandlePlacement != viewState.layout.dragHandlePlacement || rootView.childCount == 0)) {
-            syncChildOrder(rootView, viewState.layout.dragHandlePlacement)
+        if (!isDragging && (appliedDragHandlePlacement != viewState.layout.dragHandlePlacement || controlsRow.childCount == 0)) {
+            syncChildOrder(controlsRow, viewState.layout.dragHandlePlacement)
         }
 
-        rootView.setPadding(
+        controlsRow.setPadding(
             dp(sizing.containerStartPaddingDp),
             dp(sizing.containerVerticalPaddingDp),
             dp(sizing.containerEndPaddingDp),
             dp(sizing.containerVerticalPaddingDp)
         )
-        rootView.background = GradientDrawable().apply {
+        controlsRow.background = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = dp(sizing.containerCornerRadiusDp).toFloat()
             setColor(colors.surfaceColor)
             setStroke(dp(1), colors.surfaceStrokeColor)
+        }
+        controlsRow.layoutParams = LinearLayout.LayoutParams(
+            dp(sizing.containerWidthDp),
+            dp(sizing.containerHeightDp)
+        )
+
+        titleStrip.textSize = sizing.titleTextSizeSp
+        titleStrip.setTextColor(colors.titleTextColor)
+        titleStrip.setPadding(
+            dp(sizing.titleStripHorizontalPaddingDp),
+            0,
+            dp(sizing.titleStripHorizontalPaddingDp),
+            0
+        )
+        titleStrip.minHeight = dp(sizing.titleStripMinHeightDp)
+        titleStrip.background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(sizing.titleStripCornerRadiusDp).toFloat()
+            setColor(colors.titleBackgroundColor)
+            setStroke(dp(1), colors.surfaceStrokeColor)
+        }
+        titleStrip.layoutParams = LinearLayout.LayoutParams(
+            dp(sizing.titleStripWidthDp),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {
+            bottomMargin = dp(sizing.titleStripSpacingDp)
         }
 
         updateButtonLayout(previousButton, sizing)
@@ -226,6 +278,23 @@ class WindowManagerOverlayHost(
             container.addView(dragHandle)
         }
         appliedDragHandlePlacement = placement
+    }
+
+    private fun bindTitleStrip(mediaState: MediaSessionState, appearance: WidgetOverlayAppearance) {
+        val title = mediaState.currentTitle()
+        titleStrip.visibility = if (title == null) View.GONE else View.VISIBLE
+        if (title != null) {
+            titleStrip.text = title
+            titleStrip.isSelected = true
+        } else {
+            titleStrip.text = ""
+            titleStrip.isSelected = false
+        }
+        (titleStrip.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
+            params.width = dp(appearance.sizing.titleStripWidthDp)
+            params.bottomMargin = if (title == null) 0 else dp(appearance.sizing.titleStripSpacingDp)
+            titleStrip.layoutParams = params
+        }
     }
 
     private fun updateButtonLayout(button: ImageButton, sizing: sw2.io.mediafloat.model.WidgetOverlaySizing) {

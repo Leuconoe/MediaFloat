@@ -2,6 +2,7 @@ package sw2.io.mediafloat.ui
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -84,6 +85,8 @@ import sw2.io.mediafloat.model.WidgetPosition
 import sw2.io.mediafloat.model.WidgetSizePreset
 import sw2.io.mediafloat.model.WidgetThemePreset
 import sw2.io.mediafloat.model.WidgetWidthStyle
+import sw2.io.mediafloat.model.currentTitle
+import sw2.io.mediafloat.model.overlayAppearance
 import sw2.io.mediafloat.model.supports
 import sw2.io.mediafloat.runtime.RuntimeStatusFormatter
 import sw2.io.mediafloat.state.DebugLogScreenState
@@ -100,6 +103,8 @@ private const val PREVIEW_SCALE = 0.72f
 private val SectionCardShape = RoundedCornerShape(28.dp)
 private val PanelShape = RoundedCornerShape(26.dp)
 private val LogTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMM d, HH:mm:ss")
+
+private fun previewScaledDp(value: Int): Dp = (value * PREVIEW_SCALE).roundToInt().dp
 
 internal enum class AppSection(
     @StringRes val titleRes: Int,
@@ -998,8 +1003,15 @@ private fun WidgetPreviewStage(
     mediaState: MediaSessionState,
     modifier: Modifier = Modifier
 ) {
-    val scaledWidth = (config.sizePreset.widthDp * PREVIEW_SCALE).roundToInt().dp
-    val scaledHeight = (config.sizePreset.heightDp * PREVIEW_SCALE).roundToInt().dp
+    val sizing = config.overlayAppearance().sizing
+    val hasTitle = mediaState.currentTitle() != null
+    val overlayHeightDp = sizing.containerHeightDp + if (hasTitle) {
+        sizing.titleStripMinHeightDp + sizing.titleStripSpacingDp
+    } else {
+        0
+    }
+    val scaledWidth = previewScaledDp(sizing.containerWidthDp)
+    val scaledHeight = previewScaledDp(overlayHeightDp)
     val scaledTop = (position.yOffsetDp * PREVIEW_SCALE * 0.58f).roundToInt().coerceIn(24, 180).dp
     val overlayAlignment = if (position.anchor == WidgetAnchor.Start) Alignment.TopStart else Alignment.TopEnd
 
@@ -1054,35 +1066,66 @@ private fun PreviewOverlayBar(
     mediaState: MediaSessionState,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.94f))
-            .padding(start = 10.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    val sizing = config.overlayAppearance().sizing
+    val title = mediaState.currentTitle()
+
+    Column(
+        modifier = modifier.width(previewScaledDp(sizing.containerWidthDp)),
+        verticalArrangement = Arrangement.spacedBy(
+            if (title == null) 0.dp else previewScaledDp(sizing.titleStripSpacingDp)
+        )
     ) {
-        config.layout.orderedButtons.forEach { button ->
-            PreviewOverlayButton(
-                button = button,
-                mediaState = mediaState,
-                modifier = Modifier.weight(1f)
-            )
+        if (title != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = previewScaledDp(sizing.titleStripMinHeightDp))
+                    .clip(RoundedCornerShape(previewScaledDp(sizing.titleStripCornerRadiusDp)))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .padding(horizontal = previewScaledDp(sizing.titleStripHorizontalPaddingDp), vertical = 4.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(
+                    text = title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .basicMarquee(iterations = Int.MAX_VALUE),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip
+                )
+            }
         }
-        Box(
+
+        Row(
             modifier = Modifier
-                .width(22.dp)
-                .height(28.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(MaterialTheme.colorScheme.tertiaryContainer),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .height(previewScaledDp(sizing.containerHeightDp))
+                .clip(RoundedCornerShape(previewScaledDp(sizing.containerCornerRadiusDp)))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.94f))
+                .padding(
+                    start = previewScaledDp(sizing.containerStartPaddingDp),
+                    end = previewScaledDp(sizing.containerEndPaddingDp),
+                    top = previewScaledDp(sizing.containerVerticalPaddingDp),
+                    bottom = previewScaledDp(sizing.containerVerticalPaddingDp)
+                ),
+            horizontalArrangement = Arrangement.spacedBy(previewScaledDp(sizing.itemSpacingDp)),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "|||",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onTertiaryContainer,
-                maxLines = 1
-            )
+            if (config.layout.dragHandlePlacement == DragHandlePlacement.Left) {
+                PreviewDragHandle(sizing = sizing)
+            }
+            config.layout.orderedButtons.forEach { button ->
+                PreviewOverlayButton(
+                    button = button,
+                    mediaState = mediaState,
+                    sizing = sizing
+                )
+            }
+            if (config.layout.dragHandlePlacement == DragHandlePlacement.Right) {
+                PreviewDragHandle(sizing = sizing)
+            }
         }
     }
 }
@@ -1091,6 +1134,7 @@ private fun PreviewOverlayBar(
 private fun PreviewOverlayButton(
     button: WidgetButton,
     mediaState: MediaSessionState,
+    sizing: sw2.io.mediafloat.model.WidgetOverlaySizing,
     modifier: Modifier = Modifier
 ) {
     val command = button.toMediaCommand()
@@ -1107,18 +1151,41 @@ private fun PreviewOverlayButton(
 
     Box(
         modifier = modifier
-            .heightIn(min = 28.dp)
-            .clip(RoundedCornerShape(999.dp))
+            .width(previewScaledDp(sizing.buttonWidthDp))
+            .height(previewScaledDp(sizing.buttonHeightDp))
+            .clip(RoundedCornerShape(previewScaledDp(sizing.buttonHeightDp / 2)))
             .background(
                 if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
             )
-            .padding(horizontal = 8.dp, vertical = 6.dp),
+            .padding(horizontal = previewScaledDp(8), vertical = previewScaledDp(6)),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             color = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun PreviewDragHandle(
+    sizing: sw2.io.mediafloat.model.WidgetOverlaySizing,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .width(previewScaledDp(sizing.handleWidthDp))
+            .height(previewScaledDp(sizing.handleHeightDp))
+            .clip(RoundedCornerShape(previewScaledDp(sizing.handleCornerRadiusDp)))
+            .background(MaterialTheme.colorScheme.tertiaryContainer),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "|||",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
             maxLines = 1
         )
     }
@@ -2957,6 +3024,7 @@ private fun previewRuntimeState(): OverlayRuntimeState {
         layout = WidgetLayout.Default,
         mediaState = MediaSessionState.Active(
             sessionId = "preview-session",
+            title = "Velvet City Lights After Midnight Remix",
             supportedActions = setOf(MediaCommand.Previous, MediaCommand.TogglePlayPause, MediaCommand.Next),
             playbackStatus = PlaybackStatus.Playing
         )
@@ -2967,6 +3035,7 @@ private fun previewMediaSummaryState(): MediaSummaryState {
     return MediaSummaryState(
         mediaState = MediaSessionState.Active(
             sessionId = "preview-session",
+            title = "Velvet City Lights After Midnight Remix",
             supportedActions = setOf(MediaCommand.Previous, MediaCommand.TogglePlayPause, MediaCommand.Next),
             playbackStatus = PlaybackStatus.Playing
         ),

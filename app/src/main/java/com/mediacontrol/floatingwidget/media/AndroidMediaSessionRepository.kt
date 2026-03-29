@@ -3,6 +3,7 @@ package sw2.io.mediafloat.media
 import android.content.ComponentName
 import android.content.Context
 import android.media.session.MediaController
+import android.media.MediaMetadata
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Handler
@@ -36,6 +37,10 @@ class AndroidMediaSessionRepository(
             if (shouldRecoverAfterPlaybackStateChange(state)) {
                 requestRecovery("playback_state_${state?.state ?: "unknown"}")
             }
+        }
+
+        override fun onMetadataChanged(metadata: MediaMetadata?) {
+            publishState(resolveState(currentController))
         }
 
         override fun onSessionDestroyed() {
@@ -238,27 +243,25 @@ class AndroidMediaSessionRepository(
             return MediaSessionState.Unavailable
         }
 
+        val title = resolveMediaTitle(
+            displayTitle = controller.metadata?.getText(MediaMetadata.METADATA_KEY_DISPLAY_TITLE),
+            title = controller.metadata?.getText(MediaMetadata.METADATA_KEY_TITLE)
+        )
+        val sessionId = "${controller.packageName}:${controller.sessionToken}"
         val playbackState = controller.playbackState
-            ?: return MediaSessionState.Limited(
-                reason = MediaSessionLimitReason.PlaybackStateUnknown,
-                supportedActions = emptySet()
+            ?: return buildMediaSessionState(
+                sessionId = sessionId,
+                title = title,
+                playbackStatus = null,
+                supportedActions = null
             )
 
-        val supportedActions = playbackState.actions.toSupportedCommands()
-        val status = playbackState.state.toPlaybackStatus()
-
-        return if (supportedActions.isEmpty()) {
-            MediaSessionState.Limited(
-                reason = MediaSessionLimitReason.MissingTransportControls,
-                supportedActions = emptySet()
-            )
-        } else {
-            MediaSessionState.Active(
-                sessionId = "${controller.packageName}:${controller.sessionToken}",
-                supportedActions = supportedActions,
-                playbackStatus = status
-            )
-        }
+        return buildMediaSessionState(
+            sessionId = sessionId,
+            title = title,
+            playbackStatus = playbackState.state.toPlaybackStatus(),
+            supportedActions = playbackState.actions.toSupportedCommands()
+        )
     }
 
     private fun publishState(state: MediaSessionState) {
@@ -316,49 +319,91 @@ class AndroidMediaSessionRepository(
         }
     }
 
-    private fun Long.toSupportedCommands(): Set<MediaCommand> {
-        val commands = linkedSetOf<MediaCommand>()
-
-        if (this and PlaybackState.ACTION_SKIP_TO_PREVIOUS != 0L) {
-            commands += MediaCommand.Previous
-        }
-        if (
-            this and PlaybackState.ACTION_PLAY != 0L ||
-            this and PlaybackState.ACTION_PAUSE != 0L ||
-            this and PlaybackState.ACTION_PLAY_PAUSE != 0L
-        ) {
-            commands += MediaCommand.TogglePlayPause
-        }
-        if (this and PlaybackState.ACTION_SKIP_TO_NEXT != 0L) {
-            commands += MediaCommand.Next
-        }
-
-        return commands
-    }
-
-    private fun Int.toPlaybackStatus(): PlaybackStatus {
-        return when (this) {
-            PlaybackState.STATE_PLAYING -> PlaybackStatus.Playing
-            PlaybackState.STATE_PAUSED -> PlaybackStatus.Paused
-            PlaybackState.STATE_BUFFERING,
-            PlaybackState.STATE_CONNECTING,
-            PlaybackState.STATE_FAST_FORWARDING,
-            PlaybackState.STATE_REWINDING,
-            PlaybackState.STATE_SKIPPING_TO_NEXT,
-            PlaybackState.STATE_SKIPPING_TO_PREVIOUS,
-            PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM -> PlaybackStatus.Buffering
-            PlaybackState.STATE_STOPPED,
-            PlaybackState.STATE_NONE,
-            PlaybackState.STATE_ERROR -> PlaybackStatus.Stopped
-            else -> PlaybackStatus.Unknown
-        }
-    }
-
     private fun PlaybackState?.isActivelyPlaying(): Boolean {
         return this?.state == PlaybackState.STATE_PLAYING || this?.state == PlaybackState.STATE_BUFFERING
     }
 
-    private companion object {
+    internal companion object {
+        fun buildMediaSessionState(
+            sessionId: String,
+            title: String?,
+            playbackStatus: PlaybackStatus?,
+            supportedActions: Set<MediaCommand>?
+        ): MediaSessionState {
+            val resolvedPlaybackStatus = playbackStatus
+                ?: return MediaSessionState.Limited(
+                    reason = MediaSessionLimitReason.PlaybackStateUnknown,
+                    title = title,
+                    supportedActions = emptySet()
+                )
+
+            val resolvedSupportedActions = supportedActions.orEmpty()
+
+            return if (resolvedSupportedActions.isEmpty()) {
+                MediaSessionState.Limited(
+                    reason = MediaSessionLimitReason.MissingTransportControls,
+                    title = title,
+                    supportedActions = emptySet()
+                )
+            } else {
+                MediaSessionState.Active(
+                    sessionId = sessionId,
+                    title = title,
+                    supportedActions = resolvedSupportedActions,
+                    playbackStatus = resolvedPlaybackStatus
+                )
+            }
+        }
+
+        fun resolveMediaTitle(displayTitle: CharSequence?, title: CharSequence?): String? {
+            return displayTitle.normalizedMediaTitle() ?: title.normalizedMediaTitle()
+        }
+
+        private fun CharSequence?.normalizedMediaTitle(): String? {
+            return this
+                ?.toString()
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+        }
+
+        private fun Long.toSupportedCommands(): Set<MediaCommand> {
+            val commands = linkedSetOf<MediaCommand>()
+
+            if (this and PlaybackState.ACTION_SKIP_TO_PREVIOUS != 0L) {
+                commands += MediaCommand.Previous
+            }
+            if (
+                this and PlaybackState.ACTION_PLAY != 0L ||
+                    this and PlaybackState.ACTION_PAUSE != 0L ||
+                    this and PlaybackState.ACTION_PLAY_PAUSE != 0L
+            ) {
+                commands += MediaCommand.TogglePlayPause
+            }
+            if (this and PlaybackState.ACTION_SKIP_TO_NEXT != 0L) {
+                commands += MediaCommand.Next
+            }
+
+            return commands
+        }
+
+        private fun Int.toPlaybackStatus(): PlaybackStatus {
+            return when (this) {
+                PlaybackState.STATE_PLAYING -> PlaybackStatus.Playing
+                PlaybackState.STATE_PAUSED -> PlaybackStatus.Paused
+                PlaybackState.STATE_BUFFERING,
+                PlaybackState.STATE_CONNECTING,
+                PlaybackState.STATE_FAST_FORWARDING,
+                PlaybackState.STATE_REWINDING,
+                PlaybackState.STATE_SKIPPING_TO_NEXT,
+                PlaybackState.STATE_SKIPPING_TO_PREVIOUS,
+                PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM -> PlaybackStatus.Buffering
+                PlaybackState.STATE_STOPPED,
+                PlaybackState.STATE_NONE,
+                PlaybackState.STATE_ERROR -> PlaybackStatus.Stopped
+                else -> PlaybackStatus.Unknown
+            }
+        }
+
         const val TAG = "MediaSessionRepo"
         const val MAX_RECOVERY_ATTEMPTS = 3
         const val RECOVERY_RETRY_DELAY_MS = 750L
