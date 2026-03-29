@@ -105,6 +105,7 @@ class MainActivity : AppCompatActivity() {
                     onSetOpacity = ::setOpacity,
                     onSetDragHandlePlacement = ::setDragHandlePlacement,
                     onSetPersistentOverlayEnabled = ::setPersistentOverlayEnabled,
+                    onSetLowQualityThumbnailFallbackEnabled = ::setLowQualityThumbnailFallbackEnabled,
                     onStartOverlay = ::startOverlay,
                     onStopOverlay = ::stopOverlay,
                     onDispatchPrevious = ::dispatchPrevious,
@@ -187,6 +188,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun setPersistentOverlayEnabled(enabled: Boolean) {
         widgetConfigStateHolder.setPersistentOverlayEnabled(enabled)
+    }
+
+    private fun setLowQualityThumbnailFallbackEnabled(enabled: Boolean) {
+        widgetConfigStateHolder.setLowQualityThumbnailFallbackEnabled(enabled)
     }
 
     private fun startOverlay() {

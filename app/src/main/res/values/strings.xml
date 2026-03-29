@@ -118,6 +118,8 @@
     <string name="behavior_title">Behavior</string>
     <string name="persistent_overlay_title">Persistent overlay</string>
     <string name="persistent_overlay_detail">Keep the runtime preference aligned with the saved widget configuration.</string>
+    <string name="low_quality_thumbnail_fallback_title">Allow low-quality thumbnails</string>
+    <string name="low_quality_thumbnail_fallback_detail">Use smaller artwork only when no 320px or larger thumbnail source is available.</string>
     <string name="sidebar_side_title">Sidebar side</string>
     <string name="current_edge_label">Current edge</string>
     <string name="horizontal_offset_label">Horizontal offset</string>

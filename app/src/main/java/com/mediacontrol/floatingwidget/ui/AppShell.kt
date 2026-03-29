@@ -69,6 +69,8 @@ import sw2.io.mediafloat.model.AppPreferences
 import sw2.io.mediafloat.model.CapabilityGrantState
 import sw2.io.mediafloat.model.CapabilityState
 import sw2.io.mediafloat.model.MediaCommand
+import sw2.io.mediafloat.model.MediaArtwork
+import sw2.io.mediafloat.model.MediaArtworkSource
 import sw2.io.mediafloat.model.MediaSessionErrorReason
 import sw2.io.mediafloat.model.MediaSessionLimitReason
 import sw2.io.mediafloat.model.MediaSessionState
@@ -88,6 +90,8 @@ import sw2.io.mediafloat.model.WidgetWidthStyle
 import sw2.io.mediafloat.model.currentTitle
 import sw2.io.mediafloat.model.overlayAppearance
 import sw2.io.mediafloat.model.supports
+import sw2.io.mediafloat.overlay.bodyWidthDp
+import sw2.io.mediafloat.overlay.resolveOverlayThumbnailPresentation
 import sw2.io.mediafloat.runtime.RuntimeStatusFormatter
 import sw2.io.mediafloat.state.DebugLogScreenState
 import sw2.io.mediafloat.state.MediaSummaryState
@@ -172,6 +176,7 @@ fun AppShell(
     onSetOpacity: (Float) -> Unit = {},
     onSetDragHandlePlacement: (DragHandlePlacement) -> Unit = {},
     onSetPersistentOverlayEnabled: (Boolean) -> Unit = {},
+    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit = {},
     onStartOverlay: () -> Unit = {},
     onStopOverlay: () -> Unit = {},
     onDispatchPrevious: () -> Unit = {},
@@ -251,6 +256,7 @@ fun AppShell(
                             onSetOpacity = onSetOpacity,
                             onSetDragHandlePlacement = onSetDragHandlePlacement,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
+                            onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
                             onDispatchPrevious = onDispatchPrevious,
@@ -295,6 +301,7 @@ fun AppShell(
                             onSetOpacity = onSetOpacity,
                             onSetDragHandlePlacement = onSetDragHandlePlacement,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
+                            onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
                             onDispatchPrevious = onDispatchPrevious,
@@ -463,6 +470,7 @@ private fun SectionContent(
     onSetOpacity: (Float) -> Unit,
     onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
+    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
     onDispatchPrevious: () -> Unit,
@@ -522,6 +530,7 @@ private fun SectionContent(
                     onSetThemePreset = onSetThemePreset,
                     onSetDragHandlePlacement = onSetDragHandlePlacement,
                     onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
+                    onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                     wideLayout = wideLayout
                 )
 
@@ -688,6 +697,7 @@ private fun AdvancedSettingsScreen(
     onSetThemePreset: (WidgetThemePreset) -> Unit,
     onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
+    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
     wideLayout: Boolean
 ) {
     if (wideLayout) {
@@ -718,7 +728,8 @@ private fun AdvancedSettingsScreen(
                 )
                 WidgetBehaviorCard(
                     config = widgetConfigState.config,
-                    onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled
+                    onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
+                    onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled
                 )
                 DeveloperOptionsCard(
                     debugToolsEnabled = appPreferences.debugToolsEnabled,
@@ -741,7 +752,8 @@ private fun AdvancedSettingsScreen(
         )
         WidgetBehaviorCard(
             config = widgetConfigState.config,
-            onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled
+            onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
+            onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled
         )
         DeveloperOptionsCard(
             debugToolsEnabled = appPreferences.debugToolsEnabled,
@@ -1005,12 +1017,17 @@ private fun WidgetPreviewStage(
 ) {
     val sizing = config.overlayAppearance().sizing
     val hasTitle = mediaState.currentTitle() != null
+    val thumbnailPresentation = resolveOverlayThumbnailPresentation(
+        mediaState = mediaState,
+        sizing = sizing,
+        allowLowQualityFallback = config.allowLowQualityThumbnailFallback
+    )
     val overlayHeightDp = sizing.containerHeightDp + if (hasTitle) {
         sizing.titleStripMinHeightDp + sizing.titleStripSpacingDp
     } else {
         0
     }
-    val scaledWidth = previewScaledDp(sizing.containerWidthDp)
+    val scaledWidth = previewScaledDp(sizing.bodyWidthDp(hasThumbnail = thumbnailPresentation != null))
     val scaledHeight = previewScaledDp(overlayHeightDp)
     val scaledTop = (position.yOffsetDp * PREVIEW_SCALE * 0.58f).roundToInt().coerceIn(24, 180).dp
     val overlayAlignment = if (position.anchor == WidgetAnchor.Start) Alignment.TopStart else Alignment.TopEnd
@@ -1068,65 +1085,128 @@ private fun PreviewOverlayBar(
 ) {
     val sizing = config.overlayAppearance().sizing
     val title = mediaState.currentTitle()
+    val thumbnailPresentation = resolveOverlayThumbnailPresentation(
+        mediaState = mediaState,
+        sizing = sizing,
+        allowLowQualityFallback = config.allowLowQualityThumbnailFallback
+    )
 
     Column(
-        modifier = modifier.width(previewScaledDp(sizing.containerWidthDp)),
+        modifier = modifier.width(previewScaledDp(sizing.bodyWidthDp(hasThumbnail = thumbnailPresentation != null))),
         verticalArrangement = Arrangement.spacedBy(
             if (title == null) 0.dp else previewScaledDp(sizing.titleStripSpacingDp)
         )
     ) {
         if (title != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = previewScaledDp(sizing.titleStripMinHeightDp))
-                    .clip(RoundedCornerShape(previewScaledDp(sizing.titleStripCornerRadiusDp)))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .padding(horizontal = previewScaledDp(sizing.titleStripHorizontalPaddingDp), vertical = 4.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = title,
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .basicMarquee(iterations = Int.MAX_VALUE),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    maxLines = 1,
-                    overflow = TextOverflow.Clip
-                )
+                        .width(previewScaledDp(sizing.titleStripWidthDp))
+                        .heightIn(min = previewScaledDp(sizing.titleStripMinHeightDp))
+                        .clip(RoundedCornerShape(previewScaledDp(sizing.titleStripCornerRadiusDp)))
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .padding(horizontal = previewScaledDp(sizing.titleStripHorizontalPaddingDp), vertical = 4.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = title,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .basicMarquee(iterations = Int.MAX_VALUE),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Clip
+                    )
+                }
             }
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(previewScaledDp(sizing.containerHeightDp))
-                .clip(RoundedCornerShape(previewScaledDp(sizing.containerCornerRadiusDp)))
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.94f))
-                .padding(
-                    start = previewScaledDp(sizing.containerStartPaddingDp),
-                    end = previewScaledDp(sizing.containerEndPaddingDp),
-                    top = previewScaledDp(sizing.containerVerticalPaddingDp),
-                    bottom = previewScaledDp(sizing.containerVerticalPaddingDp)
-                ),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(previewScaledDp(sizing.itemSpacingDp)),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (config.layout.dragHandlePlacement == DragHandlePlacement.Left) {
-                PreviewDragHandle(sizing = sizing)
-            }
-            config.layout.orderedButtons.forEach { button ->
-                PreviewOverlayButton(
-                    button = button,
-                    mediaState = mediaState,
+            if (thumbnailPresentation != null) {
+                PreviewOverlayThumbnail(
+                    source = thumbnailPresentation.artwork.source,
                     sizing = sizing
                 )
             }
-            if (config.layout.dragHandlePlacement == DragHandlePlacement.Right) {
-                PreviewDragHandle(sizing = sizing)
+            Row(
+                modifier = Modifier
+                    .width(previewScaledDp(sizing.containerWidthDp))
+                    .height(previewScaledDp(sizing.containerHeightDp))
+                    .clip(RoundedCornerShape(previewScaledDp(sizing.containerCornerRadiusDp)))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.94f))
+                    .padding(
+                        start = previewScaledDp(sizing.containerStartPaddingDp),
+                        end = previewScaledDp(sizing.containerEndPaddingDp),
+                        top = previewScaledDp(sizing.containerVerticalPaddingDp),
+                        bottom = previewScaledDp(sizing.containerVerticalPaddingDp)
+                    ),
+                horizontalArrangement = Arrangement.spacedBy(previewScaledDp(sizing.itemSpacingDp)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (config.layout.dragHandlePlacement == DragHandlePlacement.Left) {
+                    PreviewDragHandle(sizing = sizing)
+                }
+                config.layout.orderedButtons.forEach { button ->
+                    PreviewOverlayButton(
+                        button = button,
+                        mediaState = mediaState,
+                        sizing = sizing
+                    )
+                }
+                if (config.layout.dragHandlePlacement == DragHandlePlacement.Right) {
+                    PreviewDragHandle(sizing = sizing)
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun PreviewOverlayThumbnail(
+    source: MediaArtworkSource,
+    sizing: sw2.io.mediafloat.model.WidgetOverlaySizing,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(previewScaledDp(sizing.thumbnailSizeDp))
+            .clip(RoundedCornerShape(previewScaledDp(sizing.thumbnailCornerRadiusDp)))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.secondary,
+                        MaterialTheme.colorScheme.tertiary,
+                        MaterialTheme.colorScheme.secondaryContainer
+                    )
+                )
+            )
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(previewScaledDp(sizing.thumbnailCornerRadiusDp))
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = when (source) {
+                MediaArtworkSource.MetadataDisplayIconUri,
+                MediaArtworkSource.MetadataArtUri,
+                MediaArtworkSource.MetadataAlbumArtUri -> "URI"
+                MediaArtworkSource.MetadataDisplayIconBitmap,
+                MediaArtworkSource.MetadataArtBitmap,
+                MediaArtworkSource.MetadataAlbumArtBitmap -> "ART"
+                MediaArtworkSource.NotificationLargeIcon -> "NOTI"
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondary,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1
+        )
     }
 }
 
@@ -1915,6 +1995,7 @@ private fun DeveloperOptionsCard(
 private fun WidgetBehaviorCard(
     config: WidgetConfig,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
+    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -1932,6 +2013,7 @@ private fun WidgetBehaviorCard(
                 fontWeight = FontWeight.SemiBold
             )
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -1953,6 +2035,34 @@ private fun WidgetBehaviorCard(
                 Switch(
                     checked = config.persistentOverlayEnabled,
                     onCheckedChange = onSetPersistentOverlayEnabled
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("low-quality-thumbnail-toggle-row"),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.low_quality_thumbnail_fallback_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = stringResource(id = R.string.low_quality_thumbnail_fallback_detail),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = config.allowLowQualityThumbnailFallback,
+                    onCheckedChange = onSetLowQualityThumbnailFallbackEnabled,
+                    modifier = Modifier.testTag("low-quality-thumbnail-toggle")
                 )
             }
         }
@@ -3025,6 +3135,14 @@ private fun previewRuntimeState(): OverlayRuntimeState {
         mediaState = MediaSessionState.Active(
             sessionId = "preview-session",
             title = "Velvet City Lights After Midnight Remix",
+            artworkCandidates = listOf(
+                MediaArtwork.UriSource(
+                    source = MediaArtworkSource.MetadataArtUri,
+                    uri = "content://preview/artwork/cover",
+                    widthPx = 640,
+                    heightPx = 640
+                )
+            ),
             supportedActions = setOf(MediaCommand.Previous, MediaCommand.TogglePlayPause, MediaCommand.Next),
             playbackStatus = PlaybackStatus.Playing
         )
@@ -3036,6 +3154,14 @@ private fun previewMediaSummaryState(): MediaSummaryState {
         mediaState = MediaSessionState.Active(
             sessionId = "preview-session",
             title = "Velvet City Lights After Midnight Remix",
+            artworkCandidates = listOf(
+                MediaArtwork.UriSource(
+                    source = MediaArtworkSource.MetadataArtUri,
+                    uri = "content://preview/artwork/cover",
+                    widthPx = 640,
+                    heightPx = 640
+                )
+            ),
             supportedActions = setOf(MediaCommand.Previous, MediaCommand.TogglePlayPause, MediaCommand.Next),
             playbackStatus = PlaybackStatus.Playing
         ),
@@ -3050,7 +3176,8 @@ private fun previewWidgetConfigState(): WidgetConfigScreenState {
         config = WidgetConfig(
             layout = WidgetLayout(visibleButtons = setOf(WidgetButton.Previous, WidgetButton.PlayPause, WidgetButton.Next)),
             sizePreset = WidgetSizePreset.Standard,
-            persistentOverlayEnabled = true
+            persistentOverlayEnabled = true,
+            allowLowQualityThumbnailFallback = false
         ),
         position = WidgetPosition(anchor = WidgetAnchor.End, xOffsetDp = 24, yOffsetDp = 156)
     )
