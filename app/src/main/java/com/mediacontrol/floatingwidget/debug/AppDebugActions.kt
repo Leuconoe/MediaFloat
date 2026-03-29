@@ -10,6 +10,8 @@ interface DebugActions {
 
     fun stopOverlay()
 
+    fun toggleOverlay(): Boolean
+
     fun dispatchPrevious(): Boolean
 
     fun dispatchPlayPause(): Boolean
@@ -39,6 +41,15 @@ class AppDebugActions(
     override fun stopOverlay() {
         runtimeController.stopOverlay()
         debugLogWriter.info(TAG, "In-app stop overlay action")
+    }
+
+    override fun toggleOverlay(): Boolean {
+        return if (runtimeController.runtimeState() is sw2.io.mediafloat.model.OverlayRuntimeState.Showing) {
+            stopOverlay()
+            false
+        } else {
+            startOverlay()
+        }
     }
 
     override fun dispatchPrevious(): Boolean {

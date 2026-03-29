@@ -56,6 +56,29 @@ class AppDebugActionsTest {
         assertEquals(1, runtimeController.startOverlayCalls)
     }
 
+    @Test
+    fun toggleOverlay_stopsWhenRuntimeIsShowing() {
+        val runtimeController = FakeOverlayRuntimeController().apply {
+            runtimeState = OverlayRuntimeState.Showing(
+                position = sw2.io.mediafloat.model.WidgetPosition(),
+                layout = sw2.io.mediafloat.model.WidgetLayout.Default,
+                mediaState = MediaSessionState.Unavailable
+            )
+        }
+        val actions = AppDebugActions(
+            runtimeController = runtimeController,
+            mediaSessionRepository = FakeMediaSessionRepository(),
+            mediaCommandDispatcher = RecordingMediaCommandDispatcher(),
+            debugLogRepository = PreferencesDebugLogRepository(storage = TestPreferencesStorage(), retentionLimit = 200, clock = { 1L })
+        )
+
+        val started = actions.toggleOverlay()
+
+        assertEquals(false, started)
+        assertEquals(1, runtimeController.stopOverlayCalls)
+        assertEquals(0, runtimeController.startOverlayCalls)
+    }
+
     private class FakeMediaSessionRepository : MediaSessionRepository {
         var connectCalls = 0
         var disconnectCalls = 0
@@ -91,6 +114,8 @@ class AppDebugActionsTest {
 
     private class FakeOverlayRuntimeController : OverlayRuntimeController {
         var startOverlayCalls = 0
+        var stopOverlayCalls = 0
+        var runtimeState: OverlayRuntimeState = OverlayRuntimeState.Unavailable(OverlayUnavailableReason.UnknownRuntimeFailure)
 
         override fun capabilityState(): CapabilityState {
             return CapabilityState(
@@ -103,16 +128,17 @@ class AppDebugActionsTest {
 
         override fun readinessRuntimeState(): OverlayRuntimeState = OverlayRuntimeState.Ready
 
-        override fun runtimeState(): OverlayRuntimeState {
-            return OverlayRuntimeState.Unavailable(OverlayUnavailableReason.UnknownRuntimeFailure)
-        }
+        override fun runtimeState(): OverlayRuntimeState = runtimeState
 
         override fun startOverlay(): Boolean {
             startOverlayCalls += 1
             return true
         }
 
-        override fun stopOverlay() = Unit
+        override fun stopOverlay() {
+            stopOverlayCalls += 1
+            runtimeState = OverlayRuntimeState.Unavailable(OverlayUnavailableReason.UnknownRuntimeFailure)
+        }
 
         override fun overlaySettingsIntent(): Intent = Intent()
 
