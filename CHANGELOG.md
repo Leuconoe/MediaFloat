@@ -2,6 +2,17 @@
 
 All notable user-facing changes to MediaFloat are recorded here.
 
+## v0.2.2
+
+Title display release for the floating widget.
+
+- Added current-media title rendering to the floating widget overlay
+- Kept the title strip locked to the full widget width across Compact, Standard, and Large presets
+- Added marquee-style scrolling for long titles while preserving a single-line title bar
+- Updated release notes and store changelog metadata for the `v0.2.2` release flow
+
+See also: `docs/releases/v0.2.2.md`
+
 ## v0.2.1
 
 Focused follow-up release for shortcut convenience and distribution prep.
