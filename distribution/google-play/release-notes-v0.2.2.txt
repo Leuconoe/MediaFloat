@@ -1,0 +1,1 @@
+v0.2.2 adds current-media title display to the floating widget, keeps the title strip locked to the full widget width across all size presets, and scrolls long titles horizontally for better readability.

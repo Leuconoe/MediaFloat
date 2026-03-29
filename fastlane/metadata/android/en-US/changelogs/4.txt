@@ -1,0 +1,1 @@
+Added current-media title display with a fixed-width scrolling title bar for all widget size presets.

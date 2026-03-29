@@ -7,7 +7,7 @@ Prepared assets and text for Google Play:
 - title: `fastlane/metadata/android/en-US/title.txt` and `fastlane/metadata/android/ko-KR/title.txt`
 - short description: `fastlane/metadata/android/en-US/short_description.txt` and `fastlane/metadata/android/ko-KR/short_description.txt`
 - full description: `fastlane/metadata/android/en-US/full_description.txt` and `fastlane/metadata/android/ko-KR/full_description.txt`
-- changelog for release `3`: `fastlane/metadata/android/en-US/changelogs/3.txt` and `fastlane/metadata/android/ko-KR/changelogs/3.txt`
+- changelog for release `4`: `fastlane/metadata/android/en-US/changelogs/4.txt` and `fastlane/metadata/android/ko-KR/changelogs/4.txt`
 - privacy policy source: `docs/privacy-policy.md`
 - support/privacy contact: `sw2.io@sw2.io`
 - special-use foreground-service review video script: `distribution/google-play/foreground-service-special-use-video-script.md`
