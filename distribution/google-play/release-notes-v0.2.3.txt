@@ -1,0 +1,1 @@
+v0.2.3 keeps the title bar stable during track changes, adds a Toggle widget launcher shortcut, and defers thumbnail artwork support until a future update.

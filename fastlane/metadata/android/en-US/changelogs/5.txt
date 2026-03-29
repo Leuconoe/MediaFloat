@@ -1,0 +1,1 @@
+Stabilized title transitions and added a Toggle widget launcher shortcut.
