@@ -33,6 +33,9 @@
     <string name="developer_tools_toggle_title">显示调试分区</string>
     <string name="behavior_title">行为</string>
     <string name="persistent_overlay_title">持久悬浮窗</string>
+    <string name="low_quality_thumbnail_fallback_title">显示缩略图</string>
+    <string name="low_quality_thumbnail_fallback_detail">在浮动条旁显示可用的媒体封面图。</string>
+    <string name="action_toggle_widget">切换小组件</string>
     <string name="current_edge_label">当前边缘</string>
     <string name="horizontal_offset_label">水平偏移</string>
     <string name="vertical_offset_label">垂直偏移</string>

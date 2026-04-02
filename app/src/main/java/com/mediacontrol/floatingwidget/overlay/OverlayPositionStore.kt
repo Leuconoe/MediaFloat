@@ -42,6 +42,8 @@ class OverlayPositionStore(
 
     fun pxToDp(px: Int): Int = (px / density).roundToInt()
 
+    fun density(): Float = density
+
     private companion object {
         const val PREFERENCES_NAME = "overlay_position"
         const val KEY_ANCHOR = "anchor"

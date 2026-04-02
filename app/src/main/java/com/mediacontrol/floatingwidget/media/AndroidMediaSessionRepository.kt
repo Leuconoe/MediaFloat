@@ -2,20 +2,30 @@ package sw2.io.mediafloat.media
 
 import android.content.ComponentName
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.session.MediaController
 import android.media.MediaMetadata
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import sw2.io.mediafloat.debug.DebugLogWriter
 import sw2.io.mediafloat.debug.NoOpDebugLogWriter
+import sw2.io.mediafloat.model.MediaArtwork
+import sw2.io.mediafloat.model.MediaArtworkSource
 import sw2.io.mediafloat.model.MediaCommand
 import sw2.io.mediafloat.model.MediaSessionErrorReason
 import sw2.io.mediafloat.model.MediaSessionLimitReason
 import sw2.io.mediafloat.model.MediaSessionState
 import sw2.io.mediafloat.model.PlaybackStatus
+
+internal data class NotificationArtworkSnapshot(
+    val packageName: String,
+    val artwork: MediaArtwork.BitmapSource
+)
 
 class AndroidMediaSessionRepository(
     context: Context,
@@ -54,6 +64,9 @@ class AndroidMediaSessionRepository(
 
     @Volatile
     private var currentController: MediaController? = null
+
+    @Volatile
+    private var notificationArtworkByPackage: Map<String, MediaArtwork.BitmapSource> = emptyMap()
 
     private var connected = false
     private var connectionCount = 0
@@ -186,7 +199,14 @@ class AndroidMediaSessionRepository(
     fun onNotificationListenerDisconnected() {
         debugLogWriter.warn(TAG, "Notification listener disconnected; clearing pending media recovery")
         clearRecovery()
+        notificationArtworkByPackage = emptyMap()
         publishState(MediaSessionState.Discovering)
+    }
+
+    @Synchronized
+    internal fun replaceNotificationArtworkSnapshot(snapshots: List<NotificationArtworkSnapshot>) {
+        notificationArtworkByPackage = snapshots.associate { it.packageName to it.artwork }
+        currentController?.let { publishState(resolveState(it)) }
     }
 
     private fun handleControllersChanged(controllers: List<MediaController>) {
@@ -247,11 +267,13 @@ class AndroidMediaSessionRepository(
             displayTitle = controller.metadata?.getText(MediaMetadata.METADATA_KEY_DISPLAY_TITLE),
             title = controller.metadata?.getText(MediaMetadata.METADATA_KEY_TITLE)
         )
+        val artworkCandidates = resolveArtworkCandidates(controller)
         val sessionId = "${controller.packageName}:${controller.sessionToken}"
         val playbackState = controller.playbackState
             ?: return buildMediaSessionState(
                 sessionId = sessionId,
                 title = title,
+                artworkCandidates = artworkCandidates,
                 playbackStatus = null,
                 supportedActions = null
             )
@@ -259,8 +281,84 @@ class AndroidMediaSessionRepository(
         return buildMediaSessionState(
             sessionId = sessionId,
             title = title,
+            artworkCandidates = artworkCandidates,
             playbackStatus = playbackState.state.toPlaybackStatus(),
             supportedActions = playbackState.actions.toSupportedCommands()
+        )
+    }
+
+    private fun resolveArtworkCandidates(controller: MediaController): List<MediaArtwork> {
+        val metadata = controller.metadata
+
+        return buildArtworkCandidates(
+            metadataDisplayIconUri = resolveArtworkUriCandidate(
+                rawUri = metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI),
+                source = MediaArtworkSource.MetadataDisplayIconUri
+            ),
+            metadataArtUri = resolveArtworkUriCandidate(
+                rawUri = metadata?.getString(MediaMetadata.METADATA_KEY_ART_URI),
+                source = MediaArtworkSource.MetadataArtUri
+            ),
+            metadataAlbumArtUri = resolveArtworkUriCandidate(
+                rawUri = metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI),
+                source = MediaArtworkSource.MetadataAlbumArtUri
+            ),
+            metadataDisplayIconBitmap = resolveArtworkBitmapCandidate(
+                bitmap = metadata?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON),
+                source = MediaArtworkSource.MetadataDisplayIconBitmap
+            ),
+            metadataArtBitmap = resolveArtworkBitmapCandidate(
+                bitmap = metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART),
+                source = MediaArtworkSource.MetadataArtBitmap
+            ),
+            metadataAlbumArtBitmap = resolveArtworkBitmapCandidate(
+                bitmap = metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART),
+                source = MediaArtworkSource.MetadataAlbumArtBitmap
+            ),
+            notificationLargeIcon = notificationArtworkByPackage[controller.packageName]
+        )
+    }
+
+    private fun resolveArtworkUriCandidate(
+        rawUri: String?,
+        source: MediaArtworkSource
+    ): MediaArtwork.UriSource? {
+        val normalizedUri = rawUri
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?: return null
+
+        val artworkBounds = runCatching {
+            appContext.contentResolver.openInputStream(Uri.parse(normalizedUri))?.use { stream ->
+                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeStream(stream, null, options)
+                if (options.outWidth > 0 && options.outHeight > 0) {
+                    options.outWidth to options.outHeight
+                } else {
+                    null
+                }
+            }
+        }.getOrNull() ?: return null
+
+        return MediaArtwork.UriSource(
+            source = source,
+            uri = normalizedUri,
+            widthPx = artworkBounds.first,
+            heightPx = artworkBounds.second
+        )
+    }
+
+    private fun resolveArtworkBitmapCandidate(
+        bitmap: Bitmap?,
+        source: MediaArtworkSource
+    ): MediaArtwork.BitmapSource? {
+        val resolvedBitmap = bitmap?.takeIf { it.width > 0 && it.height > 0 } ?: return null
+
+        return MediaArtwork.BitmapSource(
+            source = source,
+            bitmap = resolvedBitmap,
+            widthPx = resolvedBitmap.width,
+            heightPx = resolvedBitmap.height
         )
     }
 
@@ -327,6 +425,7 @@ class AndroidMediaSessionRepository(
         fun buildMediaSessionState(
             sessionId: String,
             title: String?,
+            artworkCandidates: List<MediaArtwork> = emptyList(),
             playbackStatus: PlaybackStatus?,
             supportedActions: Set<MediaCommand>?
         ): MediaSessionState {
@@ -334,6 +433,7 @@ class AndroidMediaSessionRepository(
                 ?: return MediaSessionState.Limited(
                     reason = MediaSessionLimitReason.PlaybackStateUnknown,
                     title = title,
+                    artworkCandidates = artworkCandidates,
                     supportedActions = emptySet()
                 )
 
@@ -343,16 +443,38 @@ class AndroidMediaSessionRepository(
                 MediaSessionState.Limited(
                     reason = MediaSessionLimitReason.MissingTransportControls,
                     title = title,
+                    artworkCandidates = artworkCandidates,
                     supportedActions = emptySet()
                 )
             } else {
                 MediaSessionState.Active(
                     sessionId = sessionId,
                     title = title,
+                    artworkCandidates = artworkCandidates,
                     supportedActions = resolvedSupportedActions,
                     playbackStatus = resolvedPlaybackStatus
                 )
             }
+        }
+
+        fun buildArtworkCandidates(
+            metadataDisplayIconUri: MediaArtwork.UriSource?,
+            metadataArtUri: MediaArtwork.UriSource?,
+            metadataAlbumArtUri: MediaArtwork.UriSource?,
+            metadataDisplayIconBitmap: MediaArtwork.BitmapSource?,
+            metadataArtBitmap: MediaArtwork.BitmapSource?,
+            metadataAlbumArtBitmap: MediaArtwork.BitmapSource?,
+            notificationLargeIcon: MediaArtwork.BitmapSource?
+        ): List<MediaArtwork> {
+            return listOfNotNull(
+                metadataDisplayIconUri,
+                metadataArtUri,
+                metadataAlbumArtUri,
+                metadataDisplayIconBitmap,
+                metadataArtBitmap,
+                metadataAlbumArtBitmap,
+                notificationLargeIcon
+            )
         }
 
         fun resolveMediaTitle(displayTitle: CharSequence?, title: CharSequence?): String? {

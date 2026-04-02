@@ -22,7 +22,8 @@ class WidgetConfigStoreTest {
             sizePreset = WidgetSizePreset.Large,
             widthStyle = WidgetWidthStyle.Wide,
             themePreset = WidgetThemePreset.Pink,
-            persistentOverlayEnabled = false
+            persistentOverlayEnabled = false,
+            allowLowQualityThumbnailFallback = true
         )
 
         store.save(expected)
@@ -52,5 +53,12 @@ class WidgetConfigStoreTest {
 
         assertEquals(WidgetConfig().widthStyle, loaded.widthStyle)
         assertEquals(WidgetConfig().themePreset, loaded.themePreset)
+    }
+
+    @Test
+    fun load_keepsLowQualityThumbnailFallbackDisabledByDefault() {
+        val store = WidgetConfigStore(TestPreferencesStorage())
+
+        assertEquals(false, store.load().allowLowQualityThumbnailFallback)
     }
 }

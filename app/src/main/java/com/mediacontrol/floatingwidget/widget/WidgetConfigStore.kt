@@ -55,6 +55,10 @@ class WidgetConfigStore(
             persistentOverlayEnabled = storage.getBoolean(
                 KEY_PERSISTENT_OVERLAY_ENABLED,
                 WidgetConfig().persistentOverlayEnabled
+            ),
+            allowLowQualityThumbnailFallback = storage.getBoolean(
+                KEY_ALLOW_LOW_QUALITY_THUMBNAIL_FALLBACK,
+                WidgetConfig().allowLowQualityThumbnailFallback
             )
         )
     }
@@ -68,6 +72,7 @@ class WidgetConfigStore(
             putString(KEY_THEME_PRESET, config.themePreset.name)
             putInt(KEY_OPACITY_PERCENT, (config.opacity.coerceIn(0.35f, 1f) * 100).roundToInt())
             putBoolean(KEY_PERSISTENT_OVERLAY_ENABLED, config.persistentOverlayEnabled)
+            putBoolean(KEY_ALLOW_LOW_QUALITY_THUMBNAIL_FALLBACK, config.allowLowQualityThumbnailFallback)
         }
     }
 
@@ -84,6 +89,7 @@ class WidgetConfigStore(
         const val KEY_THEME_PRESET = "theme_preset"
         const val KEY_OPACITY_PERCENT = "opacity_percent"
         const val KEY_PERSISTENT_OVERLAY_ENABLED = "persistent_overlay_enabled"
+        const val KEY_ALLOW_LOW_QUALITY_THUMBNAIL_FALLBACK = "allow_low_quality_thumbnail_fallback"
     }
 }
 

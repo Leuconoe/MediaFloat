@@ -33,6 +33,9 @@
     <string name="developer_tools_toggle_title">デバッグ画面を表示</string>
     <string name="behavior_title">動作</string>
     <string name="persistent_overlay_title">常駐オーバーレイ</string>
+    <string name="low_quality_thumbnail_fallback_title">サムネイルを表示</string>
+    <string name="low_quality_thumbnail_fallback_detail">利用可能なメディアアートワークをフローティングバーの横に表示します。</string>
+    <string name="action_toggle_widget">ウィジェットを切り替え</string>
     <string name="current_edge_label">現在の端</string>
     <string name="horizontal_offset_label">横オフセット</string>
     <string name="vertical_offset_label">縦オフセット</string>

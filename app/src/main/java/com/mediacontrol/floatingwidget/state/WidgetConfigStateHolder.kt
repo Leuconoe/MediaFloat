@@ -65,8 +65,18 @@ class WidgetConfigStateHolder(
         repository.saveConfig(currentState().config.copy(persistentOverlayEnabled = enabled))
     }
 
+    fun setLowQualityThumbnailFallbackEnabled(enabled: Boolean) {
+        repository.saveConfig(currentState().config.copy(allowLowQualityThumbnailFallback = enabled))
+    }
+
     fun savePosition(position: WidgetPosition) {
         repository.savePosition(position)
+    }
+
+    fun setHorizontalOffsetDp(xOffsetDp: Int) {
+        repository.savePosition(
+            currentState().position.copy(xOffsetDp = xOffsetDp)
+        )
     }
 
     fun close() {

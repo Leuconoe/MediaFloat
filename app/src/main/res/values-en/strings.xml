@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">MediaFloat</string>
+    <string name="action_toggle_widget">Toggle widget</string>
+    <string name="low_quality_thumbnail_fallback_title">Show thumbnails</string>
+    <string name="low_quality_thumbnail_fallback_detail">Display available media artwork next to the floating bar.</string>
+    <string name="edge_offset_title">Edge offset</string>
+    <string name="edge_offset_detail">Keep the widget slightly away from the screen edge.</string>
+    <string name="edge_offset_near">Near</string>
+    <string name="edge_offset_default">Default</string>
+    <string name="edge_offset_far">Far</string>
 </resources>

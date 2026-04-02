@@ -33,6 +33,9 @@
     <string name="developer_tools_toggle_title">Mostrar sección Debug</string>
     <string name="behavior_title">Comportamiento</string>
     <string name="persistent_overlay_title">Superposición persistente</string>
+    <string name="low_quality_thumbnail_fallback_title">Mostrar miniaturas</string>
+    <string name="low_quality_thumbnail_fallback_detail">Muestra la caratula disponible junto a la barra flotante.</string>
+    <string name="action_toggle_widget">Alternar widget</string>
     <string name="current_edge_label">Borde actual</string>
     <string name="horizontal_offset_label">Desplazamiento horizontal</string>
     <string name="vertical_offset_label">Desplazamiento vertical</string>

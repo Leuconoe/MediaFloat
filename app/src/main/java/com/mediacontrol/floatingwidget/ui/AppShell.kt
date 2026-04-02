@@ -69,6 +69,8 @@ import sw2.io.mediafloat.model.AppPreferences
 import sw2.io.mediafloat.model.CapabilityGrantState
 import sw2.io.mediafloat.model.CapabilityState
 import sw2.io.mediafloat.model.MediaCommand
+import sw2.io.mediafloat.model.MediaArtwork
+import sw2.io.mediafloat.model.MediaArtworkSource
 import sw2.io.mediafloat.model.MediaSessionErrorReason
 import sw2.io.mediafloat.model.MediaSessionLimitReason
 import sw2.io.mediafloat.model.MediaSessionState
@@ -88,6 +90,8 @@ import sw2.io.mediafloat.model.WidgetWidthStyle
 import sw2.io.mediafloat.model.currentTitle
 import sw2.io.mediafloat.model.overlayAppearance
 import sw2.io.mediafloat.model.supports
+import sw2.io.mediafloat.overlay.bodyWidthDp
+import sw2.io.mediafloat.overlay.resolveOverlayThumbnailPresentation
 import sw2.io.mediafloat.runtime.RuntimeStatusFormatter
 import sw2.io.mediafloat.state.DebugLogScreenState
 import sw2.io.mediafloat.state.MediaSummaryState
@@ -171,7 +175,9 @@ fun AppShell(
     onSetThemePreset: (WidgetThemePreset) -> Unit = {},
     onSetOpacity: (Float) -> Unit = {},
     onSetDragHandlePlacement: (DragHandlePlacement) -> Unit = {},
+    onSetHorizontalOffsetPreset: (Int) -> Unit = {},
     onSetPersistentOverlayEnabled: (Boolean) -> Unit = {},
+    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit = {},
     onStartOverlay: () -> Unit = {},
     onStopOverlay: () -> Unit = {},
     onDispatchPrevious: () -> Unit = {},
@@ -250,7 +256,9 @@ fun AppShell(
                             onSetThemePreset = onSetThemePreset,
                             onSetOpacity = onSetOpacity,
                             onSetDragHandlePlacement = onSetDragHandlePlacement,
+                            onSetHorizontalOffsetPreset = onSetHorizontalOffsetPreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
+                            onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
                             onDispatchPrevious = onDispatchPrevious,
@@ -294,7 +302,9 @@ fun AppShell(
                             onSetThemePreset = onSetThemePreset,
                             onSetOpacity = onSetOpacity,
                             onSetDragHandlePlacement = onSetDragHandlePlacement,
+                            onSetHorizontalOffsetPreset = onSetHorizontalOffsetPreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
+                            onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
                             onDispatchPrevious = onDispatchPrevious,
@@ -462,7 +472,9 @@ private fun SectionContent(
     onSetThemePreset: (WidgetThemePreset) -> Unit,
     onSetOpacity: (Float) -> Unit,
     onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
+    onSetHorizontalOffsetPreset: (Int) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
+    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
     onDispatchPrevious: () -> Unit,
@@ -509,6 +521,9 @@ private fun SectionContent(
                     onSetSizePreset = onSetSizePreset,
                     onSetWidthStyle = onSetWidthStyle,
                     onSetOpacity = onSetOpacity,
+                    onSetDragHandlePlacement = onSetDragHandlePlacement,
+                    onSetHorizontalOffsetPreset = onSetHorizontalOffsetPreset,
+                    onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                     onStartOverlay = onStartOverlay,
                     onStopOverlay = onStopOverlay,
                     wideLayout = wideLayout
@@ -520,7 +535,6 @@ private fun SectionContent(
                     onSetDebugToolsEnabled = onSetDebugToolsEnabled,
                     onSetAppLanguage = onSetAppLanguage,
                     onSetThemePreset = onSetThemePreset,
-                    onSetDragHandlePlacement = onSetDragHandlePlacement,
                     onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                     wideLayout = wideLayout
                 )
@@ -606,6 +620,9 @@ private fun SettingsScreen(
     onSetSizePreset: (WidgetSizePreset) -> Unit,
     onSetWidthStyle: (WidgetWidthStyle) -> Unit,
     onSetOpacity: (Float) -> Unit,
+    onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
+    onSetHorizontalOffsetPreset: (Int) -> Unit,
+    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
     wideLayout: Boolean
@@ -646,6 +663,15 @@ private fun SettingsScreen(
                     opacity = widgetConfigState.config.opacity,
                     onSetOpacity = onSetOpacity
                 )
+                SidebarPlacementCard(
+                    selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
+                    onSetDragHandlePlacement = onSetDragHandlePlacement
+                )
+                // OffsetPresetCard temporarily disabled
+                ThumbnailToggleCard(
+                    config = widgetConfigState.config,
+                    onSetEnabled = onSetLowQualityThumbnailFallbackEnabled
+                )
             }
         }
     } else {
@@ -676,6 +702,15 @@ private fun SettingsScreen(
             opacity = widgetConfigState.config.opacity,
             onSetOpacity = onSetOpacity
         )
+        SidebarPlacementCard(
+            selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
+            onSetDragHandlePlacement = onSetDragHandlePlacement
+        )
+        // OffsetPresetCard temporarily disabled
+        ThumbnailToggleCard(
+            config = widgetConfigState.config,
+            onSetEnabled = onSetLowQualityThumbnailFallbackEnabled
+        )
     }
 }
 
@@ -686,7 +721,6 @@ private fun AdvancedSettingsScreen(
     onSetDebugToolsEnabled: (Boolean) -> Unit,
     onSetAppLanguage: (AppLanguage) -> Unit,
     onSetThemePreset: (WidgetThemePreset) -> Unit,
-    onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
     wideLayout: Boolean
 ) {
@@ -702,10 +736,6 @@ private fun AdvancedSettingsScreen(
                 ThemePresetCard(
                     selectedPreset = widgetConfigState.config.themePreset,
                     onSetThemePreset = onSetThemePreset
-                )
-                SidebarPlacementCard(
-                    selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
-                    onSetDragHandlePlacement = onSetDragHandlePlacement
                 )
             }
             Column(
@@ -730,10 +760,6 @@ private fun AdvancedSettingsScreen(
         ThemePresetCard(
             selectedPreset = widgetConfigState.config.themePreset,
             onSetThemePreset = onSetThemePreset
-        )
-        SidebarPlacementCard(
-            selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
-            onSetDragHandlePlacement = onSetDragHandlePlacement
         )
         AppLanguageCard(
             selectedLanguage = appPreferences.appLanguage,
@@ -1005,12 +1031,17 @@ private fun WidgetPreviewStage(
 ) {
     val sizing = config.overlayAppearance().sizing
     val hasTitle = mediaState.currentTitle() != null
+    val thumbnailPresentation = resolveOverlayThumbnailPresentation(
+        mediaState = mediaState,
+        sizing = sizing,
+        allowLowQualityFallback = config.allowLowQualityThumbnailFallback
+    )
     val overlayHeightDp = sizing.containerHeightDp + if (hasTitle) {
         sizing.titleStripMinHeightDp + sizing.titleStripSpacingDp
     } else {
         0
     }
-    val scaledWidth = previewScaledDp(sizing.containerWidthDp)
+    val scaledWidth = previewScaledDp(sizing.bodyWidthDp(hasThumbnail = thumbnailPresentation != null))
     val scaledHeight = previewScaledDp(overlayHeightDp)
     val scaledTop = (position.yOffsetDp * PREVIEW_SCALE * 0.58f).roundToInt().coerceIn(24, 180).dp
     val overlayAlignment = if (position.anchor == WidgetAnchor.Start) Alignment.TopStart else Alignment.TopEnd
@@ -1068,65 +1099,131 @@ private fun PreviewOverlayBar(
 ) {
     val sizing = config.overlayAppearance().sizing
     val title = mediaState.currentTitle()
+    val thumbnailPresentation = resolveOverlayThumbnailPresentation(
+        mediaState = mediaState,
+        sizing = sizing,
+        allowLowQualityFallback = config.allowLowQualityThumbnailFallback
+    )
 
     Column(
-        modifier = modifier.width(previewScaledDp(sizing.containerWidthDp)),
+        modifier = modifier.width(previewScaledDp(sizing.bodyWidthDp(hasThumbnail = thumbnailPresentation != null))),
         verticalArrangement = Arrangement.spacedBy(
             if (title == null) 0.dp else previewScaledDp(sizing.titleStripSpacingDp)
         )
     ) {
         if (title != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = previewScaledDp(sizing.titleStripMinHeightDp))
-                    .clip(RoundedCornerShape(previewScaledDp(sizing.titleStripCornerRadiusDp)))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .padding(horizontal = previewScaledDp(sizing.titleStripHorizontalPaddingDp), vertical = 4.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Text(
-                    text = title,
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .basicMarquee(iterations = Int.MAX_VALUE),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    maxLines = 1,
-                    overflow = TextOverflow.Clip
-                )
+                        .width(previewScaledDp(sizing.titleStripWidthDp))
+                        .heightIn(min = previewScaledDp(sizing.titleStripMinHeightDp))
+                        .clip(RoundedCornerShape(previewScaledDp(sizing.titleStripCornerRadiusDp)))
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .padding(horizontal = previewScaledDp(sizing.titleStripHorizontalPaddingDp), vertical = 4.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Text(
+                        text = title,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .basicMarquee(iterations = Int.MAX_VALUE),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Clip
+                    )
+                }
             }
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(previewScaledDp(sizing.containerHeightDp))
-                .clip(RoundedCornerShape(previewScaledDp(sizing.containerCornerRadiusDp)))
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.94f))
-                .padding(
-                    start = previewScaledDp(sizing.containerStartPaddingDp),
-                    end = previewScaledDp(sizing.containerEndPaddingDp),
-                    top = previewScaledDp(sizing.containerVerticalPaddingDp),
-                    bottom = previewScaledDp(sizing.containerVerticalPaddingDp)
-                ),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(previewScaledDp(sizing.itemSpacingDp)),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (config.layout.dragHandlePlacement == DragHandlePlacement.Left) {
-                PreviewDragHandle(sizing = sizing)
-            }
-            config.layout.orderedButtons.forEach { button ->
-                PreviewOverlayButton(
-                    button = button,
-                    mediaState = mediaState,
+            if (thumbnailPresentation != null) {
+                PreviewOverlayThumbnail(
+                    source = thumbnailPresentation.artwork.source,
                     sizing = sizing
                 )
             }
-            if (config.layout.dragHandlePlacement == DragHandlePlacement.Right) {
-                PreviewDragHandle(sizing = sizing)
+            Row(
+                modifier = Modifier
+                    .width(previewScaledDp(sizing.containerWidthDp))
+                    .height(previewScaledDp(sizing.containerHeightDp))
+                    .clip(RoundedCornerShape(previewScaledDp(sizing.containerCornerRadiusDp)))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.94f))
+                    .padding(
+                        start = previewScaledDp(sizing.containerStartPaddingDp),
+                        end = previewScaledDp(sizing.containerEndPaddingDp),
+                        top = previewScaledDp(sizing.containerVerticalPaddingDp),
+                        bottom = previewScaledDp(sizing.containerVerticalPaddingDp)
+                    ),
+                horizontalArrangement = Arrangement.spacedBy(previewScaledDp(sizing.itemSpacingDp)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (config.layout.dragHandlePlacement == DragHandlePlacement.Left) {
+                    PreviewDragHandle(sizing = sizing)
+                }
+                config.layout.orderedButtons.forEach { button ->
+                    PreviewOverlayButton(
+                        button = button,
+                        mediaState = mediaState,
+                        sizing = sizing
+                    )
+                }
+                if (config.layout.dragHandlePlacement == DragHandlePlacement.Right) {
+                    PreviewDragHandle(sizing = sizing)
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun PreviewOverlayThumbnail(
+    source: MediaArtworkSource,
+    sizing: sw2.io.mediafloat.model.WidgetOverlaySizing,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(previewScaledDp(sizing.thumbnailSizeDp))
+            .clip(RoundedCornerShape(previewScaledDp(sizing.thumbnailCornerRadiusDp)))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.secondary,
+                        MaterialTheme.colorScheme.tertiary,
+                        MaterialTheme.colorScheme.secondaryContainer
+                    )
+                )
+            )
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(previewScaledDp(sizing.thumbnailCornerRadiusDp))
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = when (source) {
+                MediaArtworkSource.MetadataDisplayIconUri,
+                MediaArtworkSource.MetadataArtUri,
+                MediaArtworkSource.MetadataAlbumArtUri -> "URI"
+                MediaArtworkSource.MetadataDisplayIconBitmap,
+                MediaArtworkSource.MetadataArtBitmap,
+                MediaArtworkSource.MetadataAlbumArtBitmap -> "ART"
+                MediaArtworkSource.NotificationPicture,
+                MediaArtworkSource.NotificationLargeIconBig,
+                MediaArtworkSource.NotificationExtraLargeIcon,
+                MediaArtworkSource.NotificationLargeIcon -> "NOTI"
+            },
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSecondary,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1
+        )
     }
 }
 
@@ -1932,6 +2029,7 @@ private fun WidgetBehaviorCard(
                 fontWeight = FontWeight.SemiBold
             )
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -1955,6 +2053,98 @@ private fun WidgetBehaviorCard(
                     onCheckedChange = onSetPersistentOverlayEnabled
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun OffsetPresetCard(
+    currentOffsetDp: Int,
+    onSetOffsetDp: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val presets = listOf(12, 24, 40)
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.edge_offset_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(id = R.string.edge_offset_detail),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                presets.forEach { offsetDp ->
+                    SelectionPill(
+                        text = when (offsetDp) {
+                            12 -> stringResource(id = R.string.edge_offset_near)
+                            24 -> stringResource(id = R.string.edge_offset_default)
+                            else -> stringResource(id = R.string.edge_offset_far)
+                        },
+                        selected = currentOffsetDp == offsetDp,
+                        enabled = true,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onSetOffsetDp(offsetDp) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThumbnailToggleCard(
+    config: WidgetConfig,
+    onSetEnabled: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+                .testTag("thumbnail-toggle-row"),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.low_quality_thumbnail_fallback_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = stringResource(id = R.string.low_quality_thumbnail_fallback_detail),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = config.allowLowQualityThumbnailFallback,
+                onCheckedChange = onSetEnabled,
+                modifier = Modifier.testTag("thumbnail-toggle")
+            )
         }
     }
 }
@@ -3025,6 +3215,14 @@ private fun previewRuntimeState(): OverlayRuntimeState {
         mediaState = MediaSessionState.Active(
             sessionId = "preview-session",
             title = "Velvet City Lights After Midnight Remix",
+            artworkCandidates = listOf(
+                MediaArtwork.UriSource(
+                    source = MediaArtworkSource.MetadataArtUri,
+                    uri = "content://preview/artwork/cover",
+                    widthPx = 640,
+                    heightPx = 640
+                )
+            ),
             supportedActions = setOf(MediaCommand.Previous, MediaCommand.TogglePlayPause, MediaCommand.Next),
             playbackStatus = PlaybackStatus.Playing
         )
@@ -3036,6 +3234,14 @@ private fun previewMediaSummaryState(): MediaSummaryState {
         mediaState = MediaSessionState.Active(
             sessionId = "preview-session",
             title = "Velvet City Lights After Midnight Remix",
+            artworkCandidates = listOf(
+                MediaArtwork.UriSource(
+                    source = MediaArtworkSource.MetadataArtUri,
+                    uri = "content://preview/artwork/cover",
+                    widthPx = 640,
+                    heightPx = 640
+                )
+            ),
             supportedActions = setOf(MediaCommand.Previous, MediaCommand.TogglePlayPause, MediaCommand.Next),
             playbackStatus = PlaybackStatus.Playing
         ),
@@ -3050,7 +3256,8 @@ private fun previewWidgetConfigState(): WidgetConfigScreenState {
         config = WidgetConfig(
             layout = WidgetLayout(visibleButtons = setOf(WidgetButton.Previous, WidgetButton.PlayPause, WidgetButton.Next)),
             sizePreset = WidgetSizePreset.Standard,
-            persistentOverlayEnabled = true
+            persistentOverlayEnabled = true,
+            allowLowQualityThumbnailFallback = false
         ),
         position = WidgetPosition(anchor = WidgetAnchor.End, xOffsetDp = 24, yOffsetDp = 156)
     )

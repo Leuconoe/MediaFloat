@@ -118,7 +118,14 @@
     <string name="behavior_title">Behavior</string>
     <string name="persistent_overlay_title">Persistent overlay</string>
     <string name="persistent_overlay_detail">Keep the runtime preference aligned with the saved widget configuration.</string>
+    <string name="low_quality_thumbnail_fallback_title">Show thumbnails</string>
+    <string name="low_quality_thumbnail_fallback_detail">Display available media artwork next to the floating bar.</string>
     <string name="sidebar_side_title">Sidebar side</string>
+    <string name="edge_offset_title">Edge offset</string>
+    <string name="edge_offset_detail">Keep the widget slightly away from the screen edge.</string>
+    <string name="edge_offset_near">Near</string>
+    <string name="edge_offset_default">Default</string>
+    <string name="edge_offset_far">Far</string>
     <string name="current_edge_label">Current edge</string>
     <string name="horizontal_offset_label">Horizontal offset</string>
     <string name="vertical_offset_label">Vertical offset</string>
