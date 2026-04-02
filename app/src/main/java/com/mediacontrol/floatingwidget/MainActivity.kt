@@ -104,8 +104,9 @@ class MainActivity : AppCompatActivity() {
                     onSetThemePreset = ::setThemePreset,
                     onSetOpacity = ::setOpacity,
                     onSetDragHandlePlacement = ::setDragHandlePlacement,
+                    onSetHorizontalOffsetPreset = ::setHorizontalOffsetPreset,
                     onSetPersistentOverlayEnabled = ::setPersistentOverlayEnabled,
-                    onSetLowQualityThumbnailFallbackEnabled = ::setLowQualityThumbnailFallbackEnabled,
+                    onSetLowQualityThumbnailFallbackEnabled = ::setThumbnailEnabled,
                     onStartOverlay = ::startOverlay,
                     onStopOverlay = ::stopOverlay,
                     onDispatchPrevious = ::dispatchPrevious,
@@ -190,8 +191,12 @@ class MainActivity : AppCompatActivity() {
         widgetConfigStateHolder.setPersistentOverlayEnabled(enabled)
     }
 
-    private fun setLowQualityThumbnailFallbackEnabled(enabled: Boolean) {
+    private fun setThumbnailEnabled(enabled: Boolean) {
         widgetConfigStateHolder.setLowQualityThumbnailFallbackEnabled(enabled)
+    }
+
+    private fun setHorizontalOffsetPreset(xOffsetDp: Int) {
+        widgetConfigStateHolder.setHorizontalOffsetDp(xOffsetDp)
     }
 
     private fun startOverlay() {

@@ -117,9 +117,14 @@
     <string name="behavior_title">동작</string>
     <string name="persistent_overlay_title">지속 오버레이</string>
     <string name="persistent_overlay_detail">런타임 설정을 저장된 위젯 구성과 일치하게 유지합니다.</string>
-    <string name="low_quality_thumbnail_fallback_title">저화질 썸네일 허용</string>
-    <string name="low_quality_thumbnail_fallback_detail">320px 이상 썸네일 소스가 없을 때만 더 작은 아트워크를 사용합니다.</string>
+    <string name="low_quality_thumbnail_fallback_title">썸네일 표시</string>
+    <string name="low_quality_thumbnail_fallback_detail">플로팅 바 옆에 사용 가능한 미디어 아트워크를 표시합니다.</string>
     <string name="sidebar_side_title">사이드바 위치</string>
+    <string name="edge_offset_title">가장자리 오프셋</string>
+    <string name="edge_offset_detail">위젯이 화면 벽에 너무 붙지 않도록 간격을 둡니다.</string>
+    <string name="edge_offset_near">좁게</string>
+    <string name="edge_offset_default">기본</string>
+    <string name="edge_offset_far">넓게</string>
     <string name="current_edge_label">현재 가장자리</string>
     <string name="horizontal_offset_label">가로 오프셋</string>
     <string name="vertical_offset_label">세로 오프셋</string>

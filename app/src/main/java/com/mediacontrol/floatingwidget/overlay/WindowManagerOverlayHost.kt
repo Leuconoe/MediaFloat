@@ -17,6 +17,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import kotlin.math.max
 import sw2.io.mediafloat.R
 import sw2.io.mediafloat.debug.DebugLogWriter
 import sw2.io.mediafloat.debug.NoOpDebugLogWriter
@@ -76,7 +77,24 @@ class WindowManagerOverlayHost(
         updateOverlayAppearance(viewState)
         if (!attached) {
             rootView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-            applyPosition(viewState.position, rootView.measuredWidth)
+            val sizing = viewState.config.overlayAppearance().sizing
+            val thumbnailEnabled = viewState.config.allowLowQualityThumbnailFallback
+            val hasTitle = true
+            val mediaColumnWidthDp = max(sizing.containerWidthDp, sizing.titleStripWidthDp)
+            val mediaColumnHeightDp = sizing.containerHeightDp + sizing.titleStripMinHeightDp + sizing.titleStripSpacingDp
+            val totalWidthDp = if (thumbnailEnabled) {
+                sizing.thumbnailSizeDp + sizing.itemSpacingDp + mediaColumnWidthDp
+            } else {
+                mediaColumnWidthDp
+            }
+            val totalHeightDp = if (thumbnailEnabled) {
+                max(sizing.thumbnailSizeDp, mediaColumnHeightDp)
+            } else {
+                mediaColumnHeightDp
+            }
+            layoutParams.width = dp(totalWidthDp)
+            layoutParams.height = dp(totalHeightDp)
+            applyPosition(viewState.position, totalWidthDp)
             windowManager.addView(rootView, layoutParams)
             attached = true
             Log.d(TAG, "Attached overlay at x=${layoutParams.x}, y=${layoutParams.y}")
@@ -106,9 +124,25 @@ class WindowManagerOverlayHost(
         bindTitleStrip(viewState.mediaState, appearance)
         bindThumbnail(viewState, appearance)
         rootView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-
+        val sizing = appearance.sizing
+        val thumbnailEnabled = viewState.config.allowLowQualityThumbnailFallback
+        val hasTitle = true
+        val mediaColumnWidthDp = max(sizing.containerWidthDp, sizing.titleStripWidthDp)
+        val mediaColumnHeightDp = sizing.containerHeightDp + sizing.titleStripMinHeightDp + sizing.titleStripSpacingDp
+        val totalWidthDp = if (thumbnailEnabled) {
+            sizing.thumbnailSizeDp + sizing.itemSpacingDp + mediaColumnWidthDp
+        } else {
+            mediaColumnWidthDp
+        }
+        val totalHeightDp = if (thumbnailEnabled) {
+            max(sizing.thumbnailSizeDp, mediaColumnHeightDp)
+        } else {
+            mediaColumnHeightDp
+        }
+        layoutParams.width = dp(totalWidthDp)
+        layoutParams.height = dp(totalHeightDp)
+        applyPosition(viewState.position, totalWidthDp)
         if (attached) {
-            applyPosition(viewState.position, rootView.measuredWidth)
             windowManager.updateViewLayout(rootView, layoutParams)
         }
     }
@@ -126,18 +160,18 @@ class WindowManagerOverlayHost(
 
     private fun createRootView(): LinearLayout {
         return LinearLayout(appContext).also { container ->
-            container.orientation = LinearLayout.VERTICAL
-            container.gravity = Gravity.CENTER_HORIZONTAL
-            container.addView(titleStrip)
+            container.orientation = LinearLayout.HORIZONTAL
+            container.gravity = Gravity.CENTER_VERTICAL
+            container.addView(thumbnailView)
             container.addView(mediaRow)
         }
     }
 
     private fun createMediaRow(): LinearLayout {
         return LinearLayout(appContext).also { container ->
-            container.orientation = LinearLayout.HORIZONTAL
-            container.gravity = Gravity.CENTER_VERTICAL
-            container.addView(thumbnailView)
+            container.orientation = LinearLayout.VERTICAL
+            container.gravity = Gravity.CENTER_HORIZONTAL
+            container.addView(titleStrip)
             container.addView(controlsRow)
         }
     }
@@ -231,6 +265,10 @@ class WindowManagerOverlayHost(
         val colors = appearance.colors
 
         rootView.alpha = viewState.config.opacity
+        rootView.gravity = if (viewState.layout.dragHandlePlacement == DragHandlePlacement.Left) Gravity.START or Gravity.CENTER_VERTICAL else Gravity.END or Gravity.CENTER_VERTICAL
+        val thumbnailEnabled = viewState.config.allowLowQualityThumbnailFallback
+        mediaRow.orientation = LinearLayout.VERTICAL
+        mediaRow.gravity = Gravity.CENTER_HORIZONTAL
         if (!isDragging && (appliedDragHandlePlacement != viewState.layout.dragHandlePlacement || controlsRow.childCount == 0)) {
             syncChildOrder(controlsRow, viewState.layout.dragHandlePlacement)
         }
@@ -275,10 +313,11 @@ class WindowManagerOverlayHost(
             setStroke(dp(1), colors.surfaceStrokeColor)
         }
         titleStrip.layoutParams = LinearLayout.LayoutParams(
-            dp(sizing.titleStripWidthDp),
+            dp(if (thumbnailEnabled) sizing.thumbnailSizeDp else sizing.titleStripWidthDp),
             ViewGroup.LayoutParams.WRAP_CONTENT
         ).apply {
-            bottomMargin = dp(sizing.titleStripSpacingDp)
+            marginEnd = if (thumbnailEnabled) dp(sizing.itemSpacingDp) else 0
+            bottomMargin = if (thumbnailEnabled) 0 else dp(sizing.titleStripSpacingDp)
         }
 
         updateButtonLayout(previousButton, sizing)
@@ -295,7 +334,9 @@ class WindowManagerOverlayHost(
         dragHandle.layoutParams = LinearLayout.LayoutParams(
             dp(sizing.handleWidthDp),
             dp(sizing.handleHeightDp)
-        )
+        ).apply {
+            marginEnd = if (viewState.layout.dragHandlePlacement == DragHandlePlacement.Left) dp(sizing.itemSpacingDp) else 0
+        }
     }
 
     private fun syncChildOrder(container: LinearLayout, placement: DragHandlePlacement) {
@@ -314,17 +355,13 @@ class WindowManagerOverlayHost(
 
     private fun bindTitleStrip(mediaState: MediaSessionState, appearance: WidgetOverlayAppearance) {
         val title = mediaState.currentTitle()
-        titleStrip.visibility = if (title == null) View.GONE else View.VISIBLE
-        if (title != null) {
-            titleStrip.text = title
-            titleStrip.isSelected = true
-        } else {
-            titleStrip.text = ""
-            titleStrip.isSelected = false
-        }
+        titleStrip.visibility = View.VISIBLE
+        titleStrip.text = title.orEmpty()
+        titleStrip.isSelected = !title.isNullOrEmpty()
         (titleStrip.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
             params.width = dp(appearance.sizing.titleStripWidthDp)
-            params.bottomMargin = if (title == null) 0 else dp(appearance.sizing.titleStripSpacingDp)
+            params.marginEnd = 0
+            params.bottomMargin = dp(appearance.sizing.titleStripSpacingDp)
             titleStrip.layoutParams = params
         }
     }
@@ -337,9 +374,21 @@ class WindowManagerOverlayHost(
         )
 
         if (presentation == null) {
-            thumbnailView.visibility = View.GONE
-            thumbnailView.setImageDrawable(null)
-            appliedThumbnailSignature = null
+            if (viewState.config.allowLowQualityThumbnailFallback) {
+                thumbnailView.visibility = View.VISIBLE
+                thumbnailView.layoutParams = LinearLayout.LayoutParams(
+                    dp(appearance.sizing.thumbnailSizeDp),
+                    dp(appearance.sizing.thumbnailSizeDp)
+                ).apply {
+                    marginEnd = dp(appearance.sizing.itemSpacingDp)
+                }
+                thumbnailView.setImageDrawable(null)
+                appliedThumbnailSignature = "fallback"
+            } else {
+                thumbnailView.visibility = View.GONE
+                thumbnailView.setImageDrawable(null)
+                appliedThumbnailSignature = null
+            }
             return
         }
 
@@ -362,9 +411,9 @@ class WindowManagerOverlayHost(
         )
 
         if (thumbnailBitmap == null) {
-            thumbnailView.visibility = View.GONE
+            thumbnailView.visibility = View.VISIBLE
             thumbnailView.setImageDrawable(null)
-            appliedThumbnailSignature = null
+            appliedThumbnailSignature = "fallback"
             return
         }
 

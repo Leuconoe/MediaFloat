@@ -73,6 +73,12 @@ class WidgetConfigStateHolder(
         repository.savePosition(position)
     }
 
+    fun setHorizontalOffsetDp(xOffsetDp: Int) {
+        repository.savePosition(
+            currentState().position.copy(xOffsetDp = xOffsetDp)
+        )
+    }
+
     fun close() {
         repository.removeListener(listener)
     }

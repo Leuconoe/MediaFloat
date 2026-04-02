@@ -175,6 +175,7 @@ fun AppShell(
     onSetThemePreset: (WidgetThemePreset) -> Unit = {},
     onSetOpacity: (Float) -> Unit = {},
     onSetDragHandlePlacement: (DragHandlePlacement) -> Unit = {},
+    onSetHorizontalOffsetPreset: (Int) -> Unit = {},
     onSetPersistentOverlayEnabled: (Boolean) -> Unit = {},
     onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit = {},
     onStartOverlay: () -> Unit = {},
@@ -255,6 +256,7 @@ fun AppShell(
                             onSetThemePreset = onSetThemePreset,
                             onSetOpacity = onSetOpacity,
                             onSetDragHandlePlacement = onSetDragHandlePlacement,
+                            onSetHorizontalOffsetPreset = onSetHorizontalOffsetPreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                             onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                             onStartOverlay = onStartOverlay,
@@ -300,6 +302,7 @@ fun AppShell(
                             onSetThemePreset = onSetThemePreset,
                             onSetOpacity = onSetOpacity,
                             onSetDragHandlePlacement = onSetDragHandlePlacement,
+                            onSetHorizontalOffsetPreset = onSetHorizontalOffsetPreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                             onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                             onStartOverlay = onStartOverlay,
@@ -469,6 +472,7 @@ private fun SectionContent(
     onSetThemePreset: (WidgetThemePreset) -> Unit,
     onSetOpacity: (Float) -> Unit,
     onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
+    onSetHorizontalOffsetPreset: (Int) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
     onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
@@ -517,6 +521,9 @@ private fun SectionContent(
                     onSetSizePreset = onSetSizePreset,
                     onSetWidthStyle = onSetWidthStyle,
                     onSetOpacity = onSetOpacity,
+                    onSetDragHandlePlacement = onSetDragHandlePlacement,
+                    onSetHorizontalOffsetPreset = onSetHorizontalOffsetPreset,
+                    onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                     onStartOverlay = onStartOverlay,
                     onStopOverlay = onStopOverlay,
                     wideLayout = wideLayout
@@ -528,9 +535,7 @@ private fun SectionContent(
                     onSetDebugToolsEnabled = onSetDebugToolsEnabled,
                     onSetAppLanguage = onSetAppLanguage,
                     onSetThemePreset = onSetThemePreset,
-                    onSetDragHandlePlacement = onSetDragHandlePlacement,
                     onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
-                    onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
                     wideLayout = wideLayout
                 )
 
@@ -615,6 +620,9 @@ private fun SettingsScreen(
     onSetSizePreset: (WidgetSizePreset) -> Unit,
     onSetWidthStyle: (WidgetWidthStyle) -> Unit,
     onSetOpacity: (Float) -> Unit,
+    onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
+    onSetHorizontalOffsetPreset: (Int) -> Unit,
+    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
     wideLayout: Boolean
@@ -655,6 +663,15 @@ private fun SettingsScreen(
                     opacity = widgetConfigState.config.opacity,
                     onSetOpacity = onSetOpacity
                 )
+                SidebarPlacementCard(
+                    selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
+                    onSetDragHandlePlacement = onSetDragHandlePlacement
+                )
+                // OffsetPresetCard temporarily disabled
+                ThumbnailToggleCard(
+                    config = widgetConfigState.config,
+                    onSetEnabled = onSetLowQualityThumbnailFallbackEnabled
+                )
             }
         }
     } else {
@@ -685,6 +702,15 @@ private fun SettingsScreen(
             opacity = widgetConfigState.config.opacity,
             onSetOpacity = onSetOpacity
         )
+        SidebarPlacementCard(
+            selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
+            onSetDragHandlePlacement = onSetDragHandlePlacement
+        )
+        // OffsetPresetCard temporarily disabled
+        ThumbnailToggleCard(
+            config = widgetConfigState.config,
+            onSetEnabled = onSetLowQualityThumbnailFallbackEnabled
+        )
     }
 }
 
@@ -695,9 +721,7 @@ private fun AdvancedSettingsScreen(
     onSetDebugToolsEnabled: (Boolean) -> Unit,
     onSetAppLanguage: (AppLanguage) -> Unit,
     onSetThemePreset: (WidgetThemePreset) -> Unit,
-    onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
-    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
     wideLayout: Boolean
 ) {
     if (wideLayout) {
@@ -713,10 +737,6 @@ private fun AdvancedSettingsScreen(
                     selectedPreset = widgetConfigState.config.themePreset,
                     onSetThemePreset = onSetThemePreset
                 )
-                SidebarPlacementCard(
-                    selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
-                    onSetDragHandlePlacement = onSetDragHandlePlacement
-                )
             }
             Column(
                 modifier = Modifier.weight(1f),
@@ -728,8 +748,7 @@ private fun AdvancedSettingsScreen(
                 )
                 WidgetBehaviorCard(
                     config = widgetConfigState.config,
-                    onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
-                    onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled
+                    onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled
                 )
                 DeveloperOptionsCard(
                     debugToolsEnabled = appPreferences.debugToolsEnabled,
@@ -742,18 +761,13 @@ private fun AdvancedSettingsScreen(
             selectedPreset = widgetConfigState.config.themePreset,
             onSetThemePreset = onSetThemePreset
         )
-        SidebarPlacementCard(
-            selectedPlacement = widgetConfigState.config.layout.dragHandlePlacement,
-            onSetDragHandlePlacement = onSetDragHandlePlacement
-        )
         AppLanguageCard(
             selectedLanguage = appPreferences.appLanguage,
             onSetAppLanguage = onSetAppLanguage
         )
         WidgetBehaviorCard(
             config = widgetConfigState.config,
-            onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
-            onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled
+            onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled
         )
         DeveloperOptionsCard(
             debugToolsEnabled = appPreferences.debugToolsEnabled,
@@ -1200,6 +1214,9 @@ private fun PreviewOverlayThumbnail(
                 MediaArtworkSource.MetadataDisplayIconBitmap,
                 MediaArtworkSource.MetadataArtBitmap,
                 MediaArtworkSource.MetadataAlbumArtBitmap -> "ART"
+                MediaArtworkSource.NotificationPicture,
+                MediaArtworkSource.NotificationLargeIconBig,
+                MediaArtworkSource.NotificationExtraLargeIcon,
                 MediaArtworkSource.NotificationLargeIcon -> "NOTI"
             },
             style = MaterialTheme.typography.labelSmall,
@@ -1995,7 +2012,6 @@ private fun DeveloperOptionsCard(
 private fun WidgetBehaviorCard(
     config: WidgetConfig,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
-    onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -2037,34 +2053,98 @@ private fun WidgetBehaviorCard(
                     onCheckedChange = onSetPersistentOverlayEnabled
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun OffsetPresetCard(
+    currentOffsetDp: Int,
+    onSetOffsetDp: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val presets = listOf(12, 24, 40)
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.edge_offset_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(id = R.string.edge_offset_detail),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("low-quality-thumbnail-toggle-row"),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.low_quality_thumbnail_fallback_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = stringResource(id = R.string.low_quality_thumbnail_fallback_detail),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                presets.forEach { offsetDp ->
+                    SelectionPill(
+                        text = when (offsetDp) {
+                            12 -> stringResource(id = R.string.edge_offset_near)
+                            24 -> stringResource(id = R.string.edge_offset_default)
+                            else -> stringResource(id = R.string.edge_offset_far)
+                        },
+                        selected = currentOffsetDp == offsetDp,
+                        enabled = true,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onSetOffsetDp(offsetDp) }
                     )
                 }
-                Switch(
-                    checked = config.allowLowQualityThumbnailFallback,
-                    onCheckedChange = onSetLowQualityThumbnailFallbackEnabled,
-                    modifier = Modifier.testTag("low-quality-thumbnail-toggle")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThumbnailToggleCard(
+    config: WidgetConfig,
+    onSetEnabled: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+                .testTag("thumbnail-toggle-row"),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.low_quality_thumbnail_fallback_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = stringResource(id = R.string.low_quality_thumbnail_fallback_detail),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            Switch(
+                checked = config.allowLowQualityThumbnailFallback,
+                onCheckedChange = onSetEnabled,
+                modifier = Modifier.testTag("thumbnail-toggle")
+            )
         }
     }
 }
