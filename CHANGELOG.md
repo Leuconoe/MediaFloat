@@ -2,6 +2,17 @@
 
 All notable user-facing changes to MediaFloat are recorded here.
 
+## v0.2.4
+
+Layout and thumbnail follow-up release.
+
+- Normalized left drag-handle spacing to match the right side
+- Added media thumbnail support with a fallback placeholder when artwork is unavailable
+- Kept the title strip always visible to prevent layout flicker during track changes
+- Moved sidebar placement and thumbnail toggle controls into Settings for easier access
+
+See also: `docs/releases/v0.2.4.md`
+
 ## v0.2.3
 
 Stability and shortcut follow-up release.
