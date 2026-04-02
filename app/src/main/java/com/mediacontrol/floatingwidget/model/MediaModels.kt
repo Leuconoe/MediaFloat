@@ -36,6 +36,9 @@ enum class MediaArtworkSource {
     MetadataDisplayIconBitmap,
     MetadataArtBitmap,
     MetadataAlbumArtBitmap,
+    NotificationPicture,
+    NotificationLargeIconBig,
+    NotificationExtraLargeIcon,
     NotificationLargeIcon
 }
 
