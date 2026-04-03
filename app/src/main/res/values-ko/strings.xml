@@ -239,12 +239,10 @@
     <string name="product_constraints_footer">이 제약은 휴대폰과 태블릿에서 오버레이를 예측 가능하게 유지하며 Debug는 같은 실제 런타임 경로를 사용합니다.</string>
 
     <string name="licenses_title">라이선스</string>
-    <string name="licenses_intro">이 단일 모듈 앱에 포함된 라이브러리 고지 요약:</string>
     <string name="licenses_androidx">AndroidX Activity Compose, Lifecycle Runtime Compose, Compose UI, Material3는 Apache License 2.0으로 배포됩니다.</string>
     <string name="licenses_material">Google Material Components는 Apache License 2.0으로 배포됩니다.</string>
     <string name="licenses_kotlin">Kotlin 표준 라이브러리 구성 요소는 Apache License 2.0으로 배포됩니다.</string>
     <string name="licenses_platform">Android 플랫폼 미디어 및 오버레이 API는 번들된 타사 소스가 아니라 Android SDK 약관을 통해 사용됩니다.</string>
-    <string name="licenses_log_retention">현재 앱 내 디버그 로그 보관 한도: %1$d개.</string>
 
     <string name="metric_runtime">런타임</string>
     <string name="metric_buttons">버튼</string>

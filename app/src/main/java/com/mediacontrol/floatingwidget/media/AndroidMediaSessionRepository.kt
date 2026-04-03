@@ -2,20 +2,16 @@ package sw2.io.mediafloat.media
 
 import android.content.ComponentName
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.media.session.MediaController
 import android.media.MediaMetadata
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
-import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import sw2.io.mediafloat.debug.DebugLogWriter
 import sw2.io.mediafloat.debug.NoOpDebugLogWriter
 import sw2.io.mediafloat.model.MediaArtwork
-import sw2.io.mediafloat.model.MediaArtworkSource
 import sw2.io.mediafloat.model.MediaCommand
 import sw2.io.mediafloat.model.MediaSessionErrorReason
 import sw2.io.mediafloat.model.MediaSessionLimitReason
@@ -37,6 +33,9 @@ class AndroidMediaSessionRepository(
         appContext.getSystemService(MediaSessionManager::class.java)
     private val listenerComponent = ComponentName(appContext, MediaNotificationListenerService::class.java)
     private val handler = Handler(Looper.getMainLooper())
+    private val controllerSelector = MediaControllerSelector
+    private val recoveryPolicy = MediaRecoveryPolicy
+    private val artworkResolver = MediaArtworkCandidateResolver(appContext.contentResolver)
     private val listeners = linkedSetOf<MediaSessionStateListener>()
     private val activeSessionsListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
         handleControllersChanged(controllers.orEmpty())
@@ -44,7 +43,7 @@ class AndroidMediaSessionRepository(
     private val controllerCallback = object : MediaController.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackState?) {
             publishState(resolveState(currentController))
-            if (shouldRecoverAfterPlaybackStateChange(state)) {
+            if (recoveryPolicy.shouldRecoverAfterPlaybackStateChange(state)) {
                 requestRecovery("playback_state_${state?.state ?: "unknown"}")
             }
         }
@@ -221,25 +220,14 @@ class AndroidMediaSessionRepository(
         registerController(nextController)
         val nextState = resolveState(nextController)
         publishState(nextState)
-        if (shouldContinueRecovery(nextState)) {
+        if (recoveryPolicy.shouldContinueRecovery(nextState)) {
             requestRecovery("controller_state_changed")
         } else {
             clearRecovery()
         }
     }
 
-    private fun selectController(controllers: List<MediaController>): MediaController? {
-        if (controllers.isEmpty()) {
-            return null
-        }
-
-        return controllers
-            .sortedWith(
-                compareByDescending<MediaController> { it.playbackState.isActivelyPlaying() }
-                    .thenByDescending { it.playbackState?.lastPositionUpdateTime ?: 0L }
-            )
-            .firstOrNull()
-    }
+    private fun selectController(controllers: List<MediaController>): MediaController? = controllerSelector.select(controllers)
 
     private fun registerController(controller: MediaController) {
         if (currentController?.sessionToken == controller.sessionToken) {
@@ -288,78 +276,7 @@ class AndroidMediaSessionRepository(
     }
 
     private fun resolveArtworkCandidates(controller: MediaController): List<MediaArtwork> {
-        val metadata = controller.metadata
-
-        return buildArtworkCandidates(
-            metadataDisplayIconUri = resolveArtworkUriCandidate(
-                rawUri = metadata?.getString(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI),
-                source = MediaArtworkSource.MetadataDisplayIconUri
-            ),
-            metadataArtUri = resolveArtworkUriCandidate(
-                rawUri = metadata?.getString(MediaMetadata.METADATA_KEY_ART_URI),
-                source = MediaArtworkSource.MetadataArtUri
-            ),
-            metadataAlbumArtUri = resolveArtworkUriCandidate(
-                rawUri = metadata?.getString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI),
-                source = MediaArtworkSource.MetadataAlbumArtUri
-            ),
-            metadataDisplayIconBitmap = resolveArtworkBitmapCandidate(
-                bitmap = metadata?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON),
-                source = MediaArtworkSource.MetadataDisplayIconBitmap
-            ),
-            metadataArtBitmap = resolveArtworkBitmapCandidate(
-                bitmap = metadata?.getBitmap(MediaMetadata.METADATA_KEY_ART),
-                source = MediaArtworkSource.MetadataArtBitmap
-            ),
-            metadataAlbumArtBitmap = resolveArtworkBitmapCandidate(
-                bitmap = metadata?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART),
-                source = MediaArtworkSource.MetadataAlbumArtBitmap
-            ),
-            notificationLargeIcon = notificationArtworkByPackage[controller.packageName]
-        )
-    }
-
-    private fun resolveArtworkUriCandidate(
-        rawUri: String?,
-        source: MediaArtworkSource
-    ): MediaArtwork.UriSource? {
-        val normalizedUri = rawUri
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
-            ?: return null
-
-        val artworkBounds = runCatching {
-            appContext.contentResolver.openInputStream(Uri.parse(normalizedUri))?.use { stream ->
-                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeStream(stream, null, options)
-                if (options.outWidth > 0 && options.outHeight > 0) {
-                    options.outWidth to options.outHeight
-                } else {
-                    null
-                }
-            }
-        }.getOrNull() ?: return null
-
-        return MediaArtwork.UriSource(
-            source = source,
-            uri = normalizedUri,
-            widthPx = artworkBounds.first,
-            heightPx = artworkBounds.second
-        )
-    }
-
-    private fun resolveArtworkBitmapCandidate(
-        bitmap: Bitmap?,
-        source: MediaArtworkSource
-    ): MediaArtwork.BitmapSource? {
-        val resolvedBitmap = bitmap?.takeIf { it.width > 0 && it.height > 0 } ?: return null
-
-        return MediaArtwork.BitmapSource(
-            source = source,
-            bitmap = resolvedBitmap,
-            widthPx = resolvedBitmap.width,
-            heightPx = resolvedBitmap.height
-        )
+        return artworkResolver.resolve(controller, notificationArtworkByPackage)
     }
 
     private fun publishState(state: MediaSessionState) {
@@ -377,7 +294,7 @@ class AndroidMediaSessionRepository(
             val nextState = refresh(reason = "recovery_${attempt + 1}_$reason")
             synchronized(this) {
                 recoveryRunnable = null
-                if (connected && attempt + 1 < MAX_RECOVERY_ATTEMPTS && shouldContinueRecovery(nextState)) {
+                if (connected && attempt + 1 < MAX_RECOVERY_ATTEMPTS && recoveryPolicy.shouldContinueRecovery(nextState)) {
                     scheduleRecovery(reason = reason, attempt = attempt + 1)
                 }
             }
@@ -393,33 +310,9 @@ class AndroidMediaSessionRepository(
         recoveryRunnable = null
     }
 
-    private fun shouldRecoverAfterPlaybackStateChange(state: PlaybackState?): Boolean {
-        if (state == null) {
-            return true
-        }
+    private fun shouldRecoverAfterPlaybackStateChange(state: PlaybackState?): Boolean = recoveryPolicy.shouldRecoverAfterPlaybackStateChange(state)
 
-        return when (state.state) {
-            PlaybackState.STATE_NONE,
-            PlaybackState.STATE_STOPPED,
-            PlaybackState.STATE_ERROR -> true
-            else -> state.actions.toSupportedCommands().isEmpty()
-        }
-    }
-
-    private fun shouldContinueRecovery(state: MediaSessionState): Boolean {
-        return when (state) {
-            is MediaSessionState.Active -> false
-            is MediaSessionState.Limited -> state.reason == MediaSessionLimitReason.PlaybackStateUnknown ||
-                state.reason == MediaSessionLimitReason.MissingTransportControls
-            MediaSessionState.Discovering,
-            MediaSessionState.Unavailable -> true
-            is MediaSessionState.Error -> false
-        }
-    }
-
-    private fun PlaybackState?.isActivelyPlaying(): Boolean {
-        return this?.state == PlaybackState.STATE_PLAYING || this?.state == PlaybackState.STATE_BUFFERING
-    }
+    private fun shouldContinueRecovery(state: MediaSessionState): Boolean = recoveryPolicy.shouldContinueRecovery(state)
 
     internal companion object {
         fun buildMediaSessionState(

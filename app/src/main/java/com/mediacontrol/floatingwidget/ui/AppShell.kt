@@ -199,6 +199,22 @@ fun AppShell(
         }
     }
 
+    LaunchedEffect(capabilityState) {
+        if (!capabilityState.isReadyForPersistentOverlay() &&
+            !capabilityState.hasAnyPermissionGranted() &&
+            selectedSection == AppSection.Landing) {
+            selectedSection = AppSection.Support
+        }
+    }
+
+    LaunchedEffect(capabilityState) {
+        if (!capabilityState.isReadyForPersistentOverlay() &&
+            !capabilityState.hasAnyPermissionGranted() &&
+            selectedSection == AppSection.Landing) {
+            selectedSection = AppSection.Support
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -821,6 +837,7 @@ private fun DebugScreen(
                 )
                 ReadinessActionsCard(
                     readinessProblems = capabilityState.unavailableReasons(),
+                    capabilityState = capabilityState,
                     onOpenOverlaySettings = onOpenOverlaySettings,
                     onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
                     onOpenNotificationSettings = onOpenNotificationSettings,
@@ -853,6 +870,7 @@ private fun DebugScreen(
         )
         ReadinessActionsCard(
             readinessProblems = capabilityState.unavailableReasons(),
+            capabilityState = capabilityState,
             onOpenOverlaySettings = onOpenOverlaySettings,
             onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
             onOpenNotificationSettings = onOpenNotificationSettings,
@@ -886,8 +904,9 @@ private fun SupportScreen(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                SupportActionsCard(
+                ReadinessActionsCard(
                     readinessProblems = capabilityState.unavailableReasons(),
+                    capabilityState = capabilityState,
                     onOpenOverlaySettings = onOpenOverlaySettings,
                     onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
                     onOpenNotificationSettings = onOpenNotificationSettings,
@@ -906,13 +925,13 @@ private fun SupportScreen(
                     runtimeState = runtimeState,
                     mediaSummaryState = mediaSummaryState
                 )
-                ProductConstraintsCard()
-                LicenseCard(retentionLimit = debugLogState.retentionLimit)
+                LicenseCard()
             }
         }
     } else {
-        SupportActionsCard(
+        ReadinessActionsCard(
             readinessProblems = capabilityState.unavailableReasons(),
+            capabilityState = capabilityState,
             onOpenOverlaySettings = onOpenOverlaySettings,
             onOpenNotificationListenerSettings = onOpenNotificationListenerSettings,
             onOpenNotificationSettings = onOpenNotificationSettings,
@@ -926,8 +945,7 @@ private fun SupportScreen(
             runtimeState = runtimeState,
             mediaSummaryState = mediaSummaryState
         )
-        ProductConstraintsCard()
-        LicenseCard(retentionLimit = debugLogState.retentionLimit)
+        LicenseCard()
     }
 }
 
@@ -2249,6 +2267,7 @@ private fun RuntimeStatusCard(
 @Composable
 private fun ReadinessActionsCard(
     readinessProblems: List<OverlayUnavailableReason>,
+    capabilityState: CapabilityState,
     onOpenOverlaySettings: () -> Unit,
     onOpenNotificationListenerSettings: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
@@ -2265,54 +2284,77 @@ private fun ReadinessActionsCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = stringResource(id = R.string.system_access_title),
+                text = stringResource(id = R.string.permission_intro_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             )
             Text(
-                text = if (readinessProblems.isEmpty()) {
-                    stringResource(id = R.string.system_access_ready_detail)
-                } else {
-                    stringResource(id = R.string.system_access_blocked_detail)
-                },
+                text = stringResource(id = R.string.permission_intro_detail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onTertiaryContainer
             )
-            readinessProblems.forEach { reason ->
+            PermissionItem(
+                title = stringResource(id = R.string.permission_overlay_title),
+                detail = stringResource(id = R.string.permission_overlay_detail),
+                granted = capabilityState.overlayAccess == CapabilityGrantState.Granted,
+                onOpenSettings = onOpenOverlaySettings
+            )
+            PermissionItem(
+                title = stringResource(id = R.string.permission_listener_title),
+                detail = stringResource(id = R.string.permission_listener_detail),
+                granted = capabilityState.notificationListenerAccess == CapabilityGrantState.Granted,
+                onOpenSettings = onOpenNotificationListenerSettings
+            )
+            PermissionItem(
+                title = stringResource(id = R.string.permission_notification_title),
+                detail = stringResource(id = R.string.permission_notification_detail),
+                granted = capabilityState.notificationPosture == NotificationPosture.Visible,
+                onOpenSettings = onOpenNotificationSettings
+            )
+        }
+    }
+}
+
+@Composable
+private fun PermissionItem(
+    title: String,
+    detail: String,
+    granted: Boolean,
+    onOpenSettings: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = reason.toDisplayLine(LocalContext.current),
-                    style = MaterialTheme.typography.bodySmall,
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
+                Text(
+                    text = if (granted) stringResource(id = R.string.permission_all_granted) else stringResource(id = R.string.state_missing),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (granted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.6f)
+                )
             }
-            if (compact) {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedButton(onClick = onOpenOverlaySettings, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = stringResource(id = R.string.action_overlay_access))
-                    }
-                    OutlinedButton(onClick = onOpenNotificationListenerSettings, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = stringResource(id = R.string.action_listener_access))
-                    }
-                    OutlinedButton(onClick = onOpenNotificationSettings, modifier = Modifier.fillMaxWidth()) {
-                        Text(text = stringResource(id = R.string.action_notifications))
-                    }
-                }
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(onClick = onOpenOverlaySettings, modifier = Modifier.weight(1f)) {
-                        Text(text = stringResource(id = R.string.action_overlay_access))
-                    }
-                    OutlinedButton(onClick = onOpenNotificationListenerSettings, modifier = Modifier.weight(1f)) {
-                        Text(text = stringResource(id = R.string.action_listener_access))
-                    }
-                    OutlinedButton(onClick = onOpenNotificationSettings, modifier = Modifier.weight(1f)) {
-                        Text(text = stringResource(id = R.string.action_notifications))
-                    }
-                }
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+            )
+        }
+        if (!granted) {
+            OutlinedButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth()) {
+                Text(text = stringResource(id = R.string.permission_open_settings))
             }
         }
     }
@@ -2761,10 +2803,7 @@ private fun ProductConstraintsCard(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun LicenseCard(
-    retentionLimit: Int,
-    modifier: Modifier = Modifier
-) {
+private fun LicenseCard(modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = PanelShape,
@@ -2780,7 +2819,7 @@ private fun LicenseCard(
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = stringResource(id = R.string.licenses_intro),
+                text = stringResource(id = R.string.licenses_mit_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -2805,7 +2844,7 @@ private fun LicenseCard(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = stringResource(id = R.string.licenses_log_retention, retentionLimit),
+                text = stringResource(id = R.string.licenses_privacy),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
