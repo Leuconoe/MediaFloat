@@ -1,11 +1,8 @@
 package sw2.io.mediafloat.overlay
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
-import android.net.Uri
 import android.text.TextUtils
 import android.util.Log
 import android.view.Gravity
@@ -17,7 +14,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import kotlin.math.max
 import sw2.io.mediafloat.R
 import sw2.io.mediafloat.debug.DebugLogWriter
 import sw2.io.mediafloat.debug.NoOpDebugLogWriter
@@ -34,6 +30,9 @@ import sw2.io.mediafloat.model.WidgetOverlayAppearance
 import sw2.io.mediafloat.model.WidgetPosition
 import sw2.io.mediafloat.model.overlayAppearance
 import sw2.io.mediafloat.model.supports
+import sw2.io.mediafloat.overlay.OverlayLayoutCalculator
+import sw2.io.mediafloat.overlay.OverlayBitmapLoader
+import sw2.io.mediafloat.overlay.OverlayPresentationSpecFactory
 
 class WindowManagerOverlayHost(
     context: Context,
@@ -45,6 +44,7 @@ class WindowManagerOverlayHost(
 
     private val appContext = context.applicationContext
     private val windowManager = appContext.getSystemService(WindowManager::class.java)
+    private val bitmapLoader = OverlayBitmapLoader(appContext.contentResolver)
     private val previousButton by lazy { createCommandButton(MediaCommand.Previous) }
     private val playPauseButton by lazy { createCommandButton(MediaCommand.TogglePlayPause) }
     private val nextButton by lazy { createCommandButton(MediaCommand.Next) }
@@ -74,27 +74,19 @@ class WindowManagerOverlayHost(
 
     override fun attach(viewState: OverlayViewState) {
         currentViewState = viewState
-        updateOverlayAppearance(viewState)
+        updateOverlayAppearance(viewState, OverlayPresentationSpecFactory.create(viewState.config.overlayAppearance(), viewState.mediaState, viewState.config.allowLowQualityThumbnailFallback, viewState.layout.dragHandlePlacement))
         if (!attached) {
             rootView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-            val sizing = viewState.config.overlayAppearance().sizing
-            val thumbnailEnabled = viewState.config.allowLowQualityThumbnailFallback
-            val hasTitle = true
-            val mediaColumnWidthDp = max(sizing.containerWidthDp, sizing.titleStripWidthDp)
-            val mediaColumnHeightDp = sizing.containerHeightDp + sizing.titleStripMinHeightDp + sizing.titleStripSpacingDp
-            val totalWidthDp = if (thumbnailEnabled) {
-                sizing.thumbnailSizeDp + sizing.itemSpacingDp + mediaColumnWidthDp
-            } else {
-                mediaColumnWidthDp
-            }
-            val totalHeightDp = if (thumbnailEnabled) {
-                max(sizing.thumbnailSizeDp, mediaColumnHeightDp)
-            } else {
-                mediaColumnHeightDp
-            }
-            layoutParams.width = dp(totalWidthDp)
-            layoutParams.height = dp(totalHeightDp)
-            applyPosition(viewState.position, totalWidthDp)
+            val appearance = viewState.config.overlayAppearance()
+            val spec = OverlayPresentationSpecFactory.create(
+                appearance = appearance,
+                mediaState = viewState.mediaState,
+                thumbnailEnabled = viewState.config.allowLowQualityThumbnailFallback,
+                dragHandlePlacement = viewState.layout.dragHandlePlacement
+            )
+            layoutParams.width = dp(spec.metrics.totalWidthDp)
+            layoutParams.height = dp(spec.metrics.totalHeightDp)
+            applyPosition(viewState.position, spec.metrics.totalWidthDp)
             windowManager.addView(rootView, layoutParams)
             attached = true
             Log.d(TAG, "Attached overlay at x=${layoutParams.x}, y=${layoutParams.y}")
@@ -105,12 +97,18 @@ class WindowManagerOverlayHost(
 
     override fun update(viewState: OverlayViewState) {
         currentViewState = viewState
-        updateOverlayAppearance(viewState)
         previousButton.visibility = buttonVisibility(WidgetButton.Previous, viewState)
         playPauseButton.visibility = buttonVisibility(WidgetButton.PlayPause, viewState)
         nextButton.visibility = buttonVisibility(WidgetButton.Next, viewState)
 
         val appearance = viewState.config.overlayAppearance()
+        val spec = OverlayPresentationSpecFactory.create(
+            appearance = appearance,
+            mediaState = viewState.mediaState,
+            thumbnailEnabled = viewState.config.allowLowQualityThumbnailFallback,
+            dragHandlePlacement = viewState.layout.dragHandlePlacement
+        )
+        updateOverlayAppearance(viewState, spec)
         bindButton(previousButton, MediaCommand.Previous, viewState.mediaState, appearance, viewState.config.widthStyle)
         bindButton(playPauseButton, MediaCommand.TogglePlayPause, viewState.mediaState, appearance, viewState.config.widthStyle)
         bindButton(nextButton, MediaCommand.Next, viewState.mediaState, appearance, viewState.config.widthStyle)
@@ -121,27 +119,12 @@ class WindowManagerOverlayHost(
             android.R.drawable.ic_media_play
         }
         playPauseButton.setImageResource(playPauseIcon)
-        bindTitleStrip(viewState.mediaState, appearance)
-        bindThumbnail(viewState, appearance)
+        bindTitleStrip(spec)
+        bindThumbnail(viewState, appearance, spec)
         rootView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-        val sizing = appearance.sizing
-        val thumbnailEnabled = viewState.config.allowLowQualityThumbnailFallback
-        val hasTitle = true
-        val mediaColumnWidthDp = max(sizing.containerWidthDp, sizing.titleStripWidthDp)
-        val mediaColumnHeightDp = sizing.containerHeightDp + sizing.titleStripMinHeightDp + sizing.titleStripSpacingDp
-        val totalWidthDp = if (thumbnailEnabled) {
-            sizing.thumbnailSizeDp + sizing.itemSpacingDp + mediaColumnWidthDp
-        } else {
-            mediaColumnWidthDp
-        }
-        val totalHeightDp = if (thumbnailEnabled) {
-            max(sizing.thumbnailSizeDp, mediaColumnHeightDp)
-        } else {
-            mediaColumnHeightDp
-        }
-        layoutParams.width = dp(totalWidthDp)
-        layoutParams.height = dp(totalHeightDp)
-        applyPosition(viewState.position, totalWidthDp)
+        layoutParams.width = dp(spec.metrics.totalWidthDp)
+        layoutParams.height = dp(spec.metrics.totalHeightDp)
+        applyPosition(viewState.position, spec.metrics.totalWidthDp)
         if (attached) {
             windowManager.updateViewLayout(rootView, layoutParams)
         }
@@ -259,16 +242,15 @@ class WindowManagerOverlayHost(
         button.setColorFilter(if (enabled) appearance.colors.iconEnabledColor else appearance.colors.iconDisabledColor)
     }
 
-    private fun updateOverlayAppearance(viewState: OverlayViewState) {
+    private fun updateOverlayAppearance(viewState: OverlayViewState, spec: OverlayPresentationSpec) {
         val appearance = viewState.config.overlayAppearance()
         val sizing = appearance.sizing
         val colors = appearance.colors
 
         rootView.alpha = viewState.config.opacity
-        rootView.gravity = if (viewState.layout.dragHandlePlacement == DragHandlePlacement.Left) Gravity.START or Gravity.CENTER_VERTICAL else Gravity.END or Gravity.CENTER_VERTICAL
-        val thumbnailEnabled = viewState.config.allowLowQualityThumbnailFallback
-        mediaRow.orientation = LinearLayout.VERTICAL
-        mediaRow.gravity = Gravity.CENTER_HORIZONTAL
+        rootView.gravity = spec.rootGravity
+        mediaRow.orientation = spec.mediaRowOrientation
+        mediaRow.gravity = spec.mediaRowGravity
         if (!isDragging && (appliedDragHandlePlacement != viewState.layout.dragHandlePlacement || controlsRow.childCount == 0)) {
             syncChildOrder(controlsRow, viewState.layout.dragHandlePlacement)
         }
@@ -286,8 +268,8 @@ class WindowManagerOverlayHost(
             setStroke(dp(1), colors.surfaceStrokeColor)
         }
         controlsRow.layoutParams = LinearLayout.LayoutParams(
-            dp(sizing.containerWidthDp),
-            dp(sizing.containerHeightDp)
+            dp(spec.controlsRowWidthDp),
+            dp(spec.controlsRowHeightDp)
         )
 
         thumbnailView.background = GradientDrawable().apply {
@@ -313,11 +295,11 @@ class WindowManagerOverlayHost(
             setStroke(dp(1), colors.surfaceStrokeColor)
         }
         titleStrip.layoutParams = LinearLayout.LayoutParams(
-            dp(if (thumbnailEnabled) sizing.thumbnailSizeDp else sizing.titleStripWidthDp),
+            dp(spec.titleWidthDp),
             ViewGroup.LayoutParams.WRAP_CONTENT
         ).apply {
-            marginEnd = if (thumbnailEnabled) dp(sizing.itemSpacingDp) else 0
-            bottomMargin = if (thumbnailEnabled) 0 else dp(sizing.titleStripSpacingDp)
+            marginEnd = dp(spec.titleMarginEndDp)
+            bottomMargin = dp(spec.titleBottomMarginDp)
         }
 
         updateButtonLayout(previousButton, sizing)
@@ -335,7 +317,7 @@ class WindowManagerOverlayHost(
             dp(sizing.handleWidthDp),
             dp(sizing.handleHeightDp)
         ).apply {
-            marginEnd = if (viewState.layout.dragHandlePlacement == DragHandlePlacement.Left) dp(sizing.itemSpacingDp) else 0
+            marginEnd = dp(spec.dragHandleMarginEndDp)
         }
     }
 
@@ -353,20 +335,13 @@ class WindowManagerOverlayHost(
         appliedDragHandlePlacement = placement
     }
 
-    private fun bindTitleStrip(mediaState: MediaSessionState, appearance: WidgetOverlayAppearance) {
-        val title = mediaState.currentTitle()
-        titleStrip.visibility = View.VISIBLE
-        titleStrip.text = title.orEmpty()
-        titleStrip.isSelected = !title.isNullOrEmpty()
-        (titleStrip.layoutParams as? LinearLayout.LayoutParams)?.let { params ->
-            params.width = dp(appearance.sizing.titleStripWidthDp)
-            params.marginEnd = 0
-            params.bottomMargin = dp(appearance.sizing.titleStripSpacingDp)
-            titleStrip.layoutParams = params
-        }
+    private fun bindTitleStrip(spec: OverlayPresentationSpec) {
+        titleStrip.visibility = if (spec.titleVisible) View.VISIBLE else View.GONE
+        titleStrip.text = spec.titleText
+        titleStrip.isSelected = spec.titleText.isNotEmpty()
     }
 
-    private fun bindThumbnail(viewState: OverlayViewState, appearance: WidgetOverlayAppearance) {
+    private fun bindThumbnail(viewState: OverlayViewState, appearance: WidgetOverlayAppearance, spec: OverlayPresentationSpec) {
         val presentation = resolveOverlayThumbnailPresentation(
             mediaState = viewState.mediaState,
             sizing = appearance.sizing,
@@ -377,10 +352,10 @@ class WindowManagerOverlayHost(
             if (viewState.config.allowLowQualityThumbnailFallback) {
                 thumbnailView.visibility = View.VISIBLE
                 thumbnailView.layoutParams = LinearLayout.LayoutParams(
-                    dp(appearance.sizing.thumbnailSizeDp),
-                    dp(appearance.sizing.thumbnailSizeDp)
+                    dp(spec.thumbnailWidthDp),
+                    dp(spec.thumbnailHeightDp)
                 ).apply {
-                    marginEnd = dp(appearance.sizing.itemSpacingDp)
+                    marginEnd = dp(spec.thumbnailMarginEndDp)
                 }
                 thumbnailView.setImageDrawable(null)
                 appliedThumbnailSignature = "fallback"
@@ -394,10 +369,10 @@ class WindowManagerOverlayHost(
 
         thumbnailView.visibility = View.VISIBLE
         thumbnailView.layoutParams = LinearLayout.LayoutParams(
-            dp(presentation.sizeDp),
-            dp(presentation.sizeDp)
+            dp(spec.thumbnailWidthDp),
+            dp(spec.thumbnailHeightDp)
         ).apply {
-            marginEnd = dp(appearance.sizing.itemSpacingDp)
+            marginEnd = dp(spec.thumbnailMarginEndDp)
         }
 
         val thumbnailSignature = presentation.signature()
@@ -405,7 +380,7 @@ class WindowManagerOverlayHost(
             return
         }
 
-        val thumbnailBitmap = loadThumbnailBitmap(
+        val thumbnailBitmap = bitmapLoader.load(
             artwork = presentation.artwork,
             targetSizePx = dp(presentation.sizeDp)
         )
@@ -419,66 +394,6 @@ class WindowManagerOverlayHost(
 
         thumbnailView.setImageBitmap(thumbnailBitmap)
         appliedThumbnailSignature = thumbnailSignature
-    }
-
-    private fun loadThumbnailBitmap(artwork: MediaArtwork, targetSizePx: Int): Bitmap? {
-        return when (artwork) {
-            is MediaArtwork.BitmapSource -> artwork.bitmap?.centerCropSquare(targetSizePx)
-            is MediaArtwork.UriSource -> decodeUriThumbnail(
-                uri = artwork.uri,
-                targetSizePx = targetSizePx
-            )
-        }
-    }
-
-    private fun decodeUriThumbnail(uri: String, targetSizePx: Int): Bitmap? {
-        val parsedUri = Uri.parse(uri)
-        val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        appContext.contentResolver.openInputStream(parsedUri)?.use { stream ->
-            BitmapFactory.decodeStream(stream, null, boundsOptions)
-        } ?: return null
-
-        if (boundsOptions.outWidth <= 0 || boundsOptions.outHeight <= 0) {
-            return null
-        }
-
-        val decodeOptions = BitmapFactory.Options().apply {
-            inSampleSize = calculateInSampleSize(boundsOptions, targetSizePx, targetSizePx)
-        }
-        val decodedBitmap = appContext.contentResolver.openInputStream(parsedUri)?.use { stream ->
-            BitmapFactory.decodeStream(stream, null, decodeOptions)
-        } ?: return null
-
-        return decodedBitmap.centerCropSquare(targetSizePx)
-    }
-
-    private fun calculateInSampleSize(
-        options: BitmapFactory.Options,
-        requestedWidth: Int,
-        requestedHeight: Int
-    ): Int {
-        var inSampleSize = 1
-        var halfHeight = options.outHeight / 2
-        var halfWidth = options.outWidth / 2
-
-        while (halfHeight / inSampleSize >= requestedHeight && halfWidth / inSampleSize >= requestedWidth) {
-            inSampleSize *= 2
-        }
-
-        return inSampleSize.coerceAtLeast(1)
-    }
-
-    private fun Bitmap.centerCropSquare(targetSizePx: Int): Bitmap {
-        val squareSize = minOf(width, height)
-        val startX = ((width - squareSize) / 2).coerceAtLeast(0)
-        val startY = ((height - squareSize) / 2).coerceAtLeast(0)
-        val croppedBitmap = Bitmap.createBitmap(this, startX, startY, squareSize, squareSize)
-
-        return if (croppedBitmap.width == targetSizePx && croppedBitmap.height == targetSizePx) {
-            croppedBitmap
-        } else {
-            Bitmap.createScaledBitmap(croppedBitmap, targetSizePx, targetSizePx, true)
-        }
     }
 
     private fun OverlayThumbnailPresentation.signature(): String {

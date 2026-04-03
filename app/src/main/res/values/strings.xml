@@ -240,12 +240,12 @@
     <string name="product_constraints_footer">These constraints keep the overlay predictable across phones and tablets while Debug exercises the same real runtime path.</string>
 
     <string name="licenses_title">Licenses</string>
-    <string name="licenses_intro">Notice summary for the libraries visible in this single-module app:</string>
+    <string name="licenses_mit_intro">This app is released under the MIT License.</string>
+    <string name="licenses_privacy">No personal information is collected, stored, or transmitted. All data remains on your device.</string>
     <string name="licenses_androidx">AndroidX Activity Compose, Lifecycle Runtime Compose, Compose UI, and Material3 are distributed under Apache License 2.0.</string>
     <string name="licenses_material">Google Material Components are distributed under Apache License 2.0.</string>
     <string name="licenses_kotlin">Kotlin standard library components are distributed under Apache License 2.0.</string>
     <string name="licenses_platform">Android platform media and overlay APIs are used through Android SDK terms rather than bundled third-party source.</string>
-    <string name="licenses_log_retention">Current in-app debug log retention: %1$d entries.</string>
 
     <string name="metric_runtime">Runtime</string>
     <string name="metric_buttons">Buttons</string>
@@ -278,4 +278,15 @@
     <string name="media_error_permission_revoked">Permission revoked</string>
     <string name="media_error_platform_failure">Platform failure</string>
     <string name="media_error_unknown">Unknown</string>
+
+    <string name="permission_intro_title">Required permissions</string>
+    <string name="permission_intro_detail">MediaFloat needs these permissions to show the floating widget and track media playback.</string>
+    <string name="permission_overlay_title">Display over other apps</string>
+    <string name="permission_overlay_detail">Allows the floating widget to appear on top of other apps so you can control media from anywhere.</string>
+    <string name="permission_listener_title">Notification access</string>
+    <string name="permission_listener_detail">Reads media playback notifications so the widget knows what is playing and which controls are available.</string>
+    <string name="permission_notification_title">App notifications</string>
+    <string name="permission_notification_detail">Ensures the widget can show media notifications when needed.</string>
+    <string name="permission_open_settings">Open settings</string>
+    <string name="permission_all_granted">All permissions granted</string>
 </resources>

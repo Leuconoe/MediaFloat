@@ -74,4 +74,10 @@ data class CapabilityState(
     }
 
     fun isReadyForPersistentOverlay(): Boolean = unavailableReasons().isEmpty()
+
+    fun hasAnyPermissionGranted(): Boolean {
+        return overlayAccess == CapabilityGrantState.Granted ||
+            notificationListenerAccess == CapabilityGrantState.Granted ||
+            notificationPosture == NotificationPosture.Visible
+    }
 }
