@@ -82,6 +82,30 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
+      - name: Bump versionCode for release
+        shell: bash
+        run: |
+          # Extract versionName from build.gradle.kts
+          VERSION_NAME=$(grep 'versionName' app/build.gradle.kts | sed 's/.*= *"\(.*\)"/\1/')
+          # Increment versionCode by 1
+          CURRENT_CODE=$(grep 'versionCode' app/build.gradle.kts | sed 's/.*= *\([0-9]*\)/\1/')
+          NEW_CODE=$((CURRENT_CODE + 1))
+          # Update build.gradle.kts
+          sed -i "s/versionCode = $CURRENT_CODE/versionCode = $NEW_CODE/" app/build.gradle.kts
+          echo "Bumped versionCode from $CURRENT_CODE to $NEW_CODE for $VERSION_NAME"
+
+      - name: Bump versionCode for release
+        shell: bash
+        run: |
+          # Extract versionName from build.gradle.kts
+          VERSION_NAME=$(grep 'versionName' app/build.gradle.kts | sed 's/.*= *"\(.*\)"/\1/')
+          # Increment versionCode by 1
+          CURRENT_CODE=$(grep 'versionCode' app/build.gradle.kts | sed 's/.*= *\([0-9]*\)/\1/')
+          NEW_CODE=$((CURRENT_CODE + 1))
+          # Update build.gradle.kts
+          sed -i "s/versionCode = $CURRENT_CODE/versionCode = $NEW_CODE/" app/build.gradle.kts
+          echo "Bumped versionCode from $CURRENT_CODE to $NEW_CODE for $VERSION_NAME"
+
       - name: Run release checks
         run: ./gradlew :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease -Pkotlin.incremental=false
 
