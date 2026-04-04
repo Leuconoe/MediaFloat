@@ -13,6 +13,7 @@ class MediaModelsTest {
         val state = MediaSessionState.Active(
             sessionId = "session-1",
             title = null,
+            artist = null,
             supportedActions = setOf(MediaCommand.TogglePlayPause),
             playbackStatus = PlaybackStatus.Playing
         )
@@ -60,6 +61,7 @@ class MediaModelsTest {
             MediaSessionState.Active(
                 sessionId = "session-art",
                 title = "Aurora",
+                artist = null,
                 artworkCandidates = artworkCandidates,
                 supportedActions = setOf(MediaCommand.TogglePlayPause),
                 playbackStatus = PlaybackStatus.Playing
@@ -70,6 +72,17 @@ class MediaModelsTest {
             MediaSessionState.Limited(
                 reason = MediaSessionLimitReason.MissingTransportControls,
                 title = "Aurora",
+                artist = null,
+                artworkCandidates = artworkCandidates,
+                supportedActions = emptySet()
+            ).currentArtworkCandidates()
+        )
+        assertEquals(
+            artworkCandidates,
+            MediaSessionState.Limited(
+                reason = MediaSessionLimitReason.MissingTransportControls,
+                title = "Aurora",
+                artist = null,
                 artworkCandidates = artworkCandidates,
                 supportedActions = emptySet()
             ).currentArtworkCandidates()

@@ -69,6 +69,10 @@ class WidgetConfigStateHolder(
         repository.saveConfig(currentState().config.copy(allowLowQualityThumbnailFallback = enabled))
     }
 
+    fun setTripleTapToToggle(enabled: Boolean) {
+        repository.saveConfig(currentState().config.copy(tripleTapToToggle = enabled))
+    }
+
     fun savePosition(position: WidgetPosition) {
         repository.savePosition(position)
     }

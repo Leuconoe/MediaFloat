@@ -66,6 +66,7 @@ class AndroidMediaSessionRepositoryTest {
         val state = AndroidMediaSessionRepository.buildMediaSessionState(
             sessionId = "session-1",
             title = "Late Night Drive",
+            artist = null,
             artworkCandidates = artworkCandidates,
             playbackStatus = null,
             supportedActions = null
@@ -75,6 +76,7 @@ class AndroidMediaSessionRepositoryTest {
             MediaSessionState.Limited(
                 reason = MediaSessionLimitReason.PlaybackStateUnknown,
                 title = "Late Night Drive",
+                artist = null,
                 artworkCandidates = artworkCandidates,
                 supportedActions = emptySet()
             ),
@@ -95,6 +97,7 @@ class AndroidMediaSessionRepositoryTest {
         val state = AndroidMediaSessionRepository.buildMediaSessionState(
             sessionId = "session-2",
             title = "Neon Skyline Avenue",
+            artist = "Synthwave Collective",
             artworkCandidates = artworkCandidates,
             playbackStatus = PlaybackStatus.Playing,
             supportedActions = setOf(MediaCommand.Previous, MediaCommand.TogglePlayPause, MediaCommand.Next)
@@ -104,6 +107,7 @@ class AndroidMediaSessionRepositoryTest {
         state as MediaSessionState.Active
         assertEquals("session-2", state.sessionId)
         assertEquals("Neon Skyline Avenue", state.title)
+        assertEquals("Synthwave Collective", state.artist)
         assertEquals(artworkCandidates, state.artworkCandidates)
         assertEquals(PlaybackStatus.Playing, state.playbackStatus)
         assertEquals(

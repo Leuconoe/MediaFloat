@@ -178,6 +178,7 @@ fun AppShell(
     onSetHorizontalOffsetPreset: (Int) -> Unit = {},
     onSetPersistentOverlayEnabled: (Boolean) -> Unit = {},
     onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit = {},
+    onSetTripleTapToToggle: (Boolean) -> Unit = {},
     onStartOverlay: () -> Unit = {},
     onStopOverlay: () -> Unit = {},
     onDispatchPrevious: () -> Unit = {},
@@ -275,6 +276,7 @@ fun AppShell(
                             onSetHorizontalOffsetPreset = onSetHorizontalOffsetPreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                             onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
+                            onSetTripleTapToToggle = onSetTripleTapToToggle,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
                             onDispatchPrevious = onDispatchPrevious,
@@ -321,6 +323,7 @@ fun AppShell(
                             onSetHorizontalOffsetPreset = onSetHorizontalOffsetPreset,
                             onSetPersistentOverlayEnabled = onSetPersistentOverlayEnabled,
                             onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
+                            onSetTripleTapToToggle = onSetTripleTapToToggle,
                             onStartOverlay = onStartOverlay,
                             onStopOverlay = onStopOverlay,
                             onDispatchPrevious = onDispatchPrevious,
@@ -491,6 +494,7 @@ private fun SectionContent(
     onSetHorizontalOffsetPreset: (Int) -> Unit,
     onSetPersistentOverlayEnabled: (Boolean) -> Unit,
     onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
+    onSetTripleTapToToggle: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
     onDispatchPrevious: () -> Unit,
@@ -540,6 +544,7 @@ private fun SectionContent(
                     onSetDragHandlePlacement = onSetDragHandlePlacement,
                     onSetHorizontalOffsetPreset = onSetHorizontalOffsetPreset,
                     onSetLowQualityThumbnailFallbackEnabled = onSetLowQualityThumbnailFallbackEnabled,
+                    onSetTripleTapToToggle = onSetTripleTapToToggle,
                     onStartOverlay = onStartOverlay,
                     onStopOverlay = onStopOverlay,
                     wideLayout = wideLayout
@@ -639,6 +644,7 @@ private fun SettingsScreen(
     onSetDragHandlePlacement: (DragHandlePlacement) -> Unit,
     onSetHorizontalOffsetPreset: (Int) -> Unit,
     onSetLowQualityThumbnailFallbackEnabled: (Boolean) -> Unit,
+    onSetTripleTapToToggle: (Boolean) -> Unit,
     onStartOverlay: () -> Unit,
     onStopOverlay: () -> Unit,
     wideLayout: Boolean
@@ -688,6 +694,10 @@ private fun SettingsScreen(
                     config = widgetConfigState.config,
                     onSetEnabled = onSetLowQualityThumbnailFallbackEnabled
                 )
+                TripleTapToggleCard(
+                    enabled = widgetConfigState.config.tripleTapToToggle,
+                    onSetEnabled = onSetTripleTapToToggle
+                )
             }
         }
     } else {
@@ -726,6 +736,10 @@ private fun SettingsScreen(
         ThumbnailToggleCard(
             config = widgetConfigState.config,
             onSetEnabled = onSetLowQualityThumbnailFallbackEnabled
+        )
+        TripleTapToggleCard(
+            enabled = widgetConfigState.config.tripleTapToToggle,
+            onSetEnabled = onSetTripleTapToToggle
         )
     }
 }
@@ -2361,6 +2375,47 @@ private fun PermissionItem(
 }
 
 @Composable
+private fun TripleTapToggleCard(
+    enabled: Boolean,
+    onSetEnabled: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = PanelShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "Triple-tap to toggle",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = "Tap the drag handle three times quickly to show or hide the widget.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = onSetEnabled
+            )
+        }
+    }
+}
+
+@Composable
 private fun MediaStatusCard(
     mediaSummaryState: MediaSummaryState,
     modifier: Modifier = Modifier
@@ -3254,6 +3309,7 @@ private fun previewRuntimeState(): OverlayRuntimeState {
         mediaState = MediaSessionState.Active(
             sessionId = "preview-session",
             title = "Velvet City Lights After Midnight Remix",
+            artist = "Synthwave Collective",
             artworkCandidates = listOf(
                 MediaArtwork.UriSource(
                     source = MediaArtworkSource.MetadataArtUri,
@@ -3273,6 +3329,7 @@ private fun previewMediaSummaryState(): MediaSummaryState {
         mediaState = MediaSessionState.Active(
             sessionId = "preview-session",
             title = "Velvet City Lights After Midnight Remix",
+            artist = "Synthwave Collective",
             artworkCandidates = listOf(
                 MediaArtwork.UriSource(
                     source = MediaArtworkSource.MetadataArtUri,

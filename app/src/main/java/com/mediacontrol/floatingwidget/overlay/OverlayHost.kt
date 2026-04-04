@@ -20,4 +20,6 @@ interface OverlayHost {
     fun update(viewState: OverlayViewState)
 
     fun detach()
+
+    fun setOnToggleWidget(onToggle: () -> Unit)
 }

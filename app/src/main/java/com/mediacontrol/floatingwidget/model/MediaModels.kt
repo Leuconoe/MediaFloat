@@ -79,6 +79,7 @@ sealed interface MediaSessionState {
     data class Active(
         val sessionId: String,
         val title: String?,
+        val artist: String?,
         val artworkCandidates: List<MediaArtwork> = emptyList(),
         val supportedActions: Set<MediaCommand>,
         val playbackStatus: PlaybackStatus
@@ -87,6 +88,7 @@ sealed interface MediaSessionState {
     data class Limited(
         val reason: MediaSessionLimitReason,
         val title: String?,
+        val artist: String?,
         val artworkCandidates: List<MediaArtwork> = emptyList(),
         val supportedActions: Set<MediaCommand>
     ) : MediaSessionState
@@ -114,6 +116,20 @@ fun MediaSessionState.currentTitle(): String? {
         MediaSessionState.Unavailable,
         is MediaSessionState.Error -> null
     }
+}
+
+fun MediaSessionState.currentDisplayText(): String {
+    val t = when (this) {
+        is MediaSessionState.Active -> title.orEmpty()
+        is MediaSessionState.Limited -> title.orEmpty()
+        else -> ""
+    }
+    val a = when (this) {
+        is MediaSessionState.Active -> artist
+        is MediaSessionState.Limited -> artist
+        else -> null
+    }
+    return if (!a.isNullOrBlank() && t.isNotBlank()) "$a - $t" else t
 }
 
 fun MediaSessionState.currentArtworkCandidates(): List<MediaArtwork> {

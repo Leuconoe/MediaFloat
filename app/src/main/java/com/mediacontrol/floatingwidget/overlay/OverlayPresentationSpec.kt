@@ -4,7 +4,7 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import sw2.io.mediafloat.model.DragHandlePlacement
 import sw2.io.mediafloat.model.MediaSessionState
-import sw2.io.mediafloat.model.currentTitle
+import sw2.io.mediafloat.model.currentDisplayText
 import sw2.io.mediafloat.model.WidgetOverlayAppearance
 
 internal data class OverlayPresentationSpec(
@@ -34,7 +34,7 @@ internal object OverlayPresentationSpecFactory {
         dragHandlePlacement: DragHandlePlacement
     ): OverlayPresentationSpec {
         val sizing = appearance.sizing
-        val titleText = mediaState.currentTitle().orEmpty()
+        val titleText = mediaState.currentDisplayText()
         val titleVisible = true
         val metrics = OverlayLayoutCalculator.calculate(
             appearance = appearance,
