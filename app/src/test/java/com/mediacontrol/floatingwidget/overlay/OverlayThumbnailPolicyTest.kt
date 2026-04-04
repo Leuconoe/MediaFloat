@@ -90,6 +90,7 @@ class OverlayThumbnailPolicyTest {
             mediaState = MediaSessionState.Active(
                 sessionId = "session-preview",
                 title = "Late Bloom",
+                artist = null,
                 artworkCandidates = listOf(
                     MediaArtwork.UriSource(
                         source = MediaArtworkSource.MetadataArtUri,
