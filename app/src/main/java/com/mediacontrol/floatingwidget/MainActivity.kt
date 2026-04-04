@@ -107,6 +107,7 @@ class MainActivity : AppCompatActivity() {
                     onSetHorizontalOffsetPreset = ::setHorizontalOffsetPreset,
                     onSetPersistentOverlayEnabled = ::setPersistentOverlayEnabled,
                     onSetLowQualityThumbnailFallbackEnabled = ::setThumbnailEnabled,
+                    onSetTripleTapToToggle = ::setTripleTapToToggle,
                     onStartOverlay = ::startOverlay,
                     onStopOverlay = ::stopOverlay,
                     onDispatchPrevious = ::dispatchPrevious,
@@ -193,6 +194,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun setThumbnailEnabled(enabled: Boolean) {
         widgetConfigStateHolder.setLowQualityThumbnailFallbackEnabled(enabled)
+    }
+
+    private fun setTripleTapToToggle(enabled: Boolean) {
+        widgetConfigStateHolder.setTripleTapToToggle(enabled)
     }
 
     private fun setHorizontalOffsetPreset(xOffsetDp: Int) {

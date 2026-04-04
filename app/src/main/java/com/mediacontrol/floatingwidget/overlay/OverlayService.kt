@@ -184,6 +184,13 @@ class OverlayService : Service() {
         }
 
         currentMediaState = mediaRepository.refresh(reason = "overlay_attach")
+        overlayHost.setOnToggleWidget {
+            if (runtimeCoordinator.readinessRuntimeState() is sw2.io.mediafloat.model.OverlayRuntimeState.Showing) {
+                runtimeCoordinator.stopOverlay()
+            } else {
+                runtimeCoordinator.startOverlay()
+            }
+        }
         overlayHost.attach(
             OverlayViewState(
                 config = currentWidgetConfig,

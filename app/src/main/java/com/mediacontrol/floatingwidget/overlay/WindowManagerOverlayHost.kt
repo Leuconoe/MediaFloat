@@ -71,6 +71,13 @@ class WindowManagerOverlayHost(
     private var isDragging = false
     private var appliedDragHandlePlacement: DragHandlePlacement = DragHandlePlacement.Right
     private var appliedThumbnailSignature: String? = null
+    private var onToggleWidget: (() -> Unit)? = null
+    private var lastTapTime: Long = 0
+    private var tapCount: Int = 0
+
+    override fun setOnToggleWidget(onToggle: () -> Unit) {
+        onToggleWidget = onToggle
+    }
 
     override fun attach(viewState: OverlayViewState) {
         currentViewState = viewState
@@ -213,6 +220,20 @@ class WindowManagerOverlayHost(
             contentDescription = appContext.getString(R.string.overlay_drag_handle)
             gravity = Gravity.CENTER
             setOnTouchListener(DragTouchListener())
+            setOnClickListener {
+                val now = System.currentTimeMillis()
+                if (lastTapTime > 0 && now - lastTapTime < 500L) {
+                    tapCount++
+                    if (tapCount >= 3) {
+                        tapCount = 0
+                        lastTapTime = 0
+                        onToggleWidget?.invoke()
+                    }
+                } else {
+                    tapCount = 1
+                    lastTapTime = now
+                }
+            }
         }
     }
 

@@ -255,12 +255,14 @@ class AndroidMediaSessionRepository(
             displayTitle = controller.metadata?.getText(MediaMetadata.METADATA_KEY_DISPLAY_TITLE),
             title = controller.metadata?.getText(MediaMetadata.METADATA_KEY_TITLE)
         )
+        val artist = controller.metadata?.getText(MediaMetadata.METADATA_KEY_ARTIST)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
         val artworkCandidates = resolveArtworkCandidates(controller)
         val sessionId = "${controller.packageName}:${controller.sessionToken}"
         val playbackState = controller.playbackState
             ?: return buildMediaSessionState(
                 sessionId = sessionId,
                 title = title,
+                artist = artist,
                 artworkCandidates = artworkCandidates,
                 playbackStatus = null,
                 supportedActions = null
@@ -269,6 +271,7 @@ class AndroidMediaSessionRepository(
         return buildMediaSessionState(
             sessionId = sessionId,
             title = title,
+            artist = artist,
             artworkCandidates = artworkCandidates,
             playbackStatus = playbackState.state.toPlaybackStatus(),
             supportedActions = playbackState.actions.toSupportedCommands()
@@ -318,6 +321,7 @@ class AndroidMediaSessionRepository(
         fun buildMediaSessionState(
             sessionId: String,
             title: String?,
+            artist: String?,
             artworkCandidates: List<MediaArtwork> = emptyList(),
             playbackStatus: PlaybackStatus?,
             supportedActions: Set<MediaCommand>?
@@ -326,6 +330,7 @@ class AndroidMediaSessionRepository(
                 ?: return MediaSessionState.Limited(
                     reason = MediaSessionLimitReason.PlaybackStateUnknown,
                     title = title,
+                    artist = artist,
                     artworkCandidates = artworkCandidates,
                     supportedActions = emptySet()
                 )
@@ -336,6 +341,7 @@ class AndroidMediaSessionRepository(
                 MediaSessionState.Limited(
                     reason = MediaSessionLimitReason.MissingTransportControls,
                     title = title,
+                    artist = artist,
                     artworkCandidates = artworkCandidates,
                     supportedActions = emptySet()
                 )
@@ -343,6 +349,7 @@ class AndroidMediaSessionRepository(
                 MediaSessionState.Active(
                     sessionId = sessionId,
                     title = title,
+                    artist = artist,
                     artworkCandidates = artworkCandidates,
                     supportedActions = resolvedSupportedActions,
                     playbackStatus = resolvedPlaybackStatus

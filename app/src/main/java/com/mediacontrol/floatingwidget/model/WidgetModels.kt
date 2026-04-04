@@ -82,7 +82,8 @@ data class WidgetConfig(
     val themePreset: WidgetThemePreset = WidgetThemePreset.Dark,
     val opacity: Float = 1f,
     val persistentOverlayEnabled: Boolean = true,
-    val allowLowQualityThumbnailFallback: Boolean = false
+    val allowLowQualityThumbnailFallback: Boolean = false,
+    val tripleTapToToggle: Boolean = false
 )
 
 data class WidgetOverlaySizing(
