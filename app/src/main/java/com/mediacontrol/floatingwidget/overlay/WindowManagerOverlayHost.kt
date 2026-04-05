@@ -219,16 +219,12 @@ class WindowManagerOverlayHost(
             text = "|||"
             contentDescription = appContext.getString(R.string.overlay_drag_handle)
             gravity = Gravity.CENTER
+            isClickable = true
+            isFocusable = true
             setOnTouchListener(DragTouchListener())
-            setOnClickListener {
-                val now = System.currentTimeMillis()
-                if (lastTapTime > 0 && now - lastTapTime < 500L) {
-                    tapCount++
-                    if (tapCount >= 3) {
-                        tapCount = 0
-                        lastTapTime = 0
-                        onToggleWidget?.invoke()
-                    }
+        }
+    }
+    }
                 } else {
                     tapCount = 1
                     lastTapTime = now
@@ -482,6 +478,10 @@ class WindowManagerOverlayHost(
         private var initialTouchX = 0f
         private var initialTouchY = 0f
 
+        private var tapCount = 0
+        private var lastTapTime = 0L
+        private val TRIPLE_TAP_TIMEOUT = 500L
+
         override fun onTouch(view: View, event: MotionEvent): Boolean {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -493,30 +493,6 @@ class WindowManagerOverlayHost(
                     debugLogWriter.debug(TAG, "Overlay drag started", "x=${layoutParams.x} y=${layoutParams.y}")
                     return true
                 }
-
-                MotionEvent.ACTION_MOVE -> {
-                    layoutParams.x = (initialX + (event.rawX - initialTouchX).toInt()).coerceAtLeast(0)
-                    layoutParams.y = (initialY + (event.rawY - initialTouchY).toInt()).coerceAtLeast(0)
-                    if (attached) {
-                        windowManager.updateViewLayout(rootView, layoutParams)
-                    }
-                    return true
-                }
-
-                MotionEvent.ACTION_UP,
-                MotionEvent.ACTION_CANCEL -> {
-                    try {
-                        persistCurrentPosition()
-                    } finally {
-                        isDragging = false
-                        debugLogWriter.debug(TAG, "Overlay drag finished", "x=${layoutParams.x} y=${layoutParams.y}")
-                    }
-                    return true
-                }
-            }
-            return false
-        }
-    }
 
     private companion object {
         const val TAG = "OverlayHost"
