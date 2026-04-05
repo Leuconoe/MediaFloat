@@ -224,13 +224,10 @@ class WindowManagerOverlayHost(
             setOnTouchListener(DragTouchListener())
         }
     }
+
+    private fun buttonVisibility(button: WidgetButton, viewState: OverlayViewState): Int {
+        return if (button in viewState.layout.visibleButtons) View.VISIBLE else View.GONE
     }
-                } else {
-                    tapCount = 1
-                    lastTapTime = now
-                }
-            }
-        }
     }
 
     private fun buttonVisibility(button: WidgetButton, viewState: OverlayViewState): Int {
@@ -477,7 +474,7 @@ class WindowManagerOverlayHost(
         private var initialY = 0
         private var initialTouchX = 0f
         private var initialTouchY = 0f
-
+        
         private var tapCount = 0
         private var lastTapTime = 0L
         private val TRIPLE_TAP_TIMEOUT = 500L
@@ -490,9 +487,44 @@ class WindowManagerOverlayHost(
                     initialY = layoutParams.y
                     initialTouchX = event.rawX
                     initialTouchY = event.rawY
-                    debugLogWriter.debug(TAG, "Overlay drag started", "x=${layoutParams.x} y=${layoutParams.y}")
                     return true
                 }
+
+                MotionEvent.ACTION_MOVE -> {
+                    layoutParams.x = (initialX + (event.rawX - initialTouchX).toInt()).coerceAtLeast(0)
+                    layoutParams.y = (initialY + (event.rawY - initialTouchY).toInt()).coerceAtLeast(0)
+                    if (attached) {
+                        windowManager.updateViewLayout(rootView, layoutParams)
+                    }
+                    return true
+                }
+
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_CANCEL -> {
+                    try {
+                        val now = System.currentTimeMillis()
+                        if (now - lastTapTime < TRIPLE_TAP_TIMEOUT) {
+                            tapCount++
+                        } else {
+                            tapCount = 1
+                        }
+                        lastTapTime = now
+
+                        if (tapCount >= 3) {
+                            onToggleWidget?.invoke()
+                            tapCount = 0
+                        }
+                        
+                        persistCurrentPosition()
+                    } finally {
+                        isDragging = false
+                    }
+                    return true
+                }
+            }
+            return false
+        }
+    }
 
     private companion object {
         const val TAG = "OverlayHost"
