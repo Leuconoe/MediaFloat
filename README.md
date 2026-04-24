@@ -13,14 +13,20 @@
 </p>
 
 <p align="center">
-  <strong>v0.3.3</strong> · <strong>Android 10+</strong> · <strong>Kotlin</strong> · <strong>Jetpack Compose</strong>
+  <a href="https://play.google.com/store/apps/details?id=sw2.io.mediafloat">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="180" alt="Get it on Google Play" />
+  </a>
+</p>
+
+<p align="center">
+  <strong>Android 10+</strong> · <strong>Kotlin</strong> · <strong>Jetpack Compose</strong>
 </p>
 
 ## Why MediaFloat
 
 MediaFloat focuses on one job: giving Android media controls a small, movable surface that stays available above other apps. The app stays intentionally narrow so setup, runtime behavior, and recovery remain understandable.
 
-## What ships in v0.3.3
+## Features
 
 - A floating overlay bar for `Previous`, `Play / pause`, and `Next`
 - Saved overlay position, width presets, theme presets, and persistent runtime behavior
@@ -86,12 +92,12 @@ If readiness is blocked, the app exposes shortcuts back to the relevant system s
 - `Main` - start or stop the overlay quickly and see whether setup is ready
 - `Settings` - adjust visible buttons, size presets, width, opacity, and core widget behavior
 - `Advanced` - choose app language, theme preset, sidebar side, persistent overlay mode, and Debug visibility
-- `Support` - review setup guidance, runtime/media status, version details, product constraints, and license notices
+- `Support` - review setup guidance, runtime/media status, build details, product constraints, and license notices
 - `Debug` - inspect runtime readiness, inspect media readiness, send transport commands, start or stop the overlay, clear logs, and review recent events
 
 ## App language support
 
-MediaFloat `v0.3.3` uses the AppCompat app-language path so locale selection works on Android 13+ and older supported versions.
+MediaFloat uses the AppCompat app-language path so locale selection works on Android 13+ and older supported versions.
 
 Available app languages:
 
