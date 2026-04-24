@@ -8,7 +8,8 @@ plugins {
 
 android {
     namespace = "sw2.io.mediafloat"
-    compileSdk = 35
+    compileSdk = 36
+    buildToolsVersion = "36.0.0"
 
     val keystorePropertiesFile = rootProject.file("keystore.properties")
     if (keystorePropertiesFile.exists()) {
@@ -35,8 +36,8 @@ android {
         applicationId = "sw2.io.mediafloat"
         minSdk = 29
         targetSdk = 35
-        versionCode = 8
-        versionName = "0.3.0"
+        versionCode = 33
+        versionName = "0.3.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

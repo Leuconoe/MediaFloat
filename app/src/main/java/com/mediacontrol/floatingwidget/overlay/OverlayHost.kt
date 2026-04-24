@@ -21,5 +21,5 @@ interface OverlayHost {
 
     fun detach()
 
-    fun setOnToggleWidget(onToggle: () -> Unit)
+    fun setOnStopWidget(onStop: () -> Unit)
 }

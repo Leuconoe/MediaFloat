@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -33,6 +34,7 @@ import sw2.io.mediafloat.model.supports
 import sw2.io.mediafloat.overlay.OverlayLayoutCalculator
 import sw2.io.mediafloat.overlay.OverlayBitmapLoader
 import sw2.io.mediafloat.overlay.OverlayPresentationSpecFactory
+import kotlin.math.abs
 
 class WindowManagerOverlayHost(
     context: Context,
@@ -45,6 +47,8 @@ class WindowManagerOverlayHost(
     private val appContext = context.applicationContext
     private val windowManager = appContext.getSystemService(WindowManager::class.java)
     private val bitmapLoader = OverlayBitmapLoader(appContext.contentResolver)
+    private val touchSlop = ViewConfiguration.get(appContext).scaledTouchSlop
+    private val tripleTapDetector = TripleTapDetector()
     private val previousButton by lazy { createCommandButton(MediaCommand.Previous) }
     private val playPauseButton by lazy { createCommandButton(MediaCommand.TogglePlayPause) }
     private val nextButton by lazy { createCommandButton(MediaCommand.Next) }
@@ -71,12 +75,10 @@ class WindowManagerOverlayHost(
     private var isDragging = false
     private var appliedDragHandlePlacement: DragHandlePlacement = DragHandlePlacement.Right
     private var appliedThumbnailSignature: String? = null
-    private var onToggleWidget: (() -> Unit)? = null
-    private var lastTapTime: Long = 0
-    private var tapCount: Int = 0
+    private var onStopWidget: (() -> Unit)? = null
 
-    override fun setOnToggleWidget(onToggle: () -> Unit) {
-        onToggleWidget = onToggle
+    override fun setOnStopWidget(onStop: () -> Unit) {
+        onStopWidget = onStop
     }
 
     override fun attach(viewState: OverlayViewState) {
@@ -219,21 +221,8 @@ class WindowManagerOverlayHost(
             text = "|||"
             contentDescription = appContext.getString(R.string.overlay_drag_handle)
             gravity = Gravity.CENTER
+            isClickable = true
             setOnTouchListener(DragTouchListener())
-            setOnClickListener {
-                val now = System.currentTimeMillis()
-                if (lastTapTime > 0 && now - lastTapTime < 500L) {
-                    tapCount++
-                    if (tapCount >= 3) {
-                        tapCount = 0
-                        lastTapTime = 0
-                        onToggleWidget?.invoke()
-                    }
-                } else {
-                    tapCount = 1
-                    lastTapTime = now
-                }
-            }
         }
     }
 
@@ -481,11 +470,13 @@ class WindowManagerOverlayHost(
         private var initialY = 0
         private var initialTouchX = 0f
         private var initialTouchY = 0f
+        private var hasMovedPastTapSlop = false
 
         override fun onTouch(view: View, event: MotionEvent): Boolean {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     isDragging = true
+                    hasMovedPastTapSlop = false
                     initialX = layoutParams.x
                     initialY = layoutParams.y
                     initialTouchX = event.rawX
@@ -495,22 +486,44 @@ class WindowManagerOverlayHost(
                 }
 
                 MotionEvent.ACTION_MOVE -> {
-                    layoutParams.x = (initialX + (event.rawX - initialTouchX).toInt()).coerceAtLeast(0)
-                    layoutParams.y = (initialY + (event.rawY - initialTouchY).toInt()).coerceAtLeast(0)
-                    if (attached) {
-                        windowManager.updateViewLayout(rootView, layoutParams)
+                    val deltaX = event.rawX - initialTouchX
+                    val deltaY = event.rawY - initialTouchY
+                    if (!hasMovedPastTapSlop && (abs(deltaX) > touchSlop || abs(deltaY) > touchSlop)) {
+                        hasMovedPastTapSlop = true
+                    }
+                    if (hasMovedPastTapSlop) {
+                        layoutParams.x = (initialX + deltaX.toInt()).coerceAtLeast(0)
+                        layoutParams.y = (initialY + deltaY.toInt()).coerceAtLeast(0)
+                        if (attached) {
+                            windowManager.updateViewLayout(rootView, layoutParams)
+                        }
                     }
                     return true
                 }
 
-                MotionEvent.ACTION_UP,
-                MotionEvent.ACTION_CANCEL -> {
+                MotionEvent.ACTION_UP -> {
                     try {
-                        persistCurrentPosition()
+                        if (hasMovedPastTapSlop) {
+                            tripleTapDetector.reset()
+                            persistCurrentPosition()
+                        } else {
+                            view.performClick()
+                            if (tripleTapDetector.recordTap()) {
+                                debugLogWriter.info(TAG, "Overlay drag handle triple-tapped")
+                                onStopWidget?.invoke()
+                            }
+                        }
                     } finally {
                         isDragging = false
                         debugLogWriter.debug(TAG, "Overlay drag finished", "x=${layoutParams.x} y=${layoutParams.y}")
                     }
+                    return true
+                }
+
+                MotionEvent.ACTION_CANCEL -> {
+                    tripleTapDetector.reset()
+                    isDragging = false
+                    debugLogWriter.debug(TAG, "Overlay drag cancelled", "x=${layoutParams.x} y=${layoutParams.y}")
                     return true
                 }
             }

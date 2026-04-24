@@ -2,6 +2,16 @@
 
 All notable user-facing changes to MediaFloat are recorded here.
 
+## v0.3.3
+
+Triple-tap reliability release.
+
+- Fixed the drag-handle triple-tap gesture so it stops the floating widget from the overlay
+- Split tap and drag handling on the overlay handle so dragging still saves position normally
+- Updated AndroidX test dependencies for API 36 AVD instrumentation compatibility
+
+See also: `docs/releases/v0.3.3.md`
+
 ## v0.2.4
 
 Layout and thumbnail follow-up release.
